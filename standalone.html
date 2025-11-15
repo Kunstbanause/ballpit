@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ball x Pit Evolution Web</title>
+    <title>Ball x Pit</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -767,10 +767,16 @@
               .map(evo => evo.ingredients.map(ing => nameMap[ing] || ing).join(' + '));
           }, [activeNode, evolutions, nameMap]);
 
+          const descriptionForActiveNode = useMemo(() => {
+            if (!activeNode || !evolutions) return '';
+            const evo = evolutions.find(e => e.name === activeNode);
+            return evo ? evo.description : '';
+          }, [activeNode, evolutions]);
+
           return (
             <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 p-6">
               <div className="max-w-full">
-                <h1 className="text-4xl font-bold text-white mb-2">Ball x Pit Evolution Web</h1>
+                <h1 className="text-4xl font-bold text-white mb-2">Ball x Pit Ballz</h1>
                 <div className="relative mb-4 max-w-md">
                   <input
                     type="text"
@@ -790,7 +796,7 @@
                   )}
                 </div>
 
-                <div className="bg-slate-800 rounded-lg overflow-y-auto overflow-x-auto" style={{ maxHeight: '80vh' }}>
+                <div className="bg-slate-800 rounded-lg overflow-y-auto overflow-x-auto" style={{ maxHeight: '60vh' }}>
                   <svg
                     width={svgWidth}
                     height={svgHeight}
@@ -889,12 +895,13 @@
 
                 {activeNode && (
                   <div className="mt-4 bg-slate-800 rounded-lg p-4 max-w-md">
-                    <h3 className="text-white font-semibold mb-2">{nameMap[activeNode] || activeNode}</h3>
+                    <h3 className="text-white font-semibold mb-2">
+                        {(nameMap[activeNode] || activeNode)}
+                        {descriptionForActiveNode && `: ${descriptionForActiveNode}`}
+                    </h3>
                     {recipesForActiveNode.length > 0 ? (
                       <div className="text-slate-300 text-sm">
-                        {recipesForActiveNode.map((recipe, i) => (
-                          <div key={i}>{recipe}</div>
-                        ))}
+                        {recipesForActiveNode.join('; ')}
                       </div>
                     ) : null}
                   </div>
