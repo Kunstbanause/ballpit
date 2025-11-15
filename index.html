@@ -613,8 +613,8 @@
           const rowSpacing = 80;
           const evoSpacing = 60;
 
-          const { positions, svgWidth, svgHeight } = useMemo(() => {
-            if (!uniqueEvos || !baseElements) return { positions: {}, svgWidth: 1400, svgHeight: 900 };
+          const { positions, svgWidth, svgHeight, levels } = useMemo(() => {
+            if (!uniqueEvos || !baseElements) return { positions: {}, svgWidth: 1400, svgHeight: 900, levels: {} };
             
             const levels = {};
             let maxLevel = 0;
@@ -712,7 +712,7 @@
             }
 
             const newSvgWidth = level2PlusStartX + (maxLevel > 1 ? (maxLevel - 1) * columnWidth : 0) + baseWidth + 40;
-            return { positions, svgWidth: newSvgWidth, svgHeight: totalHeight + baseHeight };
+            return { positions, svgWidth: newSvgWidth, svgHeight: totalHeight + baseHeight, levels };
           }, [uniqueEvos, baseElements]);
 
           const getAncestors = (ballName, allEvolutions) => {
@@ -945,6 +945,9 @@
                       {uniqueEvos.map((evo, idx) => {
                           const pos = positions[evo.name];
                           if (!pos) return null;
+                          
+                          const level = levels[evo.name];
+                          const isUltimate = level >= 2;
                           const isSelected = selectedBall === evo.name;
                           const isInChain = highlightedChain.has(evo.name);
 
@@ -953,8 +956,8 @@
                               <rect
                                 x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
                                 fill={getColor(evo.name)}
-                                stroke={isSelected ? '#fff' : isInChain ? '#3b82f6' : 'none'}
-                                strokeWidth={isSelected ? 2 : isInChain ? 1.5 : 0}
+                                stroke={isSelected ? '#fff' : (isUltimate ? 'gold' : (isInChain ? '#3b82f6' : 'none'))}
+                                strokeWidth={isSelected ? 2 : (isUltimate ? 2.5 : (isInChain ? 1.5 : 0))}
                                 opacity={!selectedBall || isInChain ? 1 : 0.3}
                                 className="cursor-pointer transition-all hover:opacity-100"
                                 onClick={() => setSelectedBall(selectedBall === evo.name ? null : evo.name)}
