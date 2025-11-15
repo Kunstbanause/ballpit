@@ -104,48 +104,25 @@
 
           const getColor = (element) => {
             const colors = {
-              'BLEED': '#dc2626',
-              'BROOD MOTHER': '#9333ea',
-              'BURN': '#ea580c',
-              'CELL': '#16a34a',
-              'CHARM': '#db2777',
-              'DARK': '#1f2937',
-              'EARTHQUAKE': '#b45309',
-              'EGG SACK': '#65a30d',
-              'FREEZE': '#0891b2',
-              'GHOST': '#475569',
-              'IRON': '#64748b',
-              'LASER': '#eab308',
-              'LASER HORIZONTAL': '#eab308',
-              'LASER VERTICAL': '#eab308',
-              'LIGHT': '#facc15',
-              'LIGHTNING': '#4f46e5',
-              'POISON': '#059669',
-              'VAMPIRE': '#be185d',
-              'WIND': '#0369a1',
+              'BLEED': '#dc2626', 'BROOD MOTHER': '#9333ea', 'BURN': '#ea580c', 'CELL': '#16a34a', 'CHARM': '#db2777',
+              'DARK': '#1f2937', 'EARTHQUAKE': '#b45309', 'EGG SACK': '#65a30d', 'FREEZE': '#0891b2', 'GHOST': '#475569',
+              'IRON': '#64748b', 'LASER': '#eab308', 'LASER HORIZONTAL': '#eab308', 'LASER VERTICAL': '#eab308',
+              'LIGHT': '#facc15', 'LIGHTNING': '#4f46e5', 'POISON': '#059669', 'VAMPIRE': '#be185d', 'WIND': '#0369a1',
             };
+            const evoColorSource = uniqueEvos.find(e => e.name === element);
+            if (evoColorSource) return colors[evoColorSource.ingredients[0]] || '#6b7280';
             return colors[element] || '#6b7280';
-          };
-
-          const getGroup = (evo) => {
-            const firstIngredient = evo.ingredients[0];
-            const groupIndex = baseElements.indexOf(firstIngredient);
-            return groupIndex >= 0 ? groupIndex : baseElements.length;
           };
 
           const getIconSlug = (name) => {
             if (!name) return '';
-            return name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+            return name.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
           };
 
           const getIconUrls = (name) => {
             const slug = getIconSlug(name);
             if (!slug) return [];
-            return [
-              `icons/${slug}.svg`,
-              `icons/${slug}.png`,
-              `icons/${slug}.jpg`,
-            ];
+            return [`icons/${slug}.png`];
           };
 
           const uniqueEvos = useMemo(() => {
@@ -161,55 +138,130 @@
             return result;
           }, []);
 
-          const evosByGroup = useMemo(() => {
-            const groups = {};
-            uniqueEvos.forEach(evo => {
-              const group = getGroup(evo);
-              if (!groups[group]) {
-                groups[group] = [];
-              }
-              groups[group].push(evo);
-            });
-            return groups;
-          }, [uniqueEvos]);
-
           const baseWidth = 140;
           const baseHeight = 45;
           const rowSpacing = 80;
           const evoSpacing = 60;
-          const svgWidth = 1400;
 
-          const getBasePos = (index) => {
-            const x = 40;
-            const y = 50 + index * rowSpacing;
-            return { x, y };
-          };
+          const { positions, svgWidth, svgHeight } = useMemo(() => {
+            const levels = {};
+            let maxLevel = 0;
+            baseElements.forEach(b => levels[b] = 0);
 
-          const { evoGroupYStarts, svgHeight } = useMemo(() => {
-            const groupStarts = {};
-            let currentY = 50;
-            const sortedGroupIndices = Object.keys(evosByGroup).map(Number).sort((a, b) => a - b);
+            let changed = true;
+            while (changed) {
+              changed = false;
+              uniqueEvos.forEach(evo => {
+                if (levels[evo.name] !== undefined) return;
+                const ingredientLevels = evo.ingredients.map(ing => levels[ing]);
+                if (ingredientLevels.some(l => l === undefined)) return;
+                const maxIngredientLevel = Math.max(...ingredientLevels);
+                levels[evo.name] = maxIngredientLevel + 1;
+                if (levels[evo.name] > maxLevel) maxLevel = levels[evo.name];
+                changed = true;
+              });
+            }
             
-            for (const groupIndex of sortedGroupIndices) {
-                const baseNodeY = 50 + groupIndex * rowSpacing;
-                currentY = Math.max(currentY, baseNodeY);
-                groupStarts[groupIndex] = currentY;
-                const groupSize = evosByGroup[groupIndex].length;
-                currentY += groupSize * evoSpacing;
+            uniqueEvos.forEach(evo => {
+                if (levels[evo.name] === undefined) {
+                    levels[evo.name] = maxLevel + 1;
+                }
+            });
+
+            const positions = {};
+            const columnWidth = baseWidth + 100;
+            
+            baseElements.forEach((element, idx) => {
+              positions[element] = { x: 40, y: 50 + idx * rowSpacing };
+            });
+
+            let totalHeight = 50 + baseElements.length * rowSpacing;
+
+            for (let level = 1; level <= maxLevel + 1; level++) {
+              const nodesInLevel = Object.keys(levels).filter(name => levels[name] === level);
+              const nodesWithTargetY = nodesInLevel.map(name => {
+                const evo = uniqueEvos.find(e => e.name === name) || { ingredients: [] };
+                const ingredientPositions = evo.ingredients.map(ing => positions[ing]).filter(p => p);
+                let targetY = 0;
+                if (ingredientPositions.length > 0) {
+                  targetY = ingredientPositions.reduce((sum, p) => sum + p.y, 0) / ingredientPositions.length;
+                }
+                return { name, targetY };
+              });
+
+              nodesWithTargetY.sort((a, b) => a.targetY - b.targetY);
+
+              let lastYInColumn = 0;
+              nodesWithTargetY.forEach(({ name, targetY }) => {
+                const x = 40 + level * columnWidth;
+                const y = Math.max(targetY, lastYInColumn + evoSpacing);
+                positions[name] = { x, y };
+                lastYInColumn = y;
+              });
+              if (lastYInColumn > totalHeight) totalHeight = lastYInColumn;
             }
 
-            const baseElementsHeight = (baseElements.length - 1) * rowSpacing + 50 + baseHeight;
-            const newSvgHeight = Math.max(currentY, baseElementsHeight) + 50; // Add some padding
+            const newSvgWidth = 40 + (maxLevel + 1) * columnWidth + baseWidth + 40;
+            return { positions, svgWidth: newSvgWidth, svgHeight: totalHeight + baseHeight };
+          }, [uniqueEvos, baseElements]);
 
-            return { evoGroupYStarts: groupStarts, svgHeight: newSvgHeight };
-          }, [evosByGroup, baseElements]);
+          const NodeContent = ({ name, pos }) => {
+            const urls = getIconUrls(name);
+            const imgSize = 36;
+            const padding = 5;
+            const imgX = pos.x + padding;
+            const imgY = pos.y + (baseHeight - imgSize) / 2;
+            const primary = urls[0];
+            
+            const textX = pos.x + padding + imgSize + padding;
+            const textY = pos.y + baseHeight / 2;
 
-          const getEvoPos = (groupIndex, indexInGroup) => {
-            const x = 300;
-            const groupStartY = evoGroupYStarts[groupIndex] || (50 + groupIndex * rowSpacing);
-            const y = groupStartY + indexInGroup * evoSpacing;
-            return { x, y };
-          };
+            const wrapText = (text) => {
+                const maxCharsPerLine = 15;
+                if (text.length <= maxCharsPerLine) return [text];
+                const words = text.split(' ');
+                const lines = [];
+                let currentLine = '';
+                for(const word of words) {
+                    if ((currentLine + ' ' + word).trim().length > maxCharsPerLine && currentLine.length > 0) {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    } else {
+                        currentLine = (currentLine + ' ' + word).trim();
+                    }
+                }
+                if (currentLine) lines.push(currentLine);
+                return lines;
+            };
+            const lines = wrapText(name);
+
+            return (
+                <g>
+                    {primary && (
+                        <image
+                            href={primary} x={imgX} y={imgY} width={imgSize} height={imgSize}
+                            preserveAspectRatio="xMidYMid slice"
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                            className="pointer-events-none select-none"
+                        />
+                    )}
+                    <text
+                        x={textX}
+                        y={textY - (lines.length > 1 ? (lines.length - 1) * 6 : 0)}
+                        textAnchor="start"
+                        dominantBaseline="middle"
+                        fontSize={name.length > 15 ? "10" : "11"}
+                        fontWeight="bold"
+                        fill="white"
+                        className="pointer-events-none select-none"
+                    >
+                        {lines.map((line, i) => (
+                            <tspan key={i} x={textX} dy={i === 0 ? 0 : '1.2em'}>{line}</tspan>
+                        ))}
+                    </text>
+                </g>
+            );
+        };
 
           const [searchTerm, setSearchTerm] = useState('');
 
@@ -223,7 +275,7 @@
             if (!searchTerm) return [];
             return allNodeNames
               .filter(name => name.toLowerCase().includes(searchTerm.toLowerCase()))
-              .slice(0, 10); // Limit results for performance
+              .slice(0, 10);
           }, [searchTerm, allNodeNames]);
 
 
@@ -267,29 +319,20 @@
                     style={{ minHeight: '900px', display: 'block' }}
                   >
                     <defs>
-                      <marker
-                        id="arrowhead"
-                        markerWidth="10"
-                        markerHeight="10"
-                        refX="8"
-                        refY="3"
-                        orient="auto"
-                      >
+                      <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
                         <polygon points="0 0, 10 3, 0 6" fill="#94a3b8" />
                       </marker>
                     </defs>
 
                     {uniqueEvos.map((evo, idx) => {
-                      const group = getGroup(evo);
-                      const indexInGroup = evosByGroup[group].indexOf(evo);
-                      const endPos = getEvoPos(group, indexInGroup);
+                      const endPos = positions[evo.name];
+                      if (!endPos) return null;
 
                       return evo.ingredients.map((ing, ingIdx) => {
-                        const ingIndex = baseElements.indexOf(ing);
-                        if (ingIndex === -1) return null;
-
-                        const startPos = getBasePos(ingIndex);
-                        const isHighlighted = selectedBall && (selectedBall === evo.name || selectedBall === ing);
+                        const startPos = positions[ing];
+                        if (!startPos) return null;
+                        
+                        const isHighlighted = selectedBall && (selectedBall === evo.name || selectedBall === ing || evo.ingredients.includes(selectedBall));
 
                         return (
                           <line
@@ -308,8 +351,9 @@
                       });
                     })}
 
-                    {baseElements.map((element, idx) => {
-                      const pos = getBasePos(idx);
+                    {baseElements.map((element) => {
+                      const pos = positions[element];
+                      if (!pos) return null;
                       const isSelected = selectedBall === element;
                       const isConnected = evolutions.some(
                         e => (e.name === selectedBall && e.ingredients.includes(element)) ||
@@ -319,11 +363,7 @@
                       return (
                         <g key={`base-${element}`}>
                           <rect
-                            x={pos.x}
-                            y={pos.y}
-                            width={baseWidth}
-                            height={baseHeight}
-                            rx="4"
+                            x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
                             fill={getColor(element)}
                             stroke={isSelected ? '#fff' : isConnected && selectedBall ? '#3b82f6' : 'none'}
                             strokeWidth={isSelected ? 2 : isConnected && selectedBall ? 1.5 : 0}
@@ -333,62 +373,14 @@
                             onMouseEnter={() => setHoveredNode(element)}
                             onMouseLeave={() => setHoveredNode(null)}
                           />
-                          {(() => {
-                            const urls = getIconUrls(element);
-                            const imgSize = 36;
-                            const padding = 5;
-                            const imgX = pos.x + padding;
-                            const imgY = pos.y + (baseHeight - imgSize) / 2;
-                            const primary = urls[0];
-                            const fallback = urls[1];
-                            return (
-                              <g>
-                                {primary && (
-                                  <image
-                                    href={primary}
-                                    x={imgX}
-                                    y={imgY}
-                                    width={imgSize}
-                                    height={imgSize}
-                                    preserveAspectRatio="xMidYMid slice"
-                                    onError={(e) => {
-                                      try {
-                                        const cur = e.target.getAttribute('href');
-                                        if (cur && cur.endsWith('.svg') && fallback) {
-                                          e.target.setAttribute('href', fallback);
-                                        } else {
-                                          e.target.style.display = 'none';
-                                        }
-                                      } catch (err) {
-                                        e.target.style.display = 'none';
-                                      }
-                                    }}
-                                    className="pointer-events-none select-none"
-                                  />
-                                )}
-                                <text
-                                  x={pos.x + padding + imgSize + padding}
-                                  y={pos.y + baseHeight / 2}
-                                  textAnchor="start"
-                                  dominantBaseline="middle"
-                                  fontSize="12"
-                                  fontWeight="bold"
-                                  fill="white"
-                                  className="pointer-events-none select-none"
-                                >
-                                  {element}
-                                </text>
-                              </g>
-                            );
-                          })()}
+                          <NodeContent name={element} pos={pos} />
                         </g>
                       );
                     })}
 
-                    {Object.entries(evosByGroup).map(([groupIdx, eveList]) => {
-                      const gIdx = parseInt(groupIdx);
-                      return eveList.map((evo, indexInGroup) => {
-                        const pos = getEvoPos(gIdx, indexInGroup);
+                    {uniqueEvos.map((evo, idx) => {
+                        const pos = positions[evo.name];
+                        if (!pos) return null;
                         const isSelected = selectedBall === evo.name;
                         const isConnected = evolutions.some(
                           e => (e.name === selectedBall && e.ingredients.includes(evo.name)) ||
@@ -396,14 +388,10 @@
                         );
 
                         return (
-                          <g key={`evo-${evo.name}-${indexInGroup}`}>
+                          <g key={`evo-${evo.name}-${idx}`}>
                             <rect
-                              x={pos.x}
-                              y={pos.y}
-                              width={baseWidth}
-                              height={baseHeight}
-                              rx="4"
-                              fill={getColor(evo.ingredients[0])}
+                              x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
+                              fill={getColor(evo.name)}
                               stroke={isSelected ? '#fff' : isConnected && selectedBall ? '#3b82f6' : 'none'}
                               strokeWidth={isSelected ? 2 : isConnected && selectedBall ? 1.5 : 0}
                               opacity={!selectedBall || isSelected || isConnected ? 1 : 0.3}
@@ -412,57 +400,9 @@
                               onMouseEnter={() => setHoveredNode(evo.name)}
                               onMouseLeave={() => setHoveredNode(null)}
                             />
-                            {(() => {
-                              const urls = getIconUrls(evo.name);
-                              const imgSize = 36;
-                              const padding = 5;
-                              const imgX = pos.x + padding;
-                              const imgY = pos.y + (baseHeight - imgSize) / 2;
-                              const primary = urls[0];
-                              const fallback = urls[1];
-                              return (
-                                <g>
-                                  {primary && (
-                                    <image
-                                      href={primary}
-                                      x={imgX}
-                                      y={imgY}
-                                      width={imgSize}
-                                      height={imgSize}
-                                      preserveAspectRatio="xMidYMid slice"
-                                      onError={(e) => {
-                                        try {
-                                          const cur = e.target.getAttribute('href');
-                                          if (cur && cur.endsWith('.svg') && fallback) {
-                                            e.target.setAttribute('href', fallback);
-                                          } else {
-                                            e.target.style.display = 'none';
-                                          }
-                                        } catch (err) {
-                                          e.target.style.display = 'none';
-                                        }
-                                      }}
-                                      className="pointer-events-none select-none"
-                                    />
-                                  )}
-                                  <text
-                                    x={pos.x + padding + imgSize + padding}
-                                    y={pos.y + baseHeight / 2}
-                                    textAnchor="start"
-                                    dominantBaseline="middle"
-                                    fontSize="11"
-                                    fontWeight="bold"
-                                    fill="white"
-                                    className="pointer-events-none select-none"
-                                  >
-                                    {evo.name.substring(0, 16)}
-                                  </text>
-                                </g>
-                              );
-                            })()}
+                            <NodeContent name={evo.name} pos={pos} />
                           </g>
                         );
-                      });
                     })}
                   </svg>
                 </div>
