@@ -1,0 +1,319 @@
+import { useState, useMemo } from 'react';
+
+export default function BallEvolutionGraph() {
+  const [selectedBall, setSelectedBall] = useState(null);
+  const [hoveredNode, setHoveredNode] = useState(null);
+
+  const evolutions = [
+    { name: 'Leech', ingredients: ['BLEED', 'BROOD MOTHER'] },
+    { name: 'Berserk', ingredients: ['BLEED', 'CHARM'] },
+    { name: 'Berserk', ingredients: ['BURN', 'CHARM'] },
+    { name: 'Sacrifice', ingredients: ['BLEED', 'DARK'] },
+    { name: 'Hemorrhage', ingredients: ['BLEED', 'IRON'] },
+    { name: 'Virus', ingredients: ['BLEED', 'POISON'] },
+    { name: 'Vampire Lord', ingredients: ['BLEED', 'VAMPIRE'] },
+    { name: 'Maggot', ingredients: ['BROOD MOTHER', 'CELL'] },
+    { name: 'Spider Queen', ingredients: ['BROOD MOTHER', 'EGG SACK'] },
+    { name: 'Mosquito King', ingredients: ['BROOD MOTHER', 'VAMPIRE'] },
+    { name: 'Magma', ingredients: ['BURN', 'EARTHQUAKE'] },
+    { name: 'Frozen Flame', ingredients: ['BURN', 'FREEZE'] },
+    { name: 'Bomb', ingredients: ['BURN', 'IRON'] },
+    { name: 'Sun', ingredients: ['BURN', 'LIGHT'] },
+    { name: 'Inferno', ingredients: ['BURN', 'WIND'] },
+    { name: 'Overgrowth', ingredients: ['CELL', 'EARTHQUAKE'] },
+    { name: 'Voluptuous Egg sack', ingredients: ['CELL', 'EGG SACK'] },
+    { name: 'Radiation Beam', ingredients: ['CELL', 'LASER'] },
+    { name: 'Virus', ingredients: ['CELL', 'POISON'] },
+    { name: 'Incubus', ingredients: ['CHARM', 'DARK'] },
+    { name: 'Lovestruck', ingredients: ['CHARM', 'LIGHT'] },
+    { name: 'Lovestruck', ingredients: ['CHARM', 'LIGHTNING'] },
+    { name: 'Succubus', ingredients: ['CHARM', 'VAMPIRE'] },
+    { name: 'Phantom', ingredients: ['DARK', 'GHOST'] },
+    { name: 'Assassin', ingredients: ['DARK', 'IRON'] },
+    { name: 'Flicker', ingredients: ['DARK', 'LIGHT'] },
+    { name: 'Vampire Lord', ingredients: ['DARK', 'VAMPIRE'] },
+    { name: 'Noxious', ingredients: ['DARK', 'WIND'] },
+    { name: 'Black Hole', ingredients: ['DARK', 'SUN'] },
+    { name: 'Glacier', ingredients: ['EARTHQUAKE', 'FREEZE'] },
+    { name: 'Swamp', ingredients: ['EARTHQUAKE', 'POISON'] },
+    { name: 'Sandstorm', ingredients: ['EARTHQUAKE', 'WIND'] },
+    { name: 'Wraith', ingredients: ['FREEZE', 'GHOST'] },
+    { name: 'Freeze Ray', ingredients: ['FREEZE', 'LASER'] },
+    { name: 'Blizzard', ingredients: ['FREEZE', 'LIGHTNING'] },
+    { name: 'Blizzard', ingredients: ['FREEZE', 'WIND'] },
+    { name: 'Wraith', ingredients: ['GHOST', 'FREEZE'] },
+    { name: 'Assassin', ingredients: ['GHOST', 'IRON'] },
+    { name: 'Virus', ingredients: ['GHOST', 'POISON'] },
+    { name: 'Soul Sucker', ingredients: ['GHOST', 'VAMPIRE'] },
+    { name: 'Bomb', ingredients: ['IRON', 'BURN'] },
+    { name: 'Shotgun', ingredients: ['IRON', 'EGG SACK'] },
+    { name: 'Assassin', ingredients: ['IRON', 'GHOST'] },
+    { name: 'Lightning Rod', ingredients: ['IRON', 'LIGHTNING'] },
+    { name: 'Radiation Beam', ingredients: ['LASER', 'CELL'] },
+    { name: 'Freeze Ray', ingredients: ['LASER', 'FREEZE'] },
+    { name: 'Holy Laser', ingredients: ['LASER VERTICAL', 'LASER HORIZONTAL'] },
+    { name: 'Laser Beam', ingredients: ['LASER', 'LIGHT'] },
+    { name: 'Radiation Beam', ingredients: ['LASER', 'POISON'] },
+    { name: 'Sun', ingredients: ['LIGHT', 'BURN'] },
+    { name: 'Lovestruck', ingredients: ['LIGHT', 'CHARM'] },
+    { name: 'Flicker', ingredients: ['LIGHT', 'DARK'] },
+    { name: 'Laser Beam', ingredients: ['LIGHT', 'LASER'] },
+    { name: 'Flash', ingredients: ['LIGHT', 'LIGHTNING'] },
+    { name: 'Lovestruck', ingredients: ['LIGHTNING', 'CHARM'] },
+    { name: 'Lightning Rod', ingredients: ['LIGHTNING', 'IRON'] },
+    { name: 'Blizzard', ingredients: ['LIGHTNING', 'FREEZE'] },
+    { name: 'Flash', ingredients: ['LIGHTNING', 'LIGHT'] },
+    { name: 'Storm', ingredients: ['LIGHTNING', 'WIND'] },
+    { name: 'Virus', ingredients: ['POISON', 'BLEED'] },
+    { name: 'Virus', ingredients: ['POISON', 'CELL'] },
+    { name: 'Swamp', ingredients: ['POISON', 'EARTHQUAKE'] },
+    { name: 'Virus', ingredients: ['POISON', 'GHOST'] },
+    { name: 'Radiation Beam', ingredients: ['POISON', 'LASER'] },
+    { name: 'Noxious', ingredients: ['POISON', 'WIND'] },
+    { name: 'Nuclear Bomb', ingredients: ['POISON', 'BOMB'] },
+    { name: 'Vampire Lord', ingredients: ['VAMPIRE', 'BLEED'] },
+    { name: 'Mosquito King', ingredients: ['VAMPIRE', 'BROOD MOTHER'] },
+    { name: 'Succubus', ingredients: ['VAMPIRE', 'CHARM'] },
+    { name: 'Vampire Lord', ingredients: ['VAMPIRE', 'DARK'] },
+    { name: 'Mosquito Swarm', ingredients: ['VAMPIRE', 'EGG SACK'] },
+    { name: 'Soul Sucker', ingredients: ['VAMPIRE', 'GHOST'] },
+    { name: 'Inferno', ingredients: ['WIND', 'BURN'] },
+    { name: 'Noxious', ingredients: ['WIND', 'DARK'] },
+    { name: 'Sandstorm', ingredients: ['WIND', 'EARTHQUAKE'] },
+    { name: 'Blizzard', ingredients: ['WIND', 'FREEZE'] },
+    { name: 'Storm', ingredients: ['WIND', 'LIGHTNING'] },
+    { name: 'Noxious', ingredients: ['WIND', 'POISON'] },
+  ];
+
+  const baseElements = ['BLEED', 'BROOD MOTHER', 'BURN', 'CELL', 'CHARM', 'DARK', 'EARTHQUAKE', 'EGG SACK', 'FREEZE', 'GHOST', 'IRON', 'LASER', 'LASER HORIZONTAL', 'LASER VERTICAL', 'LIGHT', 'LIGHTNING', 'POISON', 'VAMPIRE', 'WIND'];
+
+  const getColor = (element) => {
+    const colors = {
+      'BLEED': '#dc2626',
+      'BROOD MOTHER': '#9333ea',
+      'BURN': '#ea580c',
+      'CELL': '#16a34a',
+      'CHARM': '#db2777',
+      'DARK': '#1f2937',
+      'EARTHQUAKE': '#b45309',
+      'EGG SACK': '#65a30d',
+      'FREEZE': '#0891b2',
+      'GHOST': '#475569',
+      'IRON': '#64748b',
+      'LASER': '#eab308',
+      'LASER HORIZONTAL': '#eab308',
+      'LASER VERTICAL': '#eab308',
+      'LIGHT': '#facc15',
+      'LIGHTNING': '#4f46e5',
+      'POISON': '#059669',
+      'VAMPIRE': '#be185d',
+      'WIND': '#0369a1',
+    };
+    return colors[element] || '#6b7280';
+  };
+
+  const getGroup = (evo) => {
+    const firstIngredient = evo.ingredients[0];
+    const groupIndex = baseElements.indexOf(firstIngredient);
+    return groupIndex >= 0 ? groupIndex : baseElements.length;
+  };
+
+  const uniqueEvos = useMemo(() => {
+    const seen = new Set();
+    const result = [];
+    evolutions.forEach(evo => {
+      const key = evo.name;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(evo);
+      }
+    });
+    return result;
+  }, []);
+
+  const evosByGroup = useMemo(() => {
+    const groups = {};
+    uniqueEvos.forEach(evo => {
+      const group = getGroup(evo);
+      if (!groups[group]) {
+        groups[group] = [];
+      }
+      groups[group].push(evo);
+    });
+    return groups;
+  }, [uniqueEvos]);
+
+  const baseWidth = 140;
+  const baseHeight = 45;
+  const rowSpacing = 80;
+  const evoSpacing = 95;
+  const svgWidth = 1400;
+  const svgHeight = 3200;
+
+  const getBasePos = (index) => {
+    const x = 40;
+    const y = 50 + index * rowSpacing;
+    return { x, y };
+  };
+
+  const getEvoPos = (groupIndex, indexInGroup) => {
+    const x = 300;
+    const y = 50 + groupIndex * rowSpacing + indexInGroup * evoSpacing;
+    return { x, y };
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 p-6">
+      <div className="max-w-full">
+        <h1 className="text-4xl font-bold text-white mb-2">Ball x Pit Evolution Web</h1>
+        <p className="text-slate-400 mb-6">Base elements on the left → Evolved forms on the right, grouped by primary ingredient</p>
+
+        <div className="bg-slate-800 rounded-lg overflow-y-auto overflow-x-hidden" style={{ maxHeight: '80vh' }}>
+          <svg
+            width={svgWidth}
+            height={svgHeight}
+            viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+            className="bg-slate-700"
+            style={{ minHeight: '900px', display: 'block' }}
+          >
+            <defs>
+              <marker
+                id="arrowhead"
+                markerWidth="10"
+                markerHeight="10"
+                refX="8"
+                refY="3"
+                orient="auto"
+              >
+                <polygon points="0 0, 10 3, 0 6" fill="#94a3b8" />
+              </marker>
+            </defs>
+
+            {uniqueEvos.map((evo, idx) => {
+              const group = getGroup(evo);
+              const indexInGroup = evosByGroup[group].indexOf(evo);
+              const endPos = getEvoPos(group, indexInGroup);
+
+              return evo.ingredients.map((ing, ingIdx) => {
+                const ingIndex = baseElements.indexOf(ing);
+                if (ingIndex === -1) return null;
+
+                const startPos = getBasePos(ingIndex);
+                const isHighlighted = selectedBall && (selectedBall === evo.name || selectedBall === ing);
+
+                return (
+                  <line
+                    key={`line-${idx}-${ingIdx}`}
+                    x1={startPos.x + baseWidth}
+                    y1={startPos.y + baseHeight / 2}
+                    x2={endPos.x}
+                    y2={endPos.y + baseHeight / 2}
+                    stroke={isHighlighted ? '#3b82f6' : '#64748b'}
+                    strokeWidth={isHighlighted ? 2 : 1}
+                    markerEnd="url(#arrowhead)"
+                    opacity={isHighlighted ? 1 : 0.4}
+                    className="transition-all"
+                  />
+                );
+              });
+            })}
+
+            {baseElements.map((element, idx) => {
+              const pos = getBasePos(idx);
+              const isSelected = selectedBall === element;
+              const isConnected = evolutions.some(
+                e => (e.name === selectedBall && e.ingredients.includes(element)) ||
+                     (e.ingredients.includes(selectedBall) && e.name === element)
+              );
+
+              return (
+                <g key={`base-${element}`}>
+                  <rect
+                    x={pos.x}
+                    y={pos.y}
+                    width={baseWidth}
+                    height={baseHeight}
+                    rx="4"
+                    fill={getColor(element)}
+                    stroke={isSelected ? '#fff' : isConnected && selectedBall ? '#3b82f6' : 'none'}
+                    strokeWidth={isSelected ? 2 : isConnected && selectedBall ? 1.5 : 0}
+                    opacity={!selectedBall || isSelected || isConnected ? 1 : 0.3}
+                    className="cursor-pointer transition-all hover:opacity-100"
+                    onClick={() => setSelectedBall(selectedBall === element ? null : element)}
+                    onMouseEnter={() => setHoveredNode(element)}
+                    onMouseLeave={() => setHoveredNode(null)}
+                  />
+                  <text
+                    x={pos.x + baseWidth / 2}
+                    y={pos.y + baseHeight / 2}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize="12"
+                    fontWeight="bold"
+                    fill="white"
+                    className="pointer-events-none select-none"
+                  >
+                    {element}
+                  </text>
+                </g>
+              );
+            })}
+
+            {Object.entries(evosByGroup).map(([groupIdx, eveList]) => {
+              const gIdx = parseInt(groupIdx);
+              return eveList.map((evo, indexInGroup) => {
+                const pos = getEvoPos(gIdx, indexInGroup);
+                const isSelected = selectedBall === evo.name;
+                const isConnected = evolutions.some(
+                  e => (e.name === selectedBall && e.ingredients.includes(evo.name)) ||
+                       (e.ingredients.includes(selectedBall) && e.name === evo.name)
+                );
+
+                return (
+                  <g key={`evo-${evo.name}-${indexInGroup}`}>
+                    <rect
+                      x={pos.x}
+                      y={pos.y}
+                      width={baseWidth}
+                      height={baseHeight}
+                      rx="4"
+                      fill={getColor(evo.ingredients[0])}
+                      stroke={isSelected ? '#fff' : isConnected && selectedBall ? '#3b82f6' : 'none'}
+                      strokeWidth={isSelected ? 2 : isConnected && selectedBall ? 1.5 : 0}
+                      opacity={!selectedBall || isSelected || isConnected ? 1 : 0.3}
+                      className="cursor-pointer transition-all hover:opacity-100"
+                      onClick={() => setSelectedBall(selectedBall === evo.name ? null : evo.name)}
+                      onMouseEnter={() => setHoveredNode(evo.name)}
+                      onMouseLeave={() => setHoveredNode(null)}
+                    />
+                    <text
+                      x={pos.x + baseWidth / 2}
+                      y={pos.y + baseHeight / 2}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fontSize="11"
+                      fontWeight="bold"
+                      fill="white"
+                      className="pointer-events-none select-none"
+                    >
+                      {evo.name.substring(0, 16)}
+                    </text>
+                  </g>
+                );
+              });
+            })}
+          </svg>
+        </div>
+
+        {hoveredNode && (
+          <div className="mt-4 bg-slate-800 rounded-lg p-4 max-w-md">
+            <h3 className="text-white font-semibold mb-2">{hoveredNode}</h3>
+            <p className="text-slate-300 text-sm">
+              {baseElements.includes(hoveredNode) ? 'Base Element' : 'Evolved Form'}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
