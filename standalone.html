@@ -178,7 +178,6 @@
           const rowSpacing = 80;
           const evoSpacing = 95;
           const svgWidth = 1400;
-          const svgHeight = 3200;
 
           const getBasePos = (index) => {
             const x = 40;
@@ -186,9 +185,29 @@
             return { x, y };
           };
 
+          const { evoGroupYStarts, svgHeight } = useMemo(() => {
+            const groupStarts = {};
+            let currentY = 50;
+            const sortedGroupIndices = Object.keys(evosByGroup).map(Number).sort((a, b) => a - b);
+            
+            for (const groupIndex of sortedGroupIndices) {
+                const baseNodeY = 50 + groupIndex * rowSpacing;
+                currentY = Math.max(currentY, baseNodeY);
+                groupStarts[groupIndex] = currentY;
+                const groupSize = evosByGroup[groupIndex].length;
+                currentY += groupSize * evoSpacing;
+            }
+
+            const baseElementsHeight = (baseElements.length - 1) * rowSpacing + 50 + baseHeight;
+            const newSvgHeight = Math.max(currentY, baseElementsHeight) + 50; // Add some padding
+
+            return { evoGroupYStarts: groupStarts, svgHeight: newSvgHeight };
+          }, [evosByGroup, baseElements]);
+
           const getEvoPos = (groupIndex, indexInGroup) => {
             const x = 300;
-            const y = 50 + groupIndex * rowSpacing + indexInGroup * evoSpacing;
+            const groupStartY = evoGroupYStarts[groupIndex] || (50 + groupIndex * rowSpacing);
+            const y = groupStartY + indexInGroup * evoSpacing;
             return { x, y };
           };
 
