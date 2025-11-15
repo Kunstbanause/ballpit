@@ -855,9 +855,19 @@
           const activeNode = selectedBall || hoveredNode;
           const recipesForActiveNode = useMemo(() => {
             if (!activeNode || !evolutions) return [];
-            return evolutions
+            
+            const recipeStrings = evolutions
               .filter(evo => evo.name === activeNode)
-              .map(evo => evo.ingredients.map(ing => nameMap[ing] || ing).join(' + '));
+              .map(evo => {
+                  const sortedIngredients = evo.ingredients
+                      .map(ing => nameMap[ing] || ing)
+                      .sort();
+                  return sortedIngredients.join(' + ');
+              });
+
+            const uniqueRecipes = [...new Set(recipeStrings)];
+            
+            return uniqueRecipes;
           }, [activeNode, evolutions, nameMap]);
 
           const descriptionForActiveNode = useMemo(() => {
