@@ -546,7 +546,7 @@
           const [selectedBall, setSelectedBall] = useState(null);
           const [hoveredNode, setHoveredNode] = useState(null);
 
-          const { evolutions, baseElements, nameMap } = useMemo(() => {
+          const { evolutions, baseElements, nameMap, uniqueEvos } = useMemo(() => {
             const data = jsonData;
             const newNameMap = {};
             const allNames = new Set();
@@ -556,17 +556,33 @@
             });
             allNames.forEach(name => newNameMap[name.toUpperCase().replace(/\s/g, ' ')] = name);
 
-            const evos = data.evolutions.map(e => ({
-                ...e,
-                name: e.name.toUpperCase().replace(/\s/g, ' '),
-                ingredients: e.ingredients.map(i => i.toUpperCase().replace(/\s/g, ' '))
-            }));
+            const seenEvolutions = new Set();
+            const evos = data.evolutions.map(e => {
+                const upperName = e.name.toUpperCase().replace(/\s/g, ' ');
+                const isPrimary = !seenEvolutions.has(upperName);
+                seenEvolutions.add(upperName);
+                return {
+                    ...e,
+                    name: upperName,
+                    ingredients: e.ingredients.map(i => i.toUpperCase().replace(/\s/g, ' ')),
+                    isPrimary: isPrimary
+                };
+            });
 
             const evoNames = new Set(evos.map(e => e.name));
             const allIngredients = new Set(evos.flatMap(e => e.ingredients));
             const base = [...allIngredients].filter(ing => !evoNames.has(ing));
 
-            return { evolutions: evos, baseElements: base.sort(), nameMap: newNameMap };
+            const uniqueEvos = [];
+            const seenUnique = new Set();
+            evos.forEach(evo => {
+              if (!seenUnique.has(evo.name)) {
+                seenUnique.add(evo.name);
+                uniqueEvos.push(evo);
+              }
+            });
+
+            return { evolutions: evos, baseElements: base.sort(), nameMap: newNameMap, uniqueEvos };
           }, []);
 
           const getColor = (element) => {
@@ -593,20 +609,6 @@
             if (!slug) return [];
             return [`icons/${slug}.png`];
           };
-
-          const uniqueEvos = useMemo(() => {
-            if (!evolutions) return [];
-            const seen = new Set();
-            const result = [];
-            evolutions.forEach(evo => {
-              const key = evo.name;
-              if (!seen.has(key)) {
-                seen.add(key);
-                result.push(evo);
-              }
-            });
-            return result;
-          }, [evolutions]);
 
           const baseWidth = 140;
           const baseHeight = 45;
@@ -962,7 +964,7 @@
                       ))}
 
                       {/* Lines */}
-                      {uniqueEvos.map((evo, idx) => {
+                      {evolutions.map((evo, idx) => {
                         const endPos = positions[evo.name];
                         if (!endPos) return null;
 
@@ -981,6 +983,7 @@
                               y2={endPos.y + baseHeight / 2}
                               stroke={isHighlighted ? '#3b82f6' : '#64748b'}
                               strokeWidth={isHighlighted ? 2 : 1}
+                              strokeDasharray={!evo.isPrimary ? "4 4" : "none"}
                               markerEnd="url(#arrowhead)"
                               opacity={!selectedBall ? 0.4 : (isHighlighted ? 1 : 0.3)}
                               className="transition-all"
