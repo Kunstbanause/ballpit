@@ -176,7 +176,7 @@
           const baseWidth = 140;
           const baseHeight = 45;
           const rowSpacing = 80;
-          const evoSpacing = 95;
+          const evoSpacing = 60;
           const svgWidth = 1400;
 
           const getBasePos = (index) => {
@@ -335,8 +335,9 @@
                           />
                           {(() => {
                             const urls = getIconUrls(element);
-                            const imgSize = 18;
-                            const imgX = pos.x + (baseWidth / 2) - 36; // slightly left of center
+                            const imgSize = 36;
+                            const padding = 5;
+                            const imgX = pos.x + padding;
                             const imgY = pos.y + (baseHeight - imgSize) / 2;
                             const primary = urls[0];
                             const fallback = urls[1];
@@ -366,9 +367,9 @@
                                   />
                                 )}
                                 <text
-                                  x={pos.x + baseWidth / 2}
+                                  x={pos.x + padding + imgSize + padding}
                                   y={pos.y + baseHeight / 2}
-                                  textAnchor="middle"
+                                  textAnchor="start"
                                   dominantBaseline="middle"
                                   fontSize="12"
                                   fontWeight="bold"
@@ -413,8 +414,9 @@
                             />
                             {(() => {
                               const urls = getIconUrls(evo.name);
-                              const imgSize = 18;
-                              const imgX = pos.x + (baseWidth / 2) - 36;
+                              const imgSize = 36;
+                              const padding = 5;
+                              const imgX = pos.x + padding;
                               const imgY = pos.y + (baseHeight - imgSize) / 2;
                               const primary = urls[0];
                               const fallback = urls[1];
@@ -444,9 +446,9 @@
                                     />
                                   )}
                                   <text
-                                    x={pos.x + baseWidth / 2}
+                                    x={pos.x + padding + imgSize + padding}
                                     y={pos.y + baseHeight / 2}
-                                    textAnchor="middle"
+                                    textAnchor="start"
                                     dominantBaseline="middle"
                                     fontSize="11"
                                     fontWeight="bold"
