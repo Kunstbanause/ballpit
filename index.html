@@ -546,7 +546,7 @@
           const [selectedBall, setSelectedBall] = useState(null);
           const [hoveredNode, setHoveredNode] = useState(null);
 
-          const { evolutions, baseElements, nameMap, uniqueEvos } = useMemo(() => {
+          const { evolutions, baseElements, nameMap, uniqueEvos, recipesByEvo } = useMemo(() => {
             const data = jsonData;
             const newNameMap = {};
             const allNames = new Set();
@@ -556,18 +556,11 @@
             });
             allNames.forEach(name => newNameMap[name.toUpperCase().replace(/\s/g, ' ')] = name);
 
-            const seenEvolutions = new Set();
-            const evos = data.evolutions.map(e => {
-                const upperName = e.name.toUpperCase().replace(/\s/g, ' ');
-                const isPrimary = !seenEvolutions.has(upperName);
-                seenEvolutions.add(upperName);
-                return {
-                    ...e,
-                    name: upperName,
-                    ingredients: e.ingredients.map(i => i.toUpperCase().replace(/\s/g, ' ')),
-                    isPrimary: isPrimary
-                };
-            });
+            const evos = data.evolutions.map(e => ({
+                ...e,
+                name: e.name.toUpperCase().replace(/\s/g, ' '),
+                ingredients: e.ingredients.map(i => i.toUpperCase().replace(/\s/g, ' '))
+            }));
 
             const evoNames = new Set(evos.map(e => e.name));
             const allIngredients = new Set(evos.flatMap(e => e.ingredients));
@@ -581,8 +574,20 @@
                 uniqueEvos.push(evo);
               }
             });
+            
+            const recipesByEvo = {};
+            // Normalize and deduplicate recipes so mirrored combinations (A+B and B+A)
+            // are only shown once per evolution.
+            evos.forEach(evo => {
+              const name = evo.name;
+              const ingredients = evo.ingredients;
+              if (!recipesByEvo[name]) recipesByEvo[name] = [];
+              const normalized = ingredients.slice().sort().join('||');
+              const already = recipesByEvo[name].some(r => r.slice().sort().join('||') === normalized);
+              if (!already) recipesByEvo[name].push(ingredients);
+            });
 
-            return { evolutions: evos, baseElements: base.sort(), nameMap: newNameMap, uniqueEvos };
+            return { evolutions: evos, baseElements: base.sort(), nameMap: newNameMap, uniqueEvos, recipesByEvo };
           }, []);
 
           const getColor = (element) => {
@@ -964,31 +969,37 @@
                       ))}
 
                       {/* Lines */}
-                      {evolutions.map((evo, idx) => {
-                        const endPos = positions[evo.name];
+                      {Object.entries(recipesByEvo).map(([evoName, recipes]) => {
+                        const endPos = positions[evoName];
                         if (!endPos) return null;
+                        const numRecipes = recipes.length;
 
-                        return evo.ingredients.map((ing, ingIdx) => {
-                          const startPos = positions[ing];
-                          if (!startPos) return null;
-                          
-                          const isHighlighted = highlightedChain.has(evo.name) && highlightedChain.has(ing);
+                        return recipes.map((recipe, recipeIndex) => {
+                            const yOffset = (baseHeight / (numRecipes + 1)) * (recipeIndex + 1);
+                            const lineStyle = recipeIndex === 0 ? "none" : recipeIndex === 1 ? "4 4" : "1 5";
 
-                          return (
-                            <line
-                              key={`line-${idx}-${ingIdx}`}
-                              x1={startPos.x + baseWidth}
-                              y1={startPos.y + baseHeight / 2}
-                              x2={endPos.x}
-                              y2={endPos.y + baseHeight / 2}
-                              stroke={isHighlighted ? '#3b82f6' : '#64748b'}
-                              strokeWidth={isHighlighted ? 2 : 1}
-                              strokeDasharray={!evo.isPrimary ? "4 4" : "none"}
-                              markerEnd="url(#arrowhead)"
-                              opacity={!selectedBall ? 0.4 : (isHighlighted ? 1 : 0.3)}
-                              className="transition-all"
-                            />
-                          );
+                            return recipe.map((ing, ingIdx) => {
+                                const startPos = positions[ing];
+                                if (!startPos) return null;
+
+                                const isHighlighted = highlightedChain.has(evoName) && highlightedChain.has(ing);
+
+                                return (
+                                    <line
+                                        key={`line-${evoName}-${recipeIndex}-${ingIdx}`}
+                                        x1={startPos.x + baseWidth}
+                                        y1={startPos.y + baseHeight / 2}
+                                        x2={endPos.x}
+                                        y2={endPos.y + yOffset}
+                                        stroke={isHighlighted ? '#3b82f6' : '#64748b'}
+                                        strokeWidth={isHighlighted ? 2 : 1}
+                                        strokeDasharray={lineStyle}
+                                        markerEnd="url(#arrowhead)"
+                                        opacity={!selectedBall ? 0.4 : (isHighlighted ? 1 : 0.3)}
+                                        className="transition-all"
+                                    />
+                                );
+                            });
                         });
                       })}
 
