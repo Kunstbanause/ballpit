@@ -919,6 +919,9 @@
                         <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
                           <polygon points="0 0, 10 3, 0 6" fill="#94a3b8" />
                         </marker>
+                        <marker id="arrowhead-gold" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                          <polygon points="0 0, 10 3, 0 6" fill="#f59e0b" />
+                        </marker>
                         {/* Background Gradients */}
                         <linearGradient id="base-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style={{stopColor: 'rgba(156, 163, 175, 0.15)'}} />
@@ -983,21 +986,26 @@
                                 if (!startPos) return null;
 
                                 const isHighlighted = highlightedChain.has(evoName) && highlightedChain.has(ing);
+                                const isAlt = recipeIndex > 0;
+                                // Keep alternative (non-primary) recipes gold even when highlighted;
+                                // highlight should affect width/opacity but not change alt color.
+                                const strokeColor = isAlt ? '#f59e0b' : (isHighlighted ? '#3b82f6' : '#64748b');
+                                const markerId = isAlt ? 'arrowhead-gold' : 'arrowhead';
 
                                 return (
-                                    <line
-                                        key={`line-${evoName}-${recipeIndex}-${ingIdx}`}
-                                        x1={startPos.x + baseWidth}
-                                        y1={startPos.y + baseHeight / 2}
-                                        x2={endPos.x}
-                                        y2={endPos.y + yOffset}
-                                        stroke={isHighlighted ? '#3b82f6' : '#64748b'}
-                                        strokeWidth={isHighlighted ? 2 : 1}
-                                        strokeDasharray={lineStyle}
-                                        markerEnd="url(#arrowhead)"
-                                        opacity={!selectedBall ? 0.4 : (isHighlighted ? 1 : 0.3)}
-                                        className="transition-all"
-                                    />
+                                  <line
+                                    key={`line-${evoName}-${recipeIndex}-${ingIdx}`}
+                                    x1={startPos.x + baseWidth}
+                                    y1={startPos.y + baseHeight / 2}
+                                    x2={endPos.x}
+                                    y2={endPos.y + yOffset}
+                                    stroke={strokeColor}
+                                    strokeWidth={isHighlighted ? 2 : 1}
+                                    strokeDasharray={lineStyle}
+                                    markerEnd={`url(#${markerId})`}
+                                    opacity={!selectedBall ? 0.4 : (isHighlighted ? 1 : 0.3)}
+                                    className="transition-all"
+                                  />
                                 );
                             });
                         });
