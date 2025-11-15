@@ -683,6 +683,54 @@
             return { positions, svgWidth: newSvgWidth, svgHeight: totalHeight + baseHeight };
           }, [uniqueEvos, baseElements]);
 
+          const getAncestors = (ballName, allEvolutions) => {
+            const ancestors = new Set();
+            const toProcess = [ballName];
+            const processed = new Set();
+
+            while(toProcess.length > 0) {
+                const currentBall = toProcess.pop();
+                if (processed.has(currentBall)) continue;
+                processed.add(currentBall);
+
+                const recipes = allEvolutions.filter(e => e.name === currentBall);
+                recipes.forEach(recipe => {
+                    recipe.ingredients.forEach(ing => {
+                        ancestors.add(ing);
+                        toProcess.push(ing);
+                    });
+                });
+            }
+            return ancestors;
+        };
+
+        const getDescendants = (ballName, allEvolutions) => {
+            const descendants = new Set();
+            const toProcess = [ballName];
+            const processed = new Set();
+
+            while(toProcess.length > 0) {
+                const currentBall = toProcess.pop();
+                if (processed.has(currentBall)) continue;
+                processed.add(currentBall);
+
+                const children = allEvolutions.filter(e => e.ingredients.includes(currentBall));
+                children.forEach(child => {
+                    descendants.add(child.name);
+                    toProcess.push(child.name);
+                });
+            }
+            return descendants;
+        };
+
+        const highlightedChain = useMemo(() => {
+            if (!selectedBall || !evolutions) return new Set();
+            const ancestors = getAncestors(selectedBall, evolutions);
+            const descendants = getDescendants(selectedBall, evolutions);
+            const chain = new Set([...ancestors, ...descendants, selectedBall]);
+            return chain;
+        }, [selectedBall, evolutions]);
+
           const NodeContent = ({ name, pos, nameMap }) => {
             const displayName = nameMap[name] || name;
             const urls = getIconUrls(displayName);
@@ -818,7 +866,7 @@
                         const startPos = positions[ing];
                         if (!startPos) return null;
                         
-                        const isHighlighted = selectedBall && (selectedBall === evo.name || selectedBall === ing || evo.ingredients.includes(selectedBall));
+                        const isHighlighted = highlightedChain.has(evo.name) && highlightedChain.has(ing);
 
                         return (
                           <line
@@ -830,7 +878,7 @@
                             stroke={isHighlighted ? '#3b82f6' : '#64748b'}
                             strokeWidth={isHighlighted ? 2 : 1}
                             markerEnd="url(#arrowhead)"
-                            opacity={isHighlighted ? 1 : 0.4}
+                            opacity={!selectedBall ? 0.4 : (isHighlighted ? 1 : 0.3)}
                             className="transition-all"
                           />
                         );
@@ -841,19 +889,16 @@
                       const pos = positions[element];
                       if (!pos) return null;
                       const isSelected = selectedBall === element;
-                      const isConnected = evolutions.some(
-                        e => (e.name === selectedBall && e.ingredients.includes(element)) ||
-                             (e.ingredients.includes(selectedBall) && e.name === element)
-                      );
+                      const isInChain = highlightedChain.has(element);
 
                       return (
                         <g key={`base-${element}`}>
                           <rect
                             x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
                             fill={getColor(element)}
-                            stroke={isSelected ? '#fff' : isConnected && selectedBall ? '#3b82f6' : 'none'}
-                            strokeWidth={isSelected ? 2 : isConnected && selectedBall ? 1.5 : 0}
-                            opacity={!selectedBall || isSelected || isConnected ? 1 : 0.3}
+                            stroke={isSelected ? '#fff' : isInChain ? '#3b82f6' : 'none'}
+                            strokeWidth={isSelected ? 2 : isInChain ? 1.5 : 0}
+                            opacity={!selectedBall || isInChain ? 1 : 0.3}
                             className="cursor-pointer transition-all hover:opacity-100"
                             onClick={() => setSelectedBall(selectedBall === element ? null : element)}
                             onMouseEnter={() => setHoveredNode(element)}
@@ -868,19 +913,16 @@
                         const pos = positions[evo.name];
                         if (!pos) return null;
                         const isSelected = selectedBall === evo.name;
-                        const isConnected = evolutions.some(
-                          e => (e.name === selectedBall && e.ingredients.includes(evo.name)) ||
-                               (e.ingredients.includes(selectedBall) && e.name === evo.name)
-                        );
+                        const isInChain = highlightedChain.has(evo.name);
 
                         return (
                           <g key={`evo-${evo.name}-${idx}`}>
                             <rect
                               x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
                               fill={getColor(evo.name)}
-                              stroke={isSelected ? '#fff' : isConnected && selectedBall ? '#3b82f6' : 'none'}
-                              strokeWidth={isSelected ? 2 : isConnected && selectedBall ? 1.5 : 0}
-                              opacity={!selectedBall || isSelected || isConnected ? 1 : 0.3}
+                              stroke={isSelected ? '#fff' : isInChain ? '#3b82f6' : 'none'}
+                              strokeWidth={isSelected ? 2 : isInChain ? 1.5 : 0}
+                              opacity={!selectedBall || isInChain ? 1 : 0.3}
                               className="cursor-pointer transition-all hover:opacity-100"
                               onClick={() => setSelectedBall(selectedBall === evo.name ? null : evo.name)}
                               onMouseEnter={() => setHoveredNode(evo.name)}
