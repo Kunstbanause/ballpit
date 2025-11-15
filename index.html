@@ -613,8 +613,8 @@
           const rowSpacing = 80;
           const evoSpacing = 60;
 
-          const { positions, svgWidth, svgHeight, levels, columnAreas } = useMemo(() => {
-            if (!uniqueEvos || !baseElements) return { positions: {}, svgWidth: 1400, svgHeight: 900, levels: {}, columnAreas: {} };
+          const { positions, svgWidth, svgHeight, levels, columnAreas, columnHeaders } = useMemo(() => {
+            if (!uniqueEvos || !baseElements) return { positions: {}, svgWidth: 1400, svgHeight: 900, levels: {}, columnAreas: {}, columnHeaders: [] };
             
             const levels = {};
             let maxLevel = 0;
@@ -718,8 +718,14 @@
                 evolved: { x: columnWidth + 20, width: numSubColumns * subColumnWidth },
                 ultimate: { x: columnWidth + 20 + numSubColumns * subColumnWidth, width: newSvgWidth - (columnWidth + 20 + numSubColumns * subColumnWidth) }
             };
+            
+            const columnHeaders = [
+                { text: 'Base Balls', x: columnAreas.base.x + columnAreas.base.width / 2, y: 30, id: 'base' },
+                { text: 'Evolved Balls', x: columnAreas.evolved.x + columnAreas.evolved.width / 2, y: 30, id: 'evolved' },
+                { text: 'Ultimate Balls', x: columnAreas.ultimate.x + columnAreas.ultimate.width / 2, y: 30, id: 'ultimate' }
+            ];
 
-            return { positions, svgWidth: newSvgWidth, svgHeight: totalHeight + baseHeight, levels, columnAreas };
+            return { positions, svgWidth: newSvgWidth, svgHeight: totalHeight + baseHeight, levels, columnAreas, columnHeaders };
           }, [uniqueEvos, baseElements]);
 
           const getAncestors = (ballName, allEvolutions) => {
@@ -896,6 +902,7 @@
                         <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
                           <polygon points="0 0, 10 3, 0 6" fill="#94a3b8" />
                         </marker>
+                        {/* Background Gradients */}
                         <linearGradient id="base-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style={{stopColor: 'rgba(156, 163, 175, 0.15)'}} />
                             <stop offset="100%" style={{stopColor: 'rgba(156, 163, 175, 0)'}} />
@@ -908,12 +915,43 @@
                             <stop offset="0%" style={{stopColor: 'rgba(252, 211, 77, 0.1)'}} />
                             <stop offset="100%" style={{stopColor: 'rgba(252, 211, 77, 0)'}} />
                         </linearGradient>
+                        {/* Text Gradients */}
+                        <linearGradient id="base-text-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#e2e8f0" />
+                            <stop offset="100%" stopColor="#94a3b8" />
+                        </linearGradient>
+                        <linearGradient id="evolved-text-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#93c5fd" />
+                            <stop offset="100%" stopColor="#3b82f6" />
+                        </linearGradient>
+                        <linearGradient id="ultimate-text-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#fde047" />
+                            <stop offset="100%" stopColor="#f59e0b" />
+                        </linearGradient>
                       </defs>
 
+                      {/* Backgrounds */}
                       {columnAreas.base && <rect x={columnAreas.base.x} y="0" width={columnAreas.base.width} height="100%" fill="url(#base-gradient)" />}
                       {columnAreas.evolved && <rect x={columnAreas.evolved.x} y="0" width={columnAreas.evolved.width} height="100%" fill="url(#evolved-gradient)" />}
                       {columnAreas.ultimate && <rect x={columnAreas.ultimate.x} y="0" width={columnAreas.ultimate.width} height="100%" fill="url(#ultimate-gradient)" />}
 
+                      {/* Headers */}
+                      {columnHeaders.map(header => (
+                        <text
+                            key={header.id}
+                            x={header.x}
+                            y={header.y}
+                            textAnchor="middle"
+                            fontSize="20"
+                            fontWeight="bold"
+                            fill={`url(#${header.id}-text-gradient)`}
+                            style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}
+                        >
+                            {header.text}
+                        </text>
+                      ))}
+
+                      {/* Lines */}
                       {uniqueEvos.map((evo, idx) => {
                         const endPos = positions[evo.name];
                         if (!endPos) return null;
@@ -941,6 +979,7 @@
                         });
                       })}
 
+                      {/* Nodes */}
                       {baseElements.map((element) => {
                         const pos = positions[element];
                         if (!pos) return null;
