@@ -649,7 +649,45 @@
 
             let totalHeight = 50 + baseElements.length * rowSpacing;
 
-            for (let level = 1; level <= maxLevel + 1; level++) {
+            // Level 1
+            const level1Nodes = uniqueEvos.filter(evo => levels[evo.name] === 1);
+            const level1Groups = {};
+            level1Nodes.forEach(node => {
+                const category = uniqueEvos.find(e => e.name === node.name)?.category.toUpperCase() || '';
+                if (!level1Groups[category]) {
+                    level1Groups[category] = [];
+                }
+                level1Groups[category].push(node);
+            });
+
+            const numSubColumns = 2;
+            const subColumnWidth = baseWidth + 80;
+            const level1StartX = 40 + columnWidth;
+            const subColumnYOffsets = new Array(numSubColumns).fill(50);
+
+            baseElements.forEach((baseElement, index) => {
+                const group = level1Groups[baseElement];
+                if (!group || group.length === 0) return;
+
+                const subColIndex = index % numSubColumns;
+                const groupX = level1StartX + subColIndex * subColumnWidth;
+
+                const baseElementY = positions[baseElement].y;
+                let groupY = Math.max(baseElementY, subColumnYOffsets[subColIndex]);
+                
+                group.forEach((node, nodeIndex) => {
+                    const y = groupY + nodeIndex * evoSpacing;
+                    positions[node.name] = { x: groupX, y: y };
+                });
+                
+                subColumnYOffsets[subColIndex] = groupY + group.length * evoSpacing + rowSpacing / 2;
+            });
+
+            totalHeight = Math.max(totalHeight, ...subColumnYOffsets);
+
+            // Level 2+
+            const level2PlusStartX = level1StartX + numSubColumns * subColumnWidth;
+            for (let level = 2; level <= maxLevel + 1; level++) {
               const nodesInLevel = Object.keys(levels).filter(name => levels[name] === level);
               const nodesWithTargetY = nodesInLevel.map(name => {
                 const evo = uniqueEvos.find(e => e.name === name) || { ingredients: [] };
@@ -665,7 +703,7 @@
 
               let lastYInColumn = 0;
               nodesWithTargetY.forEach(({ name, targetY }) => {
-                const x = 40 + level * columnWidth;
+                const x = level2PlusStartX + (level - 2) * columnWidth;
                 const y = Math.max(targetY, lastYInColumn + evoSpacing);
                 positions[name] = { x, y };
                 lastYInColumn = y;
@@ -673,7 +711,7 @@
               if (lastYInColumn > totalHeight) totalHeight = lastYInColumn;
             }
 
-            const newSvgWidth = 40 + (maxLevel + 1) * columnWidth + baseWidth + 40;
+            const newSvgWidth = level2PlusStartX + (maxLevel > 1 ? (maxLevel - 1) * columnWidth : 0) + baseWidth + 40;
             return { positions, svgWidth: newSvgWidth, svgHeight: totalHeight + baseHeight };
           }, [uniqueEvos, baseElements]);
 
