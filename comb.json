@@ -523,7 +523,7 @@
       "description": "While active, add 1 stack of burn to all active enemies per second (max 5 stacks), dealing 10-20 damage per stack per second and make them go berserk, dealing 15-24 damage to adjacent enemies every second"
     },
     {
-      "name": "Noferatu",
+      "name": "Nosferatu",
       "ingredients": ["Vampire Lord", "Spider Queen", "Mosquito King"],
       "category": "Special",
       "description": "Spawns a vampire bat each bounce. Vampire bats fly towards a random enemy, dealing 132-176 damage on hit, turning into a Vampire Lord"

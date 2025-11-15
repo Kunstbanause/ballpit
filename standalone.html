@@ -18,99 +18,49 @@
         function BallEvolutionGraph() {
           const [selectedBall, setSelectedBall] = useState(null);
           const [hoveredNode, setHoveredNode] = useState(null);
+          const [evolutions, setEvolutions] = useState(null);
+          const [baseElements, setBaseElements] = useState(null);
+          const [nameMap, setNameMap] = useState(null);
 
-          const evolutions = [
-            { name: 'Leech', ingredients: ['BLEED', 'BROOD MOTHER'] },
-            { name: 'Berserk', ingredients: ['BLEED', 'CHARM'] },
-            { name: 'Berserk', ingredients: ['BURN', 'CHARM'] },
-            { name: 'Sacrifice', ingredients: ['BLEED', 'DARK'] },
-            { name: 'Hemorrhage', ingredients: ['BLEED', 'IRON'] },
-            { name: 'Virus', ingredients: ['BLEED', 'POISON'] },
-            { name: 'Vampire Lord', ingredients: ['BLEED', 'VAMPIRE'] },
-            { name: 'Maggot', ingredients: ['BROOD MOTHER', 'CELL'] },
-            { name: 'Spider Queen', ingredients: ['BROOD MOTHER', 'EGG SACK'] },
-            { name: 'Mosquito King', ingredients: ['BROOD MOTHER', 'VAMPIRE'] },
-            { name: 'Magma', ingredients: ['BURN', 'EARTHQUAKE'] },
-            { name: 'Frozen Flame', ingredients: ['BURN', 'FREEZE'] },
-            { name: 'Bomb', ingredients: ['BURN', 'IRON'] },
-            { name: 'Sun', ingredients: ['BURN', 'LIGHT'] },
-            { name: 'Inferno', ingredients: ['BURN', 'WIND'] },
-            { name: 'Overgrowth', ingredients: ['CELL', 'EARTHQUAKE'] },
-            { name: 'Voluptuous Egg sack', ingredients: ['CELL', 'EGG SACK'] },
-            { name: 'Radiation Beam', ingredients: ['CELL', 'LASER'] },
-            { name: 'Virus', ingredients: ['CELL', 'POISON'] },
-            { name: 'Incubus', ingredients: ['CHARM', 'DARK'] },
-            { name: 'Lovestruck', ingredients: ['CHARM', 'LIGHT'] },
-            { name: 'Lovestruck', ingredients: ['CHARM', 'LIGHTNING'] },
-            { name: 'Succubus', ingredients: ['CHARM', 'VAMPIRE'] },
-            { name: 'Phantom', ingredients: ['DARK', 'GHOST'] },
-            { name: 'Assassin', ingredients: ['DARK', 'IRON'] },
-            { name: 'Flicker', ingredients: ['DARK', 'LIGHT'] },
-            { name: 'Vampire Lord', ingredients: ['DARK', 'VAMPIRE'] },
-            { name: 'Noxious', ingredients: ['DARK', 'WIND'] },
-            { name: 'Black Hole', ingredients: ['DARK', 'SUN'] },
-            { name: 'Glacier', ingredients: ['EARTHQUAKE', 'FREEZE'] },
-            { name: 'Swamp', ingredients: ['EARTHQUAKE', 'POISON'] },
-            { name: 'Sandstorm', ingredients: ['EARTHQUAKE', 'WIND'] },
-            { name: 'Wraith', ingredients: ['FREEZE', 'GHOST'] },
-            { name: 'Freeze Ray', ingredients: ['FREEZE', 'LASER'] },
-            { name: 'Blizzard', ingredients: ['FREEZE', 'LIGHTNING'] },
-            { name: 'Blizzard', ingredients: ['FREEZE', 'WIND'] },
-            { name: 'Wraith', ingredients: ['GHOST', 'FREEZE'] },
-            { name: 'Assassin', ingredients: ['GHOST', 'IRON'] },
-            { name: 'Virus', ingredients: ['GHOST', 'POISON'] },
-            { name: 'Soul Sucker', ingredients: ['GHOST', 'VAMPIRE'] },
-            { name: 'Bomb', ingredients: ['IRON', 'BURN'] },
-            { name: 'Shotgun', ingredients: ['IRON', 'EGG SACK'] },
-            { name: 'Assassin', ingredients: ['IRON', 'GHOST'] },
-            { name: 'Lightning Rod', ingredients: ['IRON', 'LIGHTNING'] },
-            { name: 'Radiation Beam', ingredients: ['LASER', 'CELL'] },
-            { name: 'Freeze Ray', ingredients: ['LASER', 'FREEZE'] },
-            { name: 'Holy Laser', ingredients: ['LASER VERTICAL', 'LASER HORIZONTAL'] },
-            { name: 'Laser Beam', ingredients: ['LASER', 'LIGHT'] },
-            { name: 'Radiation Beam', ingredients: ['LASER', 'POISON'] },
-            { name: 'Sun', ingredients: ['LIGHT', 'BURN'] },
-            { name: 'Lovestruck', ingredients: ['LIGHT', 'CHARM'] },
-            { name: 'Flicker', ingredients: ['LIGHT', 'DARK'] },
-            { name: 'Laser Beam', ingredients: ['LIGHT', 'LASER'] },
-            { name: 'Flash', ingredients: ['LIGHT', 'LIGHTNING'] },
-            { name: 'Lovestruck', ingredients: ['LIGHTNING', 'CHARM'] },
-            { name: 'Lightning Rod', ingredients: ['LIGHTNING', 'IRON'] },
-            { name: 'Blizzard', ingredients: ['LIGHTNING', 'FREEZE'] },
-            { name: 'Flash', ingredients: ['LIGHTNING', 'LIGHT'] },
-            { name: 'Storm', ingredients: ['LIGHTNING', 'WIND'] },
-            { name: 'Virus', ingredients: ['POISON', 'BLEED'] },
-            { name: 'Virus', ingredients: ['POISON', 'CELL'] },
-            { name: 'Swamp', ingredients: ['POISON', 'EARTHQUAKE'] },
-            { name: 'Virus', ingredients: ['POISON', 'GHOST'] },
-            { name: 'Radiation Beam', ingredients: ['POISON', 'LASER'] },
-            { name: 'Noxious', ingredients: ['POISON', 'WIND'] },
-            { name: 'Nuclear Bomb', ingredients: ['POISON', 'BOMB'] },
-            { name: 'Vampire Lord', ingredients: ['VAMPIRE', 'BLEED'] },
-            { name: 'Mosquito King', ingredients: ['VAMPIRE', 'BROOD MOTHER'] },
-            { name: 'Succubus', ingredients: ['VAMPIRE', 'CHARM'] },
-            { name: 'Vampire Lord', ingredients: ['VAMPIRE', 'DARK'] },
-            { name: 'Mosquito Swarm', ingredients: ['VAMPIRE', 'EGG SACK'] },
-            { name: 'Soul Sucker', ingredients: ['VAMPIRE', 'GHOST'] },
-            { name: 'Inferno', ingredients: ['WIND', 'BURN'] },
-            { name: 'Noxious', ingredients: ['WIND', 'DARK'] },
-            { name: 'Sandstorm', ingredients: ['WIND', 'EARTHQUAKE'] },
-            { name: 'Blizzard', ingredients: ['WIND', 'FREEZE'] },
-            { name: 'Storm', ingredients: ['WIND', 'LIGHTNING'] },
-            { name: 'Noxious', ingredients: ['WIND', 'POISON'] },
-          ];
+          useEffect(() => {
+            fetch('comb.json')
+              .then(res => res.json())
+              .then(data => {
+                const newNameMap = {};
+                const allNames = new Set();
+                data.evolutions.forEach(e => {
+                    allNames.add(e.name);
+                    e.ingredients.forEach(i => allNames.add(i));
+                });
+                allNames.forEach(name => newNameMap[name.toUpperCase().replace(/\s/g, ' ')] = name);
 
-          const baseElements = ['BLEED', 'BROOD MOTHER', 'BURN', 'CELL', 'CHARM', 'DARK', 'EARTHQUAKE', 'EGG SACK', 'FREEZE', 'GHOST', 'IRON', 'LASER', 'LASER HORIZONTAL', 'LASER VERTICAL', 'LIGHT', 'LIGHTNING', 'POISON', 'VAMPIRE', 'WIND'];
+                const evos = data.evolutions.map(e => ({
+                    ...e,
+                    name: e.name.toUpperCase().replace(/\s/g, ' '),
+                    ingredients: e.ingredients.map(i => i.toUpperCase().replace(/\s/g, ' '))
+                }));
+
+                const evoNames = new Set(evos.map(e => e.name));
+                const allIngredients = new Set(evos.flatMap(e => e.ingredients));
+                const base = [...allIngredients].filter(ing => !evoNames.has(ing));
+
+                setEvolutions(evos);
+                setBaseElements(base.sort());
+                setNameMap(newNameMap);
+              });
+          }, []);
 
           const getColor = (element) => {
             const colors = {
               'BLEED': '#dc2626', 'BROOD MOTHER': '#9333ea', 'BURN': '#ea580c', 'CELL': '#16a34a', 'CHARM': '#db2777',
-              'DARK': '#1f2937', 'EARTHQUAKE': '#b45309', 'EGG SACK': '#65a30d', 'FREEZE': '#0891b2', 'GHOST': '#475569',
-              'IRON': '#64748b', 'LASER': '#eab308', 'LASER HORIZONTAL': '#eab308', 'LASER VERTICAL': '#eab308',
+              'DARK': '#1f2937', 'EARTHQUAKE': '#b45309', 'EGG SAC': '#65a30d', 'FREEZE': '#0891b2', 'GHOST': '#475569',
+              'IRON': '#64748b', 'LASER': '#eab308', 'LASER (HORIZONTAL)': '#eab308', 'LASER (VERTICAL)': '#eab308',
               'LIGHT': '#facc15', 'LIGHTNING': '#4f46e5', 'POISON': '#059669', 'VAMPIRE': '#be185d', 'WIND': '#0369a1',
             };
-            const evoColorSource = uniqueEvos.find(e => e.name === element);
-            if (evoColorSource) return colors[evoColorSource.ingredients[0]] || '#6b7280';
+            if (evolutions) {
+                const evoColorSource = evolutions.find(e => e.name === element);
+                if (evoColorSource) return colors[evoColorSource.ingredients[0]] || '#6b7280';
+            }
             return colors[element] || '#6b7280';
           };
 
@@ -126,6 +76,7 @@
           };
 
           const uniqueEvos = useMemo(() => {
+            if (!evolutions) return [];
             const seen = new Set();
             const result = [];
             evolutions.forEach(evo => {
@@ -136,7 +87,7 @@
               }
             });
             return result;
-          }, []);
+          }, [evolutions]);
 
           const baseWidth = 140;
           const baseHeight = 45;
@@ -144,6 +95,8 @@
           const evoSpacing = 60;
 
           const { positions, svgWidth, svgHeight } = useMemo(() => {
+            if (!uniqueEvos || !baseElements) return { positions: {}, svgWidth: 1400, svgHeight: 900 };
+            
             const levels = {};
             let maxLevel = 0;
             baseElements.forEach(b => levels[b] = 0);
@@ -205,8 +158,9 @@
             return { positions, svgWidth: newSvgWidth, svgHeight: totalHeight + baseHeight };
           }, [uniqueEvos, baseElements]);
 
-          const NodeContent = ({ name, pos }) => {
-            const urls = getIconUrls(name);
+          const NodeContent = ({ name, pos, nameMap }) => {
+            const displayName = nameMap[name] || name;
+            const urls = getIconUrls(displayName);
             const imgSize = 36;
             const padding = 5;
             const imgX = pos.x + padding;
@@ -233,7 +187,7 @@
                 if (currentLine) lines.push(currentLine);
                 return lines;
             };
-            const lines = wrapText(name);
+            const lines = wrapText(displayName);
 
             return (
                 <g>
@@ -250,7 +204,7 @@
                         y={textY - (lines.length > 1 ? (lines.length - 1) * 6 : 0)}
                         textAnchor="start"
                         dominantBaseline="middle"
-                        fontSize={name.length > 15 ? "10" : "11"}
+                        fontSize={displayName.length > 15 ? "10" : "11"}
                         fontWeight="bold"
                         fill="white"
                         className="pointer-events-none select-none"
@@ -266,26 +220,31 @@
           const [searchTerm, setSearchTerm] = useState('');
 
           const allNodeNames = useMemo(() => {
+            if (!baseElements || !evolutions) return [];
             const evoNames = new Set(evolutions.map(e => e.name));
             const allNames = new Set([...baseElements, ...evoNames]);
             return Array.from(allNames).sort();
           }, [evolutions, baseElements]);
 
           const searchResults = useMemo(() => {
-            if (!searchTerm) return [];
+            if (!searchTerm || !allNodeNames) return [];
             return allNodeNames
-              .filter(name => name.toLowerCase().includes(searchTerm.toLowerCase()))
+              .filter(name => (nameMap[name] || name).toLowerCase().includes(searchTerm.toLowerCase()))
               .slice(0, 10);
-          }, [searchTerm, allNodeNames]);
+          }, [searchTerm, allNodeNames, nameMap]);
 
 
           const activeNode = selectedBall || hoveredNode;
           const recipesForActiveNode = useMemo(() => {
-            if (!activeNode) return [];
+            if (!activeNode || !evolutions) return [];
             return evolutions
               .filter(evo => evo.name === activeNode)
-              .map(evo => evo.ingredients.join(' + '));
-          }, [activeNode, evolutions]);
+              .map(evo => evo.ingredients.map(ing => nameMap[ing] || ing).join(' + '));
+          }, [activeNode, evolutions, nameMap]);
+
+          if (!evolutions || !baseElements || !nameMap) {
+            return <div className="text-white text-center p-10">Loading evolution data...</div>;
+          }
 
           return (
             <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 p-6">
@@ -303,14 +262,14 @@
                     <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
                       {searchResults.map(name => (
                         <div key={name} onClick={() => { setSelectedBall(name); setSearchTerm(''); }} className="px-4 py-2 text-white hover:bg-slate-700 cursor-pointer">
-                          {name}
+                          {nameMap[name] || name}
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
 
-                <div className="bg-slate-800 rounded-lg overflow-y-auto overflow-x-hidden" style={{ maxHeight: '80vh' }}>
+                <div className="bg-slate-800 rounded-lg overflow-y-auto overflow-x-auto" style={{ maxHeight: '80vh' }}>
                   <svg
                     width={svgWidth}
                     height={svgHeight}
@@ -373,7 +332,7 @@
                             onMouseEnter={() => setHoveredNode(element)}
                             onMouseLeave={() => setHoveredNode(null)}
                           />
-                          <NodeContent name={element} pos={pos} />
+                          <NodeContent name={element} pos={pos} nameMap={nameMap} />
                         </g>
                       );
                     })}
@@ -400,7 +359,7 @@
                               onMouseEnter={() => setHoveredNode(evo.name)}
                               onMouseLeave={() => setHoveredNode(null)}
                             />
-                            <NodeContent name={evo.name} pos={pos} />
+                            <NodeContent name={evo.name} pos={pos} nameMap={nameMap} />
                           </g>
                         );
                     })}
@@ -409,7 +368,7 @@
 
                 {activeNode && (
                   <div className="mt-4 bg-slate-800 rounded-lg p-4 max-w-md">
-                    <h3 className="text-white font-semibold mb-2">{activeNode}</h3>
+                    <h3 className="text-white font-semibold mb-2">{nameMap[activeNode] || activeNode}</h3>
                     {recipesForActiveNode.length > 0 ? (
                       <div className="text-slate-300 text-sm">
                         {recipesForActiveNode.map((recipe, i) => (
