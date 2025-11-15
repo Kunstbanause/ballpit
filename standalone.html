@@ -844,110 +844,112 @@
                   )}
                 </div>
 
-                <div className="bg-slate-800 rounded-lg overflow-y-auto overflow-x-auto" style={{ maxHeight: '60vh' }}>
-                  <svg
-                    width={svgWidth}
-                    height={svgHeight}
-                    viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-                    className="bg-slate-700"
-                    style={{ minHeight: '900px', display: 'block' }}
-                  >
-                    <defs>
-                      <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-                        <polygon points="0 0, 10 3, 0 6" fill="#94a3b8" />
-                      </marker>
-                    </defs>
+                <div className="relative">
+                  <div className="bg-slate-800 rounded-lg overflow-y-auto overflow-x-auto" style={{ maxHeight: '80vh' }}>
+                    <svg
+                      width={svgWidth}
+                      height={svgHeight}
+                      viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+                      className="bg-slate-700"
+                      style={{ minHeight: '900px', display: 'block' }}
+                    >
+                      <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                          <polygon points="0 0, 10 3, 0 6" fill="#94a3b8" />
+                        </marker>
+                      </defs>
 
-                    {uniqueEvos.map((evo, idx) => {
-                      const endPos = positions[evo.name];
-                      if (!endPos) return null;
+                      {uniqueEvos.map((evo, idx) => {
+                        const endPos = positions[evo.name];
+                        if (!endPos) return null;
 
-                      return evo.ingredients.map((ing, ingIdx) => {
-                        const startPos = positions[ing];
-                        if (!startPos) return null;
-                        
-                        const isHighlighted = highlightedChain.has(evo.name) && highlightedChain.has(ing);
+                        return evo.ingredients.map((ing, ingIdx) => {
+                          const startPos = positions[ing];
+                          if (!startPos) return null;
+                          
+                          const isHighlighted = highlightedChain.has(evo.name) && highlightedChain.has(ing);
 
-                        return (
-                          <line
-                            key={`line-${idx}-${ingIdx}`}
-                            x1={startPos.x + baseWidth}
-                            y1={startPos.y + baseHeight / 2}
-                            x2={endPos.x}
-                            y2={endPos.y + baseHeight / 2}
-                            stroke={isHighlighted ? '#3b82f6' : '#64748b'}
-                            strokeWidth={isHighlighted ? 2 : 1}
-                            markerEnd="url(#arrowhead)"
-                            opacity={!selectedBall ? 0.4 : (isHighlighted ? 1 : 0.3)}
-                            className="transition-all"
-                          />
-                        );
-                      });
-                    })}
+                          return (
+                            <line
+                              key={`line-${idx}-${ingIdx}`}
+                              x1={startPos.x + baseWidth}
+                              y1={startPos.y + baseHeight / 2}
+                              x2={endPos.x}
+                              y2={endPos.y + baseHeight / 2}
+                              stroke={isHighlighted ? '#3b82f6' : '#64748b'}
+                              strokeWidth={isHighlighted ? 2 : 1}
+                              markerEnd="url(#arrowhead)"
+                              opacity={!selectedBall ? 0.4 : (isHighlighted ? 1 : 0.3)}
+                              className="transition-all"
+                            />
+                          );
+                        });
+                      })}
 
-                    {baseElements.map((element) => {
-                      const pos = positions[element];
-                      if (!pos) return null;
-                      const isSelected = selectedBall === element;
-                      const isInChain = highlightedChain.has(element);
-
-                      return (
-                        <g key={`base-${element}`}>
-                          <rect
-                            x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
-                            fill={getColor(element)}
-                            stroke={isSelected ? '#fff' : isInChain ? '#3b82f6' : 'none'}
-                            strokeWidth={isSelected ? 2 : isInChain ? 1.5 : 0}
-                            opacity={!selectedBall || isInChain ? 1 : 0.3}
-                            className="cursor-pointer transition-all hover:opacity-100"
-                            onClick={() => setSelectedBall(selectedBall === element ? null : element)}
-                            onMouseEnter={() => setHoveredNode(element)}
-                            onMouseLeave={() => setHoveredNode(null)}
-                          />
-                          <NodeContent name={element} pos={pos} nameMap={nameMap} />
-                        </g>
-                      );
-                    })}
-
-                    {uniqueEvos.map((evo, idx) => {
-                        const pos = positions[evo.name];
+                      {baseElements.map((element) => {
+                        const pos = positions[element];
                         if (!pos) return null;
-                        const isSelected = selectedBall === evo.name;
-                        const isInChain = highlightedChain.has(evo.name);
+                        const isSelected = selectedBall === element;
+                        const isInChain = highlightedChain.has(element);
 
                         return (
-                          <g key={`evo-${evo.name}-${idx}`}>
+                          <g key={`base-${element}`}>
                             <rect
                               x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
-                              fill={getColor(evo.name)}
+                              fill={getColor(element)}
                               stroke={isSelected ? '#fff' : isInChain ? '#3b82f6' : 'none'}
                               strokeWidth={isSelected ? 2 : isInChain ? 1.5 : 0}
                               opacity={!selectedBall || isInChain ? 1 : 0.3}
                               className="cursor-pointer transition-all hover:opacity-100"
-                              onClick={() => setSelectedBall(selectedBall === evo.name ? null : evo.name)}
-                              onMouseEnter={() => setHoveredNode(evo.name)}
+                              onClick={() => setSelectedBall(selectedBall === element ? null : element)}
+                              onMouseEnter={() => setHoveredNode(element)}
                               onMouseLeave={() => setHoveredNode(null)}
                             />
-                            <NodeContent name={evo.name} pos={pos} nameMap={nameMap} />
+                            <NodeContent name={element} pos={pos} nameMap={nameMap} />
                           </g>
                         );
-                    })}
-                  </svg>
-                </div>
+                      })}
 
-                {activeNode && (
-                  <div className="mt-4 bg-slate-800 rounded-lg p-4 max-w-md">
-                    <h3 className="text-white mb-2">
-                        <span className="font-semibold">{(nameMap[activeNode] || activeNode)}</span>
-                        {descriptionForActiveNode && <span className="font-normal">{`: ${descriptionForActiveNode}`}</span>}
-                    </h3>
-                    {recipesForActiveNode.length > 0 ? (
-                      <div className="text-slate-300 text-sm">
-                        {recipesForActiveNode.join('; ')}
-                      </div>
-                    ) : null}
+                      {uniqueEvos.map((evo, idx) => {
+                          const pos = positions[evo.name];
+                          if (!pos) return null;
+                          const isSelected = selectedBall === evo.name;
+                          const isInChain = highlightedChain.has(evo.name);
+
+                          return (
+                            <g key={`evo-${evo.name}-${idx}`}>
+                              <rect
+                                x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
+                                fill={getColor(evo.name)}
+                                stroke={isSelected ? '#fff' : isInChain ? '#3b82f6' : 'none'}
+                                strokeWidth={isSelected ? 2 : isInChain ? 1.5 : 0}
+                                opacity={!selectedBall || isInChain ? 1 : 0.3}
+                                className="cursor-pointer transition-all hover:opacity-100"
+                                onClick={() => setSelectedBall(selectedBall === evo.name ? null : evo.name)}
+                                onMouseEnter={() => setHoveredNode(evo.name)}
+                                onMouseLeave={() => setHoveredNode(null)}
+                              />
+                              <NodeContent name={evo.name} pos={pos} nameMap={nameMap} />
+                            </g>
+                          );
+                      })}
+                    </svg>
                   </div>
-                )}
+
+                  {activeNode && (
+                    <div className="absolute bottom-2 left-2 z-10 bg-slate-900/75 backdrop-blur-sm rounded-lg p-4 max-w-md">
+                      <h3 className="text-white mb-2">
+                          <span className="font-semibold">{(nameMap[activeNode] || activeNode)}</span>
+                          {descriptionForActiveNode && <span className="font-normal">{`: ${descriptionForActiveNode}`}</span>}
+                      </h3>
+                      {recipesForActiveNode.length > 0 ? (
+                        <div className="text-slate-300 text-sm">
+                          {recipesForActiveNode.join('; ')}
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           );
