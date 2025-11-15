@@ -613,8 +613,8 @@
           const rowSpacing = 80;
           const evoSpacing = 60;
 
-          const { positions, svgWidth, svgHeight, levels } = useMemo(() => {
-            if (!uniqueEvos || !baseElements) return { positions: {}, svgWidth: 1400, svgHeight: 900, levels: {} };
+          const { positions, svgWidth, svgHeight, levels, columnAreas } = useMemo(() => {
+            if (!uniqueEvos || !baseElements) return { positions: {}, svgWidth: 1400, svgHeight: 900, levels: {}, columnAreas: {} };
             
             const levels = {};
             let maxLevel = 0;
@@ -649,44 +649,44 @@
 
             let totalHeight = 50 + baseElements.length * rowSpacing;
 
-            // Level 1
-            const level1Nodes = uniqueEvos.filter(evo => levels[evo.name] === 1);
-            const level1Groups = {};
-            level1Nodes.forEach(node => {
-                const category = uniqueEvos.find(e => e.name === node.name)?.category.toUpperCase() || '';
-                if (!level1Groups[category]) {
-                    level1Groups[category] = [];
-                }
-                level1Groups[category].push(node);
-            });
-
             const numSubColumns = 2;
             const subColumnWidth = baseWidth + 80;
             const level1StartX = 40 + columnWidth;
             const subColumnYOffsets = new Array(numSubColumns).fill(50);
 
-            baseElements.forEach((baseElement, index) => {
-                const group = level1Groups[baseElement];
-                if (!group || group.length === 0) return;
-
-                const subColIndex = index % numSubColumns;
-                const groupX = level1StartX + subColIndex * subColumnWidth;
-
-                const baseElementY = positions[baseElement].y;
-                let groupY = Math.max(baseElementY, subColumnYOffsets[subColIndex]);
-                
-                group.forEach((node, nodeIndex) => {
-                    const y = groupY + nodeIndex * evoSpacing;
-                    positions[node.name] = { x: groupX, y: y };
+            if (maxLevel >= 1) {
+                const level1Nodes = uniqueEvos.filter(evo => levels[evo.name] === 1);
+                const level1Groups = {};
+                level1Nodes.forEach(node => {
+                    const category = uniqueEvos.find(e => e.name === node.name)?.category.toUpperCase() || '';
+                    if (!level1Groups[category]) {
+                        level1Groups[category] = [];
+                    }
+                    level1Groups[category].push(node);
                 });
-                
-                subColumnYOffsets[subColIndex] = groupY + group.length * evoSpacing + rowSpacing / 2;
-            });
 
-            totalHeight = Math.max(totalHeight, ...subColumnYOffsets);
+                baseElements.forEach((baseElement, index) => {
+                    const group = level1Groups[baseElement];
+                    if (!group || group.length === 0) return;
 
-            // Level 2+
-            const level2PlusStartX = level1StartX + numSubColumns * subColumnWidth;
+                    const subColIndex = index % numSubColumns;
+                    const groupX = level1StartX + subColIndex * subColumnWidth;
+
+                    const baseElementY = positions[baseElement].y;
+                    let groupY = Math.max(baseElementY, subColumnYOffsets[subColIndex]);
+                    
+                    group.forEach((node, nodeIndex) => {
+                        const y = groupY + nodeIndex * evoSpacing;
+                        positions[node.name] = { x: groupX, y: y };
+                    });
+                    
+                    subColumnYOffsets[subColIndex] = groupY + group.length * evoSpacing + rowSpacing / 2;
+                });
+
+                totalHeight = Math.max(totalHeight, ...subColumnYOffsets);
+            }
+
+            const level2PlusStartX = level1StartX + (maxLevel > 0 ? numSubColumns * subColumnWidth : 0);
             for (let level = 2; level <= maxLevel + 1; level++) {
               const nodesInLevel = Object.keys(levels).filter(name => levels[name] === level);
               const nodesWithTargetY = nodesInLevel.map(name => {
@@ -712,7 +712,14 @@
             }
 
             const newSvgWidth = level2PlusStartX + (maxLevel > 1 ? (maxLevel - 1) * columnWidth : 0) + baseWidth + 40;
-            return { positions, svgWidth: newSvgWidth, svgHeight: totalHeight + baseHeight, levels };
+            
+            const columnAreas = {
+                base: { x: 0, width: columnWidth + 20 },
+                evolved: { x: columnWidth + 20, width: numSubColumns * subColumnWidth },
+                ultimate: { x: columnWidth + 20 + numSubColumns * subColumnWidth, width: newSvgWidth - (columnWidth + 20 + numSubColumns * subColumnWidth) }
+            };
+
+            return { positions, svgWidth: newSvgWidth, svgHeight: totalHeight + baseHeight, levels, columnAreas };
           }, [uniqueEvos, baseElements]);
 
           const getAncestors = (ballName, allEvolutions) => {
@@ -889,7 +896,23 @@
                         <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
                           <polygon points="0 0, 10 3, 0 6" fill="#94a3b8" />
                         </marker>
+                        <linearGradient id="base-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style={{stopColor: 'rgba(100, 116, 139, 0.1)'}} />
+                            <stop offset="100%" style={{stopColor: 'rgba(100, 116, 139, 0)'}} />
+                        </linearGradient>
+                        <linearGradient id="evolved-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style={{stopColor: 'rgba(59, 130, 246, 0.08)'}} />
+                            <stop offset="100%" style={{stopColor: 'rgba(59, 130, 246, 0)'}} />
+                        </linearGradient>
+                        <linearGradient id="ultimate-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style={{stopColor: 'rgba(252, 211, 77, 0.1)'}} />
+                            <stop offset="100%" style={{stopColor: 'rgba(252, 211, 77, 0)'}} />
+                        </linearGradient>
                       </defs>
+
+                      {columnAreas.base && <rect x={columnAreas.base.x} y="0" width={columnAreas.base.width} height="100%" fill="url(#base-gradient)" />}
+                      {columnAreas.evolved && <rect x={columnAreas.evolved.x} y="0" width={columnAreas.evolved.width} height="100%" fill="url(#evolved-gradient)" />}
+                      {columnAreas.ultimate && <rect x={columnAreas.ultimate.x} y="0" width={columnAreas.ultimate.width} height="100%" fill="url(#ultimate-gradient)" />}
 
                       {uniqueEvos.map((evo, idx) => {
                         const endPos = positions[evo.name];
