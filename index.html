@@ -546,7 +546,7 @@
           const [selectedBall, setSelectedBall] = useState(null);
           const [hoveredNode, setHoveredNode] = useState(null);
 
-          const { evolutions, baseElements, nameMap, uniqueEvos, recipesByEvo } = useMemo(() => {
+          const { evolutions, baseElements, nameMap, uniqueEvos, recipesByEvo, altNodes } = useMemo(() => {
             const data = jsonData;
             const newNameMap = {};
             const allNames = new Set();
@@ -587,7 +587,19 @@
               if (!already) recipesByEvo[name].push(ingredients);
             });
 
-            return { evolutions: evos, baseElements: base.sort(), nameMap: newNameMap, uniqueEvos, recipesByEvo };
+            // Collect nodes that participate in alternative (non-primary) recipes
+            // so we can style their borders in gold for easier parsing.
+            const altNodes = new Set();
+            Object.entries(recipesByEvo).forEach(([evoName, recs]) => {
+              recs.forEach((rec, idx) => {
+                if (idx > 0) {
+                  altNodes.add(evoName);
+                  rec.forEach(i => altNodes.add(i));
+                }
+              });
+            });
+
+            return { evolutions: evos, baseElements: base.sort(), nameMap: newNameMap, uniqueEvos, recipesByEvo, altNodes };
           }, []);
 
           const getColor = (element) => {
@@ -1017,14 +1029,15 @@
                         if (!pos) return null;
                         const isSelected = selectedBall === element;
                         const isInChain = highlightedChain.has(element);
+                        const isAltNode = altNodes && altNodes.has && altNodes.has(element);
 
                         return (
                           <g key={`base-${element}`}>
                             <rect
                               x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
                               fill={getColor(element)}
-                              stroke={isSelected ? '#fff' : isInChain ? '#3b82f6' : 'none'}
-                              strokeWidth={isSelected ? 2 : isInChain ? 1.5 : 0}
+                              stroke={isSelected ? '#fff' : (isAltNode ? '#f59e0b' : (isInChain ? '#3b82f6' : 'none'))}
+                              strokeWidth={isSelected ? 2 : (isAltNode ? 1.5 : (isInChain ? 1.5 : 0))}
                               opacity={!selectedBall || isInChain ? 1 : 0.3}
                               className="cursor-pointer transition-all hover:opacity-100"
                               onClick={() => setSelectedBall(selectedBall === element ? null : element)}
@@ -1044,14 +1057,15 @@
                           const isUltimate = level >= 2;
                           const isSelected = selectedBall === evo.name;
                           const isInChain = highlightedChain.has(evo.name);
+                          const isAltNode = altNodes && altNodes.has && altNodes.has(evo.name);
 
                           return (
                             <g key={`evo-${evo.name}-${idx}`}>
                               <rect
                                 x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
                                 fill={getColor(evo.name)}
-                                stroke={isSelected ? '#fff' : (isUltimate ? 'gold' : (isInChain ? '#3b82f6' : 'none'))}
-                                strokeWidth={isSelected ? 2 : (isUltimate ? 2.5 : (isInChain ? 1.5 : 0))}
+                                stroke={isSelected ? '#fff' : (isAltNode ? '#f59e0b' : (isUltimate ? 'gold' : (isInChain ? '#3b82f6' : 'none')))}
+                                strokeWidth={isSelected ? 2 : (isAltNode ? 1.5 : (isUltimate ? 2.5 : (isInChain ? 1.5 : 0)))}
                                 opacity={!selectedBall || isInChain ? 1 : 0.3}
                                 className="cursor-pointer transition-all hover:opacity-100"
                                 onClick={() => setSelectedBall(selectedBall === evo.name ? null : evo.name)}
@@ -1073,7 +1087,9 @@
                       </h3>
                       {recipesForActiveNode.length > 0 ? (
                         <div className="text-slate-300 text-sm">
-                          {recipesForActiveNode.join('; ')}
+                          {recipesForActiveNode.map((r, i) => (
+                            <div key={i}>{r}</div>
+                          ))}
                         </div>
                       ) : null}
                     </div>
