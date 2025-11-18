@@ -911,12 +911,108 @@
           );
         }
 
+        // Embedded base balls data (from baseballs.json)
+        const baseballsData = {
+  "baseBalls": [
+    {
+      "name": "Bleed",
+      "description": "Inflicts 2 stacks of bleed. Bleeding enemies receive 1 damage per stack when hit by a ball (max 8 stacks)",
+      "startCharacter": "The Warrior"
+    },
+    {
+      "name": "Brood Mother",
+      "description": "Has a 25% chance of birthing a baby ball each time it hits an enemy",
+      "startCharacter": "The Cohabitants"
+    },
+    {
+      "name": "Burn",
+      "description": "Add 1 stack of burn on hit for 3 seconds (max 3 stacks). Burnt units are dealt 4-8 damage per stack per second",
+      "startCharacter": "The Itchy Finger"
+    },
+    {
+      "name": "Cell",
+      "description": "Splits into a clone on hit 2 times",
+      "startCharacter": "N/A"
+    },
+    {
+      "name": "Charm",
+      "description": "Each hit has a 4% chance of charming the enemy for 5 seconds. Charmed units walk up the board and attack enemies",
+      "startCharacter": "N/A"
+    },
+    {
+      "name": "Dark",
+      "description": "Deals 3.0x damage but destroys itself after hitting an enemy. Has a 3 second cooldown before it can be shot again",
+      "startCharacter": "The Shade"
+    },
+    {
+      "name": "Earthquake",
+      "description": "Deals 5-13 damage to nearby units in a 3x3 tile square",
+      "startCharacter": "The Makeshift Sisyphus"
+    },
+    {
+      "name": "Egg Sac",
+      "description": "Explodes into 2-4 baby balls on hitting an enemy. Has a 3 second cooldown before it can be shot again",
+      "startCharacter": "The Flagellant"
+    },
+    {
+      "name": "Freeze",
+      "description": "Has a 4% chance to freeze enemies for 5.0 seconds. Frozen enemies receive 25% more damage",
+      "startCharacter": "The Repentant"
+    },
+    {
+      "name": "Ghost",
+      "description": "Passes through enemies",
+      "startCharacter": "The Empty Nester"
+    },
+    {
+      "name": "Iron",
+      "description": "Deals double damage but moves 40% slower",
+      "startCharacter": "The Shieldbearer, The Tactician"
+    },
+    {
+      "name": "Laser (Horizontal)",
+      "description": "Deals 9-18 damage to all enemies in the same row",
+      "startCharacter": "N/A"
+    },
+    {
+      "name": "Laser (Vertical)",
+      "description": "Deals 9-18 damage to all enemies in the same column",
+      "startCharacter": "The Cogitator"
+    },
+    {
+      "name": "Light",
+      "description": "Blinds enemies on hit for 3 seconds. Blinded units have a hard time detecting you and have a 50% chance of missing when they attack",
+      "startCharacter": "The Physicist"
+    },
+    {
+      "name": "Lightning",
+      "description": "Deals 1-20 damage to up to 3 nearby enemies",
+      "startCharacter": "The Juggler"
+    },
+    {
+      "name": "Poison",
+      "description": "Applies 1 stack of poison on hit (max 5 stacks). Poison lasts for 6 seconds and each stack deals 1-4 damage per second",
+      "startCharacter": "The Embedded"
+    },
+    {
+      "name": "Vampire",
+      "description": "Each hit has a 4.5% chance of healing 1 health",
+      "startCharacter": "The Spendthrift"
+    },
+    {
+      "name": "Wind",
+      "description": "Passes through enemies and slows them down by 30% for 5 seconds, but deals 25% less damage",
+      "startCharacter": "The Radical"
+    }
+  ]
+};
+
         function BallEvolutionGraph() {
           const [selectedBall, setSelectedBall] = useState(null);
           const [hoveredNode, setHoveredNode] = useState(null);
           const [tab, setTab] = useState('Evolutions');
 
-          const { evolutions, baseElements, nameMap, uniqueEvos, recipesByEvo, altNodes } = useMemo(() => {
+          const { evolutions, baseElements, nameMap, uniqueEvos, recipesByEvo, altNodes, baseInfoMap } = useMemo(() => {
             const data = jsonData;
             const newNameMap = {};
             const allNames = new Set();
@@ -935,6 +1031,19 @@
             const evoNames = new Set(evos.map(e => e.name));
             const allIngredients = new Set(evos.flatMap(e => e.ingredients));
             const base = [...allIngredients].filter(ing => !evoNames.has(ing));
+
+            // Build a lookup map for base ball metadata from `baseballsData`.
+            const baseInfoMap = {};
+            try {
+              if (typeof baseballsData !== 'undefined' && Array.isArray(baseballsData.baseBalls)) {
+                baseballsData.baseBalls.forEach(b => {
+                  const key = (b.name || '').toUpperCase().replace(/\s/g, ' ');
+                  baseInfoMap[key] = b;
+                });
+              }
+            } catch (e) {
+              // ignore
+            }
 
             const uniqueEvos = [];
             const seenUnique = new Set();
@@ -969,7 +1078,7 @@
               });
             });
 
-            return { evolutions: evos, baseElements: base.sort(), nameMap: newNameMap, uniqueEvos, recipesByEvo, altNodes };
+            return { evolutions: evos, baseElements: base.sort(), nameMap: newNameMap, uniqueEvos, recipesByEvo, altNodes, baseInfoMap };
           }, []);
 
           const getColor = (element) => {
@@ -1244,8 +1353,9 @@
           const activeNode = selectedBall || hoveredNode;
           const recipesForActiveNode = useMemo(() => {
             if (!activeNode || !evolutions) return [];
-            
-            const recipeStrings = evolutions
+
+            // If the active node is an evolution, show its recipes (ingredients combinations)
+            const evoRecipes = evolutions
               .filter(evo => evo.name === activeNode)
               .map(evo => {
                   const sortedIngredients = evo.ingredients
@@ -1254,16 +1364,35 @@
                   return sortedIngredients.join(' + ');
               });
 
-            const uniqueRecipes = [...new Set(recipeStrings)];
-            
-            return uniqueRecipes;
-          }, [activeNode, evolutions, nameMap]);
+            if (evoRecipes.length > 0) {
+              return [...new Set(evoRecipes)];
+            }
+
+            // Otherwise, if the active node is a base ball, show evolutions that use it
+            if (typeof baseInfoMap !== 'undefined' && baseInfoMap[activeNode]) {
+              const usedIn = evolutions
+                .filter(evo => evo.ingredients.includes(activeNode))
+                .map(evo => nameMap[evo.name] || evo.name);
+              return usedIn.length ? usedIn : [];
+            }
+
+            return [];
+          }, [activeNode, evolutions, nameMap, baseInfoMap]);
 
           const descriptionForActiveNode = useMemo(() => {
-            if (!activeNode || !evolutions) return '';
-            const evo = evolutions.find(e => e.name === activeNode);
-            return evo ? evo.description : '';
-          }, [activeNode, evolutions]);
+            if (!activeNode) return '';
+            // if it's an evolution, return evo description
+            if (evolutions) {
+              const evo = evolutions.find(e => e.name === activeNode);
+              if (evo && evo.description) return evo.description;
+            }
+            // otherwise check base info map
+            if (typeof baseInfoMap !== 'undefined' && baseInfoMap[activeNode]) {
+              const b = baseInfoMap[activeNode];
+              return `${b.description || ''}${b.startCharacter ? ' — Start: ' + b.startCharacter : ''}`;
+            }
+            return '';
+          }, [activeNode, evolutions, baseInfoMap]);
 
           return (
             <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 p-6">
