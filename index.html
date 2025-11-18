@@ -850,7 +850,8 @@
           const [hovered, setHovered] = useState(null);
           const [searchTerm, setSearchTerm] = useState('');
           const containerRef = useRef(null);
-          const [tooltip, setTooltip] = useState({ text: '', x: 0, y: 0, visible: false });
+          const tooltipRef = useRef(null);
+          const [tooltipTop, setTooltipTop] = useState(0);
 
           const base = passivesData.basePassives || [];
           const evolved = passivesData.evolvedPassives || [];
@@ -977,15 +978,32 @@
             return `icons_passives/${slug}.png`;
           };
 
-          // tooltip handlers
+          // hover handlers (tooltip will be shown in fixed bottom-left panel)
           const onNodeHover = (e, node) => {
             setHovered(node);
-            const c = containerRef.current;
-            if (!c) return;
-            const rect = c.getBoundingClientRect();
-            setTooltip({ text: node.description || '', x: e.clientX - rect.left + 12, y: e.clientY - rect.top + 12, visible: true });
           };
-          const onNodeLeave = () => { setHovered(null); setTooltip(t => ({ ...t, visible: false })); };
+          const onNodeLeave = () => { setHovered(null); };
+
+          // update tooltip position so it sits at the bottom-left of the visible scroll area
+          useEffect(() => {
+            const update = () => {
+              const c = containerRef.current;
+              const t = tooltipRef.current;
+              if (!c || !t) return;
+              const scrollTop = c.scrollTop;
+              const clientH = c.clientHeight;
+              const tipH = t.offsetHeight || 80;
+              const top = scrollTop + clientH - tipH - 8; // 8px margin from bottom
+              setTooltipTop(top);
+            };
+            update();
+            const c = containerRef.current;
+            if (c) c.addEventListener('scroll', update);
+            window.addEventListener('resize', update);
+            const mo = new MutationObserver(update);
+            if (c) mo.observe(c, { childList: true, subtree: true, attributes: true });
+            return () => { if (c) c.removeEventListener('scroll', update); window.removeEventListener('resize', update); if (mo) mo.disconnect(); };
+          }, [containerRef, hovered, selected]);
 
           const renderRectNode = (name, isEvolved = false) => {
             const pos = positions[name];
@@ -1079,10 +1097,35 @@
                   {col4.map(e => renderRectNode(e.name, true))}
                 </svg>
 
-                {/* tooltip inside graph, half-transparent */}
-                <div style={{ position: 'absolute', left: tooltip.x, top: tooltip.y, pointerEvents: 'none', transform: 'translate(0,0)', background: 'rgba(15,23,42,0.75)', color: '#fff', padding: '8px 10px', borderRadius: 6, maxWidth: 300 }} hidden={!tooltip.visible}>
-                  <div style={{ opacity: 0.95, fontSize: 13 }}>{tooltip.text}</div>
-                </div>
+                {/* removed mouse-position tooltip; use bottom-left fixed tooltip instead */}
+              
+                {/* bottom-left tooltip panel (fixed inside graph container) */}
+                {(selected || hovered) && (
+                  <div ref={tooltipRef} style={{ position: 'absolute', left: 8, top: tooltipTop, zIndex: 10, background: 'rgba(15,23,42,0.75)' }} className="backdrop-blur-sm rounded-lg p-4 max-w-md">
+                    <div className="text-white mb-2">
+                      <div className="font-semibold">{(selected || (hovered && hovered.name))}</div>
+                      <div className="font-normal text-slate-200 mt-1">{(() => {
+                        const name = selected || (hovered && hovered.name);
+                        if (!name) return '';
+                        const evo = evolved.find(e => e.name === name);
+                        if (evo) return evo.description || '';
+                        const b = base.find(bi => bi.name === name);
+                        return b ? b.description || '' : '';
+                      })()}</div>
+                    </div>
+                    {(() => {
+                      const name = selected || (hovered && hovered.name);
+                      if (!name) return null;
+                      const evo = evolved.find(e => e.name === name);
+                      if (!evo) return null;
+                      return (
+                        <div className="text-slate-300 text-sm">
+                          <div>Ingredients: {(evo.ingredients || []).join(' + ')}</div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
 
               {/* bottom detail panel removed per request; node hover tooltip remains inside graph */}
