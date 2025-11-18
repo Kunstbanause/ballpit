@@ -883,8 +883,11 @@
             const nodeW = 170; const nodeH = 56;
 
             // place evolved passives (col4) first so we can compute target positions
+            // move them further down and increase their vertical spacing so connectors have shallower angles
+            const col4Offset = 60;
+            const col4RowSpacing = rowSpacing + 50;
             col4.forEach((item, idx) => {
-              map[item.name] = { x: colXs[3], y: paddingTop + idx * rowSpacing, width: nodeW, height: nodeH };
+              map[item.name] = { x: colXs[3], y: paddingTop + col4Offset + idx * col4RowSpacing, width: nodeW, height: nodeH };
             });
 
             // place leftmost columns (no-upgrade) using simple stacking
@@ -896,19 +899,22 @@
             });
 
             // For column 3 (has upgrades), compute desired y as the average center-y of evolved passives that reference it
+            // but clamp to not go below a minimum Y to keep col3 independent from col4's extra offset
+            const col3MinY = paddingTop + col4Offset * 0.3; // only partially affected by col4 offset
             const desired = col3.map(p => {
               const usedBy = col4.filter(e => (e.ingredients || []).includes(p.name));
-              if (usedBy.length === 0) return { name: p.name, desiredY: paddingTop };
+              if (usedBy.length === 0) return { name: p.name, desiredY: col3MinY };
               const avg = usedBy.reduce((sum, e) => {
                 const pos = map[e.name];
                 return sum + (pos.y + pos.height / 2);
               }, 0) / usedBy.length;
-              return { name: p.name, desiredY: avg };
+              // clamp so col3 doesn't move as much as col4
+              return { name: p.name, desiredY: Math.max(col3MinY, avg - col4Offset * 0.7) };
             });
 
             // sort by desiredY so nodes sit near their targets, then assign positions with spacing to avoid overlaps
             desired.sort((a, b) => a.desiredY - b.desiredY);
-            let currentY = paddingTop;
+            let currentY = col3MinY;
             desired.forEach(d => {
               const y = Math.max(currentY, d.desiredY - nodeH / 2);
               map[d.name] = { x: colXs[2], y: y, width: nodeW, height: nodeH };
