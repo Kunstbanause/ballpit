@@ -877,10 +877,10 @@
           // layout positions for 4 columns
           const positions = useMemo(() => {
             const map = {};
-            const paddingTop = 60;
-            const rowSpacing = 96;
-            const colXs = [40, 340, 640, 940];
-            const nodeW = 260; const nodeH = 64;
+            const paddingTop = 40;
+            const rowSpacing = 72;
+            const colXs = [20, 220, 420, 620];
+            const nodeW = 170; const nodeH = 56;
 
             // place evolved passives (col4) first so we can compute target positions
             col4.forEach((item, idx) => {
@@ -1027,21 +1027,36 @@
                 {/* icon inside node */}
                 {(() => {
                   const url = getPassiveIconUrl(name);
-                  const imgSize = 44;
+                  const imgSize = 32;
                   const imgX = 8;
                   const imgY = (pos.height - imgSize) / 2;
                   return url ? (
                     <image href={url} x={imgX} y={imgY} width={imgSize} height={imgSize} preserveAspectRatio="xMidYMid slice" onError={(e) => { e.target.style.display = 'none'; }} />
                   ) : null;
                 })()}
-                <text x={68} y={pos.height / 2} fill={isEvolved ? '#f59e0b' : '#fff'} fontWeight="600" fontSize="13" dominantBaseline="middle">
-                  {displayName}
-                </text>
+                {/* wrap name into multiple lines to fit smaller node width */}
+                {(() => {
+                  const paddingLeft = 8 + 32 + 8; // imgX + imgSize + gap
+                  const maxChars = Math.max(8, Math.floor((pos.width - paddingLeft - 12) / 7));
+                  const words = displayName.split(' ');
+                  const lines = [];
+                  let current = '';
+                  for (let w of words) {
+                    if ((current + ' ' + w).trim().length > maxChars && current.length > 0) { lines.push(current); current = w; }
+                    else { current = (current + ' ' + w).trim(); }
+                  }
+                  if (current) lines.push(current);
+                  return (
+                    <text x={paddingLeft} y={pos.height / 2 - (lines.length - 1) * 6} fill={isEvolved ? '#f59e0b' : '#fff'} fontWeight="600" fontSize="12" dominantBaseline="middle">
+                      {lines.map((ln, i) => <tspan key={i} x={paddingLeft} dy={i === 0 ? 0 : '1.2em'}>{ln}</tspan>)}
+                    </text>
+                  );
+                })()}
               </g>
             );
           };
 
-          // build connector lines from ingredients to evolved nodes
+          // build connector lines from ingredients to evolved nodes (include src/tgt names)
           const connectors = useMemo(() => {
             const out = [];
             col4.forEach(e => {
@@ -1050,7 +1065,7 @@
               (e.ingredients || []).forEach(ing => {
                 const src = positions[ing];
                 if (!src) return;
-                out.push({ x1: src.x + src.width, y1: src.y + src.height / 2, x2: target.x, y2: target.y + target.height / 2 });
+                out.push({ src: ing, tgt: e.name, x1: src.x + src.width, y1: src.y + src.height / 2, x2: target.x, y2: target.y + target.height / 2 });
               });
             });
             return out;
@@ -1085,10 +1100,14 @@
                     </marker>
                   </defs>
 
-                  {/* connectors */}
-                  {connectors.map((c, i) => (
-                    <line key={i} x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2} stroke="#94a3b8" strokeWidth={1.6} markerEnd="url(#arrow)" strokeOpacity={0.9} />
-                  ))}
+                  {/* connectors (show full opacity only when source or target is selected) */}
+                  {connectors.map((c, i) => {
+                    const full = selected === c.src || selected === c.tgt;
+                    const opacity = full ? 0.9 : 0.12;
+                    return (
+                      <line key={i} x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2} stroke="#94a3b8" strokeWidth={full ? 1.8 : 1} markerEnd="url(#arrow)" strokeOpacity={opacity} />
+                    );
+                  })}
 
                   {/* render nodes */}
                   {col1.map(p => renderRectNode(p.name, false))}
