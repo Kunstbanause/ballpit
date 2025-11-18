@@ -846,11 +846,105 @@
 };
 
         function PassivesGraph() {
-          const [active, setActive] = useState(null);
+          const [selected, setSelected] = useState(null);
+          const [hovered, setHovered] = useState(null);
+          const [searchTerm, setSearchTerm] = useState('');
+          const containerRef = useRef(null);
+          const [tooltip, setTooltip] = useState({ text: '', x: 0, y: 0, visible: false });
 
+          const base = passivesData.basePassives || [];
+          const evolved = passivesData.evolvedPassives || [];
+
+          // ingredients set
+          const ingredientSet = useMemo(() => new Set(evolved.flatMap(e => e.ingredients || [])), [evolved]);
+
+          const noUpgrade = useMemo(() => base.filter(b => !ingredientSet.has(b.name)), [base, ingredientSet]);
+          const hasUpgrade = useMemo(() => base.filter(b => ingredientSet.has(b.name)), [base, ingredientSet]);
+
+          const col1 = useMemo(() => noUpgrade.filter((_, i) => i % 2 === 0), [noUpgrade]);
+          const col2 = useMemo(() => noUpgrade.filter((_, i) => i % 2 === 1), [noUpgrade]);
+          const col3 = hasUpgrade;
+          const col4 = evolved;
+
+          const allNodeNames = useMemo(() => Array.from(new Set([...base.map(b => b.name), ...evolved.map(e => e.name)])).sort(), [base, evolved]);
+
+          const searchResults = useMemo(() => {
+            if (!searchTerm) return [];
+            return allNodeNames.filter(n => n.toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 10);
+          }, [searchTerm, allNodeNames]);
+
+          // layout positions for 4 columns
+          const positions = useMemo(() => {
+            const map = {};
+            const paddingTop = 60;
+            const rowSpacing = 96;
+            const colXs = [40, 340, 640, 940];
+
+            const place = (list, colIndex) => {
+              list.forEach((item, idx) => {
+                map[item.name] = { x: colXs[colIndex], y: paddingTop + idx * rowSpacing, width: 260, height: 64 };
+              });
+            };
+
+            place(col1, 0);
+            place(col2, 1);
+            place(col3, 2);
+            place(col4, 3);
+            return map;
+          }, [col1, col2, col3, col4]);
+
+          const svgWidth = 1200;
+          const svgHeight = useMemo(() => {
+            const ys = Object.values(positions).map(p => p.y + p.height);
+            return Math.max(600, (ys.length ? Math.max(...ys) + 80 : 600));
+          }, [positions]);
+
+          const getAncestors = (name) => {
+            const ancestors = new Set();
+            const toProcess = [name];
+            const processed = new Set();
+            while (toProcess.length) {
+              const cur = toProcess.pop();
+              if (processed.has(cur)) continue;
+              processed.add(cur);
+              evolved.forEach(e => {
+                if (e.name === cur) {
+                  (e.ingredients || []).forEach(ing => { ancestors.add(ing); toProcess.push(ing); });
+                }
+              });
+            }
+            return ancestors;
+          };
+
+          const getDescendants = (name) => {
+            const descendants = new Set();
+            const toProcess = [name];
+            const processed = new Set();
+            while (toProcess.length) {
+              const cur = toProcess.pop();
+              if (processed.has(cur)) continue;
+              processed.add(cur);
+              evolved.forEach(e => {
+                if ((e.ingredients || []).includes(cur)) {
+                  descendants.add(e.name);
+                  toProcess.push(e.name);
+                }
+              });
+            }
+            return descendants;
+          };
+
+          const highlightedChain = useMemo(() => {
+            if (!selected) return new Set();
+            const a = getAncestors(selected);
+            const d = getDescendants(selected);
+            return new Set([selected, ...a, ...d]);
+          }, [selected]);
+
+          // icon helpers for passives
           const getPassiveIconSlug = (name) => {
             if (!name) return '';
-            return name.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
+            return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
           };
 
           const getPassiveIconUrl = (name) => {
@@ -859,101 +953,115 @@
             return `icons_passives/${slug}.png`;
           };
 
-          const base = passivesData.basePassives || [];
-          const evolved = passivesData.evolvedPassives || [];
+          // tooltip handlers
+          const onNodeHover = (e, node) => {
+            setHovered(node);
+            const c = containerRef.current;
+            if (!c) return;
+            const rect = c.getBoundingClientRect();
+            setTooltip({ text: node.description || '', x: e.clientX - rect.left + 12, y: e.clientY - rect.top + 12, visible: true });
+          };
+          const onNodeLeave = () => { setHovered(null); setTooltip(t => ({ ...t, visible: false })); };
 
-          // Split base passives into 3 columns
-          const cols = [[], [], []];
-          base.forEach((p, i) => cols[i % 3].push(p));
+          const renderRectNode = (name, isEvolved = false) => {
+            const pos = positions[name];
+            if (!pos) return null;
+            const displayName = name;
+            const inChain = highlightedChain.has(name);
+            return (
+              <g key={name} transform={`translate(${pos.x}, ${pos.y})`}>
+                <rect
+                  x={0} y={0} rx={8} ry={8}
+                  width={pos.width} height={pos.height}
+                  fill={isEvolved ? 'rgba(245,158,11,0.08)' : 'rgba(30,41,59,0.8)'}
+                  stroke={inChain ? '#f59e0b' : (isEvolved ? '#b45309' : '#374151')}
+                  strokeWidth={inChain ? 2 : 1}
+                  onMouseEnter={(ev) => onNodeHover(ev, (isEvolved ? evolved.find(e => e.name === name) : base.find(b => b.name === name)))}
+                  onMouseMove={(ev) => onNodeHover(ev, (isEvolved ? evolved.find(e => e.name === name) : base.find(b => b.name === name)))}
+                  onMouseLeave={onNodeLeave}
+                  onClick={() => setSelected(selected === name ? null : name)}
+                  style={{ cursor: 'pointer' }}
+                />
+                {/* icon inside node */}
+                {(() => {
+                  const url = getPassiveIconUrl(name);
+                  const imgSize = 44;
+                  const imgX = 8;
+                  const imgY = (pos.height - imgSize) / 2;
+                  return url ? (
+                    <image href={url} x={imgX} y={imgY} width={imgSize} height={imgSize} preserveAspectRatio="xMidYMid slice" onError={(e) => { e.target.style.display = 'none'; }} />
+                  ) : null;
+                })()}
+                <text x={68} y={pos.height / 2} fill={isEvolved ? '#f59e0b' : '#fff'} fontWeight="600" fontSize="13" dominantBaseline="middle">
+                  {displayName}
+                </text>
+              </g>
+            );
+          };
+
+          // build connector lines from ingredients to evolved nodes
+          const connectors = useMemo(() => {
+            const out = [];
+            col4.forEach(e => {
+              const target = positions[e.name];
+              if (!target) return;
+              (e.ingredients || []).forEach(ing => {
+                const src = positions[ing];
+                if (!src) return;
+                out.push({ x1: src.x + src.width, y1: src.y + src.height / 2, x2: target.x, y2: target.y + target.height / 2 });
+              });
+            });
+            return out;
+          }, [col4, positions]);
 
           return (
             <div className="p-4">
-              <div className="grid grid-cols-4 gap-4">
-                {cols.map((col, ci) => (
-                  <div key={`col-${ci}`} className="space-y-3">
-                    {col.map((p) => (
-                      <div
-                        key={p.name}
-                        onMouseEnter={() => setActive(p)}
-                        onMouseLeave={() => setActive(null)}
-                        onClick={() => setActive(active && active.name === p.name ? null : p)}
-                        className="p-3 bg-slate-800 rounded-md border border-slate-700 hover:border-slate-500 cursor-pointer"
-                      >
-                        <div className="flex items-start gap-4">
-                          <img
-                            src={getPassiveIconUrl(p.name)}
-                            alt=""
-                            width={56}
-                            height={56}
-                            onError={(e) => { e.target.style.display = 'none'; }}
-                            className="inline-block select-none pointer-events-none rounded-sm flex-shrink-0"
-                          />
-                          <div className="min-w-0">
-                            <div className="font-semibold text-white truncate">{p.name}</div>
-                            <div className="text-slate-300 text-sm mt-1">{p.description}</div>
-                          </div>
-                        </div>
+              <div className="relative mb-3">
+                <input
+                  type="text"
+                  placeholder="Search passives..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-slate-700 text-white placeholder-slate-400 rounded-md py-2 px-4"
+                />
+                {searchResults.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    {searchResults.map(name => (
+                      <div key={name} onClick={() => { setSelected(name); setSearchTerm(''); }} className="px-4 py-2 text-white hover:bg-slate-700 cursor-pointer">
+                        {name}
                       </div>
                     ))}
                   </div>
-                ))}
+                )}
+              </div>
 
-                {/* evolved passives column */}
-                <div className="space-y-3">
-                  <div className="text-white font-bold mb-2">Evolved Passives</div>
-                  {evolved.map((e) => (
-                    <div
-                      key={e.name}
-                      onMouseEnter={() => setActive(e)}
-                      onMouseLeave={() => setActive(null)}
-                      onClick={() => setActive(active && active.name === e.name ? null : e)}
-                      className="p-3 bg-amber-900/10 rounded-md border border-amber-700 hover:border-amber-500 cursor-pointer"
-                    >
-                      <div className="flex items-start gap-4">
-                        <img
-                          src={getPassiveIconUrl(e.name)}
-                          alt=""
-                          width={56}
-                          height={56}
-                          onError={(ev) => { ev.target.style.display = 'none'; }}
-                          className="inline-block select-none pointer-events-none rounded-sm flex-shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <div className="font-semibold text-amber-200 truncate">{e.name}</div>
-                          <div className="text-slate-300 text-sm mt-1">{e.description}</div>
-                          {e.ingredients && (
-                            <div className="text-slate-400 text-xs mt-1">Ingredients: {e.ingredients.join(', ')}</div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+              <div ref={containerRef} className="bg-slate-700 rounded-lg overflow-auto relative" style={{ maxHeight: '72vh' }}>
+                <svg width={svgWidth} height={svgHeight} viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="block">
+                  <defs>
+                    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8" />
+                    </marker>
+                  </defs>
+
+                  {/* connectors */}
+                  {connectors.map((c, i) => (
+                    <line key={i} x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2} stroke="#94a3b8" strokeWidth={1.6} markerEnd="url(#arrow)" strokeOpacity={0.9} />
                   ))}
+
+                  {/* render nodes */}
+                  {col1.map(p => renderRectNode(p.name, false))}
+                  {col2.map(p => renderRectNode(p.name, false))}
+                  {col3.map(p => renderRectNode(p.name, false))}
+                  {col4.map(e => renderRectNode(e.name, true))}
+                </svg>
+
+                {/* tooltip inside graph, half-transparent */}
+                <div style={{ position: 'absolute', left: tooltip.x, top: tooltip.y, pointerEvents: 'none', transform: 'translate(0,0)', background: 'rgba(15,23,42,0.75)', color: '#fff', padding: '8px 10px', borderRadius: 6, maxWidth: 300 }} hidden={!tooltip.visible}>
+                  <div style={{ opacity: 0.95, fontSize: 13 }}>{tooltip.text}</div>
                 </div>
               </div>
 
-              <div className="mt-4 bg-slate-900/80 p-3 rounded-md">
-                {active ? (
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={getPassiveIconUrl(active.name)}
-                        alt=""
-                        width={36}
-                        height={36}
-                        onError={(e) => { e.target.style.display = 'none'; }}
-                        className="inline-block select-none pointer-events-none rounded-sm"
-                      />
-                      <div>
-                        <div className="text-lg font-bold text-white">{active.name}</div>
-                        <div className="text-slate-300 mt-1">{active.description}</div>
-                      </div>
-                    </div>
-                    {active.requirement && <div className="text-slate-400 text-sm mt-2">Requirement: {active.requirement}</div>}
-                  </div>
-                ) : (
-                  <div className="text-slate-400">Hover or click a passive to see details.</div>
-                )}
-              </div>
+              {/* bottom detail panel removed per request; node hover tooltip remains inside graph */}
             </div>
           );
         }
