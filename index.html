@@ -879,17 +879,41 @@
             const paddingTop = 60;
             const rowSpacing = 96;
             const colXs = [40, 340, 640, 940];
+            const nodeW = 260; const nodeH = 64;
 
-            const place = (list, colIndex) => {
-              list.forEach((item, idx) => {
-                map[item.name] = { x: colXs[colIndex], y: paddingTop + idx * rowSpacing, width: 260, height: 64 };
-              });
-            };
+            // place evolved passives (col4) first so we can compute target positions
+            col4.forEach((item, idx) => {
+              map[item.name] = { x: colXs[3], y: paddingTop + idx * rowSpacing, width: nodeW, height: nodeH };
+            });
 
-            place(col1, 0);
-            place(col2, 1);
-            place(col3, 2);
-            place(col4, 3);
+            // place leftmost columns (no-upgrade) using simple stacking
+            col1.forEach((item, idx) => {
+              map[item.name] = { x: colXs[0], y: paddingTop + idx * rowSpacing, width: nodeW, height: nodeH };
+            });
+            col2.forEach((item, idx) => {
+              map[item.name] = { x: colXs[1], y: paddingTop + idx * rowSpacing, width: nodeW, height: nodeH };
+            });
+
+            // For column 3 (has upgrades), compute desired y as the average center-y of evolved passives that reference it
+            const desired = col3.map(p => {
+              const usedBy = col4.filter(e => (e.ingredients || []).includes(p.name));
+              if (usedBy.length === 0) return { name: p.name, desiredY: paddingTop };
+              const avg = usedBy.reduce((sum, e) => {
+                const pos = map[e.name];
+                return sum + (pos.y + pos.height / 2);
+              }, 0) / usedBy.length;
+              return { name: p.name, desiredY: avg };
+            });
+
+            // sort by desiredY so nodes sit near their targets, then assign positions with spacing to avoid overlaps
+            desired.sort((a, b) => a.desiredY - b.desiredY);
+            let currentY = paddingTop;
+            desired.forEach(d => {
+              const y = Math.max(currentY, d.desiredY - nodeH / 2);
+              map[d.name] = { x: colXs[2], y: y, width: nodeW, height: nodeH };
+              currentY = y + rowSpacing;
+            });
+
             return map;
           }, [col1, col2, col3, col4]);
 
