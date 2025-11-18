@@ -1141,6 +1141,19 @@
                     {(() => {
                       const name = selected || (hovered && hovered.name);
                       if (!name) return null;
+                      const b = base.find(bi => bi.name === name);
+                      if (b && b.requirement && b.requirement !== 'N/A') {
+                        return (
+                          <div className="text-amber-300 text-sm mb-2 border-l-2 border-amber-300 pl-2">
+                            <strong>Requirement:</strong> {b.requirement}
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                    {(() => {
+                      const name = selected || (hovered && hovered.name);
+                      if (!name) return null;
                       const evo = evolved.find(e => e.name === name);
                       if (!evo) return null;
                       return (
