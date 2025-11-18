@@ -1037,7 +1037,7 @@
                   const imgX = 8;
                   const imgY = (pos.height - imgSize) / 2;
                   return url ? (
-                    <image href={url} x={imgX} y={imgY} width={imgSize} height={imgSize} preserveAspectRatio="xMidYMid slice" onError={(e) => { e.target.style.display = 'none'; }} />
+                    <image href={url} x={imgX} y={imgY} width={imgSize} height={imgSize} preserveAspectRatio="xMidYMid slice" onError={(e) => { e.target.style.display = 'none'; }} onClick={() => setSelected(selected === name ? null : name)} style={{ cursor: 'pointer' }} />
                   ) : null;
                 })()}
                 {/* wrap name into multiple lines to fit smaller node width */}
@@ -1053,7 +1053,7 @@
                   }
                   if (current) lines.push(current);
                   return (
-                    <text x={paddingLeft} y={pos.height / 2 - (lines.length - 1) * 6} fill={isEvolved ? '#f59e0b' : '#fff'} fontWeight="600" fontSize="12" dominantBaseline="middle">
+                    <text x={paddingLeft} y={pos.height / 2 - (lines.length - 1) * 6} fill={isEvolved ? '#f59e0b' : '#fff'} fontWeight="600" fontSize="12" dominantBaseline="middle" onClick={() => setSelected(selected === name ? null : name)} style={{ cursor: 'pointer', userSelect: 'none' }}>
                       {lines.map((ln, i) => <tspan key={i} x={paddingLeft} dy={i === 0 ? 0 : '1.2em'}>{ln}</tspan>)}
                     </text>
                   );
