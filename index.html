@@ -1368,16 +1368,9 @@
               return [...new Set(evoRecipes)];
             }
 
-            // Otherwise, if the active node is a base ball, show evolutions that use it
-            if (typeof baseInfoMap !== 'undefined' && baseInfoMap[activeNode]) {
-              const usedIn = evolutions
-                .filter(evo => evo.ingredients.includes(activeNode))
-                .map(evo => nameMap[evo.name] || evo.name);
-              return usedIn.length ? usedIn : [];
-            }
-
+            // Do not list evolutions for base balls — the graph conveys upgrades.
             return [];
-          }, [activeNode, evolutions, nameMap, baseInfoMap]);
+          }, [activeNode, evolutions, nameMap]);
 
           const descriptionForActiveNode = useMemo(() => {
             if (!activeNode) return '';
@@ -1386,13 +1379,21 @@
               const evo = evolutions.find(e => e.name === activeNode);
               if (evo && evo.description) return evo.description;
             }
-            // otherwise check base info map
+            // otherwise check base info map for description only
             if (typeof baseInfoMap !== 'undefined' && baseInfoMap[activeNode]) {
               const b = baseInfoMap[activeNode];
-              return `${b.description || ''}${b.startCharacter ? ' — Start: ' + b.startCharacter : ''}`;
+              return b.description || '';
             }
             return '';
           }, [activeNode, evolutions, baseInfoMap]);
+
+          const startCharacterForActiveNode = useMemo(() => {
+            if (!activeNode) return '';
+            if (typeof baseInfoMap !== 'undefined' && baseInfoMap[activeNode]) {
+              return baseInfoMap[activeNode].startCharacter || '';
+            }
+            return '';
+          }, [activeNode, baseInfoMap]);
 
           return (
             <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 p-6">
@@ -1591,10 +1592,11 @@
 
                   {activeNode && (
                     <div className="absolute bottom-2 left-2 z-10 bg-slate-900/75 backdrop-blur-sm rounded-lg p-4 max-w-md">
-                      <h3 className="text-white mb-2">
-                          <span className="font-semibold">{(nameMap[activeNode] || activeNode)}</span>
-                          {descriptionForActiveNode && <span className="font-normal">{`: ${descriptionForActiveNode}`}</span>}
-                      </h3>
+                      <div className="text-white mb-2">
+                        <div className="font-semibold">{(nameMap[activeNode] || activeNode)}</div>
+                        {descriptionForActiveNode && <div className="font-normal text-slate-200 mt-1">{descriptionForActiveNode}</div>}
+                        {startCharacterForActiveNode && <div className="text-slate-400 text-sm mt-2">{startCharacterForActiveNode}</div>}
+                      </div>
                       {recipesForActiveNode.length > 0 ? (
                         <div className="text-slate-300 text-sm">
                           {recipesForActiveNode.map((r, i) => (
