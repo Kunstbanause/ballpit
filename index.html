@@ -1112,9 +1112,10 @@
 
             const baseFill = isEvolved ? 'rgba(245,158,11,0.08)' : 'rgba(30,41,59,0.8)';
             const fill = categoryColor ? `${categoryColor}33` : baseFill;
+            const opacity = !selected || inChain ? 1 : 0.3;
 
             return (
-              <g key={name} transform={`translate(${pos.x}, ${pos.y})`}>
+              <g key={name} transform={`translate(${pos.x}, ${pos.y})`} style={{ opacity: opacity, transition: 'opacity 0.2s' }}>
                 <rect
                   x={0} y={0} rx={8} ry={8}
                   width={pos.width} height={pos.height}
