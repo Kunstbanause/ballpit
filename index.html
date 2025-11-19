@@ -932,7 +932,24 @@
           // ingredients set
           const ingredientSet = useMemo(() => new Set(evolved.flatMap(e => e.ingredients || [])), [evolved]);
 
-          const noUpgrade = useMemo(() => base.filter(b => !ingredientSet.has(b.name)), [base, ingredientSet]);
+          const categoryOrder = [
+            'effigy', 'baby balls', 'healing', 'crit', 'damage', 
+            'defense', 'pierce', 'movement', 'on-hit', 'special', 'utility'
+          ];
+
+          const noUpgrade = useMemo(() => {
+            const unsorted = base.filter(b => !ingredientSet.has(b.name));
+            return unsorted.sort((a, b) => {
+              const catA = categoryOrder.indexOf(a.category);
+              const catB = categoryOrder.indexOf(b.category);
+              if (catA === -1 && catB === -1) return a.name.localeCompare(b.name);
+              if (catA === -1) return 1;
+              if (catB === -1) return -1;
+              if (catA !== catB) return catA - catB;
+              return a.name.localeCompare(b.name);
+            });
+          }, [base, ingredientSet]);
+
           const hasUpgrade = useMemo(() => base.filter(b => ingredientSet.has(b.name)), [base, ingredientSet]);
 
           const col1 = useMemo(() => noUpgrade.filter((_, i) => i % 2 === 0), [noUpgrade]);
