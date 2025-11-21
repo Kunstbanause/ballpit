@@ -2578,10 +2578,14 @@
         }
 
         if (!previewPosition) {
-          // Drop inside grid but no valid position calculated
+          // Drop inside grid but no valid position calculated - also remove if dragged from grid
+          if (wasDraggedFromGrid && draggedInstanceId) {
+            removeBuilding(draggedInstanceId);
+          }
           setPreviewPosition(null);
           setDraggedBuilding(null);
           setWasDraggedFromGrid(false);
+          setDraggedInstanceId(null);
           return;
         }
 
@@ -2736,6 +2740,40 @@
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
+                {/* Chunk borders - 8x6 blocks */}
+                <div className="absolute inset-0 pointer-events-none"
+                  style={{
+                    width: '1200px',
+                    height: '900px',
+                  }}>
+                  {/* Draw vertical chunk borders every 8 cells (240px) */}
+                  {[1, 2, 3, 4].map(i => (
+                    <div
+                      key={`v-chunk-${i}`}
+                      className="absolute bg-yellow-500/40"
+                      style={{
+                        left: `${i * 8 * 30}px`,
+                        top: 0,
+                        width: '2px',
+                        height: '100%'
+                      }}
+                    />
+                  ))}
+                  {/* Draw horizontal chunk borders every 6 cells (180px) */}
+                  {[1, 2, 3, 4].map(i => (
+                    <div
+                      key={`h-chunk-${i}`}
+                      className="absolute bg-yellow-500/40"
+                      style={{
+                        left: 0,
+                        top: `${i * 6 * 30}px`,
+                        width: '100%',
+                        height: '2px'
+                      }}
+                    />
+                  ))}
+                </div>
+
                 {/* Grid background - empty cells */}
                 <div className="absolute inset-0 grid grid-cols-40 grid-rows-30"
                   style={{
