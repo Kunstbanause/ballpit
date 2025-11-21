@@ -2289,9 +2289,12 @@
           const [selectedBuilding, setSelectedBuilding] = useState(null);
           const [searchTerm, setSearchTerm] = useState('');
           const [scrollContainer, setScrollContainer] = useState(null);
-          const [gridState, setGridState] = useState(() => {
+          // Track the top-left position of each placed building
+          const [placedBuildings, setPlacedBuildings] = useState([]);
+          // Track which cells are occupied (for collision detection)
+          const [occupiedCells, setOccupiedCells] = useState(() => {
             // Initialize a 30x40 grid (1200 cells) with all cells empty
-            return Array(30 * 40).fill(null);
+            return Array(30 * 40).fill(false);
           });
           const [draggedBuilding, setDraggedBuilding] = useState(null);
           const [previewPosition, setPreviewPosition] = useState(null);
@@ -2380,6 +2383,115 @@
             return allItems.find(b => b.name === selectedBuilding);
           }, [selectedBuilding, allItems]);
 
+          // Find all occupied positions for a building at a given top-left position
+          const getOccupiedPositions = (topLeftRow, topLeftCol) => {
+            return [
+              topLeftRow * 40 + topLeftCol,         // top-left
+              topLeftRow * 40 + (topLeftCol + 1),   // top-right
+              (topLeftRow + 1) * 40 + topLeftCol,   // bottom-left
+              (topLeftRow + 1) * 40 + (topLeftCol + 1) // bottom-right
+            ];
+          };
+
+          // Check if a 2x2 building can be placed at a given position
+          const canPlaceBuilding = (row, col, buildingName = null) => {
+            if (col >= 39 || row >= 29) return false; // Not enough space for 2x2
+
+            const positions = getOccupiedPositions(row, col);
+
+            for (const pos of positions) {
+              // If any position is occupied by a different building, can't place
+              if (occupiedCells[pos]) {
+                // If buildingName is provided and this is an occupied cell that doesn't match
+                // the building we're moving, then we can't place it.
+                // If we're moving a building, the same building name should be allowed to occupy
+                // the same space (for cases where it might temporarily evaluate)
+                const isSameBuilding = placedBuildings.some(pb =>
+                  pb.topLeftIndex === pos && pb.building.name === buildingName
+                );
+
+                if (buildingName && !isSameBuilding) {
+                  return false;
+                } else if (!buildingName) {
+                  // If no building name provided, any occupation makes it invalid
+                  return false;
+                }
+              }
+            }
+            return true;
+          };
+
+          // Place a building at a given position
+          const placeBuilding = (row, col, building) => {
+            if (!canPlaceBuilding(row, col, building.name)) return false;
+
+            const topLeftIndex = row * 40 + col;
+
+            // Get current values to avoid stale closure issues
+            const currentWasDraggedFromGrid = wasDraggedFromGrid;
+
+            // Update both state variables in a coordinated way to avoid race conditions
+            setPlacedBuildings(prev => {
+              // Get the coordinates of the existing building if we are moving it
+              const existingBuilding = prev.find(pb => pb.building.name === building.name);
+
+              // Calculate new state
+              const newPlacedBuildings = [
+                ...prev.filter(pb => pb.building.name !== building.name), // Remove any existing same building
+                {
+                  building,
+                  topLeftIndex,
+                  row,
+                  col
+                }
+              ];
+
+              // Update occupied cells
+              setOccupiedCells(currentOccupiedCells => {
+                // Create a copy of the current occupied cells
+                const newOccupiedCells = [...currentOccupiedCells];
+
+                // If we're moving a building, clear its old position first
+                if (currentWasDraggedFromGrid && existingBuilding) {
+                  getOccupiedPositions(existingBuilding.row, existingBuilding.col).forEach(pos => {
+                    newOccupiedCells[pos] = false;
+                  });
+                }
+
+                // Mark the new position as occupied
+                getOccupiedPositions(row, col).forEach(pos => {
+                  newOccupiedCells[pos] = true;
+                });
+
+                return newOccupiedCells;
+              });
+
+              return newPlacedBuildings;
+            });
+
+            return true;
+          };
+
+          // Remove a building from the grid
+          const removeBuilding = (buildingName) => {
+            setPlacedBuildings(prev => {
+              // Get the building that's being removed to update occupied cells
+              const buildingToRemove = prev.find(pb => pb.building.name === buildingName);
+
+              // Update occupied cells based on the current state
+              if (buildingToRemove) {
+                const newOccupiedCells = [...occupiedCells];
+                getOccupiedPositions(buildingToRemove.row, buildingToRemove.col).forEach(pos => {
+                  newOccupiedCells[pos] = false;
+                });
+                setOccupiedCells(newOccupiedCells);
+              }
+
+              // Return new array without the removed building
+              return prev.filter(pb => pb.building.name !== buildingName);
+            });
+          };
+
           // Drag and drop functions
           const handleDragStart = (e, building, fromGrid = false) => {
             setDraggedBuilding(building);
@@ -2401,13 +2513,17 @@
             const cellWidth = rect.width / 40;
             const cellHeight = rect.height / 30;
 
-            // Calculate the top-left cell of a 2x2 building
+            // Calculate the top-left cell of a 2x2 building (snap to grid)
             const col = Math.floor(x / cellWidth);
             const row = Math.floor(y / cellHeight);
 
             // Snap to grid - ensure valid position
             if (col >= 0 && col < 39 && row >= 0 && row < 29) { // 39 and 29 to allow 2x2 building
-              setPreviewPosition({ row, col });
+              if (canPlaceBuilding(row, col, draggedBuilding?.name)) {
+                setPreviewPosition({ row, col });
+              } else {
+                setPreviewPosition(null);
+              }
             } else {
               setPreviewPosition(null);
             }
@@ -2433,15 +2549,7 @@
             if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
               // Drop outside the grid - remove the building if it was moved
               if (wasDraggedFromGrid) {
-                // Remove the building from the grid
-                const newGridState = [...gridState];
-                // Find this building in the grid and clear its cells
-                for (let i = 0; i < newGridState.length; i++) {
-                  if (newGridState[i] && newGridState[i].building.name === draggedBuilding.name) {
-                    newGridState[i] = null;
-                  }
-                }
-                setGridState(newGridState);
+                removeBuilding(draggedBuilding.name);
               }
               setPreviewPosition(null);
               setDraggedBuilding(null);
@@ -2457,53 +2565,8 @@
               return;
             }
 
-            const { row, col } = previewPosition;
-
-            // Calculate the grid index for the top-left cell
-            const topLeftIndex = row * 40 + col;
-
-            // Check if there's space for a 2x2 building
-            // (top-left, top-right, bottom-left, bottom-right)
-            const positionsToCheck = [
-              topLeftIndex,           // top-left
-              topLeftIndex + 1,       // top-right
-              topLeftIndex + 40,      // bottom-left
-              topLeftIndex + 41       // bottom-right
-            ];
-
-            // Check if there's space for a 2x2 building
-            const hasSpace = positionsToCheck.every(index => {
-              // If this is a move (dragged from grid), make sure we're not checking the same building's current position
-              const currentBuilding = gridState[index];
-              if (wasDraggedFromGrid && currentBuilding && currentBuilding.building.name === draggedBuilding.name) {
-                // This cell is the same building we're moving, so ignore it during the placement check
-                return true;
-              }
-              return !currentBuilding; // Return true if cell is empty
-            });
-
-            if (hasSpace) {
-              // Place the building in the new position
-              const newGridState = [...gridState];
-
-              // If this is a moved building, clear its previous position first
-              if (wasDraggedFromGrid) {
-                for (let i = 0; i < newGridState.length; i++) {
-                  if (newGridState[i] && newGridState[i].building.name === draggedBuilding.name) {
-                    newGridState[i] = null;
-                  }
-                }
-              }
-
-              // Place the building in the new position (all 4 cells of the 2x2)
-              positionsToCheck.forEach(index => {
-                newGridState[index] = {
-                  name: draggedBuilding.name,
-                  building: draggedBuilding
-                };
-              });
-              setGridState(newGridState);
-            }
+            // Place the building at the preview position
+            placeBuilding(previewPosition.row, previewPosition.col, draggedBuilding);
 
             setPreviewPosition(null);
             setDraggedBuilding(null);
@@ -2645,75 +2708,90 @@
                   <h3 className="text-lg font-semibold text-white mb-3">Building Grid (30x40)</h3>
                   <div
                     id="buildingGrid"
-                    className="grid gap-px bg-slate-700 rounded flex-1 overflow-auto"
+                    className="grid grid-cols-40 grid-rows-30 gap-0 bg-slate-800 rounded flex-1 overflow-auto relative"
+                    style={{
+                      minHeight: '600px',
+                      maxHeight: '600px',
+                      width: '100%',
+                      display: 'grid',
+                      gridTemplateRows: 'repeat(30, 1fr)',
+                      gridTemplateColumns: 'repeat(40, 1fr)'
+                    }}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    style={{
-                      gridTemplateColumns: 'repeat(40, minmax(0, 1fr))',
-                      gridTemplateRows: 'repeat(30, minmax(0, 1fr))'
-                    }}
                   >
-                    {gridState.map((cellContent, index) => {
-                      // Calculate this cell's row and column
-                      const row = Math.floor(index / 40);
-                      const col = index % 40;
+                    {/* Grid background - empty cells */}
+                    <div className="absolute inset-0 grid grid-cols-40 grid-rows-30"
+                         style={{
+                           gridTemplateRows: 'repeat(30, 1fr)',
+                           gridTemplateColumns: 'repeat(40, 1fr)'
+                         }}>
+                      {Array.from({ length: 30 * 40 }).map((_, index) => {
+                        const row = Math.floor(index / 40);
+                        const col = index % 40;
 
-                      // Check if this cell is part of a placed building
-                      const isPlaced = cellContent !== null;
+                        // Check if this cell is occupied by a building or part of preview
+                        const isOccupied = occupiedCells[index];
+                        let isPreview = false;
+                        if (previewPosition && draggedBuilding) {
+                          const previewTopLeftIndex = previewPosition.row * 40 + previewPosition.col;
+                          isPreview = [
+                            previewTopLeftIndex,
+                            previewTopLeftIndex + 1,
+                            previewTopLeftIndex + 40,
+                            previewTopLeftIndex + 41
+                          ].includes(index);
+                        }
 
-                      // Check if this cell is part of the current preview
-                      let isPreview = false;
-                      if (previewPosition && draggedBuilding) {
-                        const previewTopLeftIndex = previewPosition.row * 40 + previewPosition.col;
-                        // Check if this index is one of the 4 cells in a 2x2 preview
-                        isPreview = [
-                          previewTopLeftIndex,
-                          previewTopLeftIndex + 1,
-                          previewTopLeftIndex + 40,
-                          previewTopLeftIndex + 41
-                        ].includes(index);
-                      }
+                        // Don't show empty cell background if it's occupied or part of preview
+                        if (isOccupied || isPreview) return null;
 
-                      // Determine the appropriate class for this cell
-                      let cellClass = "w-4 h-4 border border-slate-600 relative ";
-                      if (isPlaced) {
-                        cellClass += "bg-blue-700";  // Placed building
-                      } else if (isPreview) {
-                        cellClass += "bg-blue-500/50";  // Preview area
-                      } else {
-                        cellClass += "bg-slate-900";  // Empty cell
-                      }
+                        return (
+                          <div
+                            key={`bg-${index}`}
+                            className="border border-slate-700 bg-slate-900/30"
+                          ></div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Preview overlay for dragged building */}
+                    {previewPosition && draggedBuilding && (
+                      <div
+                        className="absolute bg-blue-500/50 border-2 border-dashed border-blue-400"
+                        style={{
+                          gridColumn: `${previewPosition.col + 1} / span 2`,
+                          gridRow: `${previewPosition.row + 1} / span 2`,
+                        }}
+                      ></div>
+                    )}
+
+                    {/* Render placed buildings as 2x2 blocks */}
+                    {placedBuildings.map((placedBuilding) => {
+                      const { building, row, col } = placedBuilding;
 
                       return (
                         <div
-                          key={index}
-                          className={cellClass}
-                          data-grid-index={index}
-                          onMouseEnter={() => {
-                            if (cellContent) {
-                              setSelectedBuilding(cellContent.building.name);
-                            }
+                          key={`building-${building.name}-${row}-${col}`}
+                          className="absolute bg-blue-700"
+                          style={{
+                            gridColumn: `${col + 1} / span 2`,  // 2 columns
+                            gridRow: `${row + 1} / span 2`,     // 2 rows
                           }}
-                          onMouseLeave={() => {
-                            if (cellContent) {
-                              setSelectedBuilding(null);
-                            }
-                          }}
+                          onMouseEnter={() => setSelectedBuilding(building.name)}
+                          onMouseLeave={() => setSelectedBuilding(null)}
                         >
-                          {/* Render building icon if building is placed here */}
-                          {cellContent && (
-                            <img
-                              src={getBuildingIconUrl(cellContent.building.name)}
-                              alt={cellContent.building.name}
-                              className="w-full h-full object-cover"
-                              draggable="true"
-                              onDragStart={(e) => handleDragStart(e, cellContent.building, true)}
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                              }}
-                            />
-                          )}
+                          <img
+                            src={getBuildingIconUrl(building.name)}
+                            alt={building.name}
+                            className="w-full h-full object-cover"
+                            draggable="true"
+                            onDragStart={(e) => handleDragStart(e, building, true)}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
                         </div>
                       );
                     })}
