@@ -2289,7 +2289,7 @@
           const [selectedBuilding, setSelectedBuilding] = useState(null);
           const [searchTerm, setSearchTerm] = useState('');
           const [scrollContainer, setScrollContainer] = useState(null);
-          // Track the top-left position of each placed building
+          // Track the top-left position of each placed building (with unique IDs)
           const [placedBuildings, setPlacedBuildings] = useState([]);
           // Track which cells are occupied (for collision detection)
           const [occupiedCells, setOccupiedCells] = useState(() => {
@@ -2299,6 +2299,7 @@
           const [draggedBuilding, setDraggedBuilding] = useState(null);
           const [previewPosition, setPreviewPosition] = useState(null);
           const [wasDraggedFromGrid, setWasDraggedFromGrid] = useState(false);
+          const [draggedInstanceId, setDraggedInstanceId] = useState(null);
           const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
           const allItems = useMemo(() => {
@@ -2401,17 +2402,17 @@
             const positions = getOccupiedPositions(row, col);
 
             for (const pos of positions) {
-              // If any position is occupied by a different building, can't place
+              // If any position is occupied, check if it's the same building we're moving
               if (occupiedCells[pos]) {
-                // If buildingName is provided and this is an occupied cell that doesn't match
-                // the building we're moving, then we can't place it.
-                // If we're moving a building, the same building name should be allowed to occupy
-                // the same space (for cases where it might temporarily evaluate)
-                const isSameBuilding = placedBuildings.some(pb =>
+                // If buildingName is provided, check if this occupied position is for the same building name
+                // that we're trying to place. If it is, this is likely the building we're moving from
+                // its current position, so we should allow the placement at the new position.
+                const isSameBuildingName = placedBuildings.some(pb =>
                   pb.topLeftIndex === pos && pb.building.name === buildingName
                 );
 
-                if (buildingName && !isSameBuilding) {
+                // If occupied by a different building name, placement is not allowed
+                if (buildingName && !isSameBuildingName) {
                   return false;
                 } else if (!buildingName) {
                   // If no building name provided, any occupation makes it invalid
@@ -2428,24 +2429,38 @@
 
             const topLeftIndex = row * 40 + col;
 
+            // Create a unique ID for this instance
+            const instanceId = `${building.name}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
             // Get current values to avoid stale closure issues
             const currentWasDraggedFromGrid = wasDraggedFromGrid;
+            const currentDraggedInstanceId = draggedInstanceId;
 
             // Update both state variables in a coordinated way to avoid race conditions
             setPlacedBuildings(prev => {
-              // Get the coordinates of the existing building if we are moving it
-              const existingBuilding = prev.find(pb => pb.building.name === building.name);
+              let instanceToRemove = null;
+
+              // If this is moving an existing building (wasDraggedFromGrid is true),
+              // we know the specific instance from draggedInstanceId
+              if (currentWasDraggedFromGrid && currentDraggedInstanceId) {
+                instanceToRemove = currentDraggedInstanceId;
+              }
 
               // Calculate new state
-              const newPlacedBuildings = [
-                ...prev.filter(pb => pb.building.name !== building.name), // Remove any existing same building
-                {
-                  building,
-                  topLeftIndex,
-                  row,
-                  col
-                }
-              ];
+              let newPlacedBuildings = [...prev];
+              if (instanceToRemove) {
+                // Remove the instance being moved
+                newPlacedBuildings = newPlacedBuildings.filter(pb => pb.instanceId !== instanceToRemove);
+              }
+
+              // Add the new instance
+              newPlacedBuildings.push({
+                instanceId,
+                building,
+                topLeftIndex,
+                row,
+                col
+              });
 
               // Update occupied cells
               setOccupiedCells(currentOccupiedCells => {
@@ -2453,10 +2468,13 @@
                 const newOccupiedCells = [...currentOccupiedCells];
 
                 // If we're moving a building, clear its old position first
-                if (currentWasDraggedFromGrid && existingBuilding) {
-                  getOccupiedPositions(existingBuilding.row, existingBuilding.col).forEach(pos => {
-                    newOccupiedCells[pos] = false;
-                  });
+                if (currentWasDraggedFromGrid && instanceToRemove) {
+                  const buildingToMove = prev.find(pb => pb.instanceId === instanceToRemove);
+                  if (buildingToMove) {
+                    getOccupiedPositions(buildingToMove.row, buildingToMove.col).forEach(pos => {
+                      newOccupiedCells[pos] = false;
+                    });
+                  }
                 }
 
                 // Mark the new position as occupied
@@ -2473,11 +2491,11 @@
             return true;
           };
 
-          // Remove a building from the grid
-          const removeBuilding = (buildingName) => {
+          // Remove a building from the grid by instance ID
+          const removeBuilding = (instanceId) => {
             setPlacedBuildings(prev => {
               // Get the building that's being removed to update occupied cells
-              const buildingToRemove = prev.find(pb => pb.building.name === buildingName);
+              const buildingToRemove = prev.find(pb => pb.instanceId === instanceId);
 
               // Update occupied cells based on the current state
               if (buildingToRemove) {
@@ -2489,14 +2507,15 @@
               }
 
               // Return new array without the removed building
-              return prev.filter(pb => pb.building.name !== buildingName);
+              return prev.filter(pb => pb.instanceId !== instanceId);
             });
           };
 
           // Drag and drop functions
-          const handleDragStart = (e, building, fromGrid = false) => {
+          const handleDragStart = (e, building, fromGrid = false, instanceId = null) => {
             setDraggedBuilding(building);
             setWasDraggedFromGrid(fromGrid);
+            setDraggedInstanceId(instanceId);
             e.dataTransfer.setData('text/plain', building.name);
             e.dataTransfer.effectAllowed = fromGrid ? 'move' : 'copy';
           };
@@ -2549,12 +2568,13 @@
             // Check if drop is inside the grid
             if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
               // Drop outside the grid - remove the building if it was moved
-              if (wasDraggedFromGrid) {
-                removeBuilding(draggedBuilding.name);
+              if (wasDraggedFromGrid && draggedInstanceId) {
+                removeBuilding(draggedInstanceId);
               }
               setPreviewPosition(null);
               setDraggedBuilding(null);
               setWasDraggedFromGrid(false);
+              setDraggedInstanceId(null);
               return;
             }
 
@@ -2572,6 +2592,7 @@
             setPreviewPosition(null);
             setDraggedBuilding(null);
             setWasDraggedFromGrid(false);
+            setDraggedInstanceId(null);
           };
 
           // Track mouse position for tooltip
@@ -2764,11 +2785,11 @@
 
                     {/* Render placed buildings as 2x2 blocks */}
                     {placedBuildings.map((placedBuilding) => {
-                      const { building, row, col } = placedBuilding;
+                      const { instanceId, building, row, col } = placedBuilding;
 
                       return (
                         <div
-                          key={`building-${building.name}-${row}-${col}`}
+                          key={`building-${instanceId}`}
                           className="absolute bg-blue-700"
                           style={{
                             gridColumn: `${col + 1} / span 2`,  // 2 columns
@@ -2782,7 +2803,7 @@
                             alt={building.name}
                             className="w-full h-full object-cover"
                             draggable="true"
-                            onDragStart={(e) => handleDragStart(e, building, true)}
+                            onDragStart={(e) => handleDragStart(e, building, true, instanceId)}
                             onError={(e) => {
                               e.target.style.display = 'none';
                             }}
