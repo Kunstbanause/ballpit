@@ -2386,6 +2386,24 @@
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-700 text-white rounded border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-400"
                   />
+                  {/* Category Badge Buttons */}
+                  <div className="mt-3">
+                    <div className="text-xs text-slate-400 mb-2">Filter by category:</div>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.keys(buildingsByCategory).map(category => (
+                        <button
+                          key={category}
+                          onClick={() => {
+                            setSearchTerm(category);
+                            setSelectedBuilding(null);
+                          }}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(category)} cursor-pointer hover:opacity-80 transition-opacity`}
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="text-xs text-slate-400 mt-2">
                     Showing {Object.values(filteredCategories).reduce((acc, val) => acc + val.length, 0)} of {allItems.length} items
                   </div>
