@@ -2529,8 +2529,8 @@
         const y = e.clientY - rect.top + gridElement.scrollTop;
 
         // Calculate grid cell based on mouse position
-        const cellWidth = 32;
-        const cellHeight = 32;
+        const cellWidth = 30;
+        const cellHeight = 30;
 
         // Calculate the top-left cell of a 2x2 building (snap to grid)
         const col = Math.floor(x / cellWidth);
@@ -2645,7 +2645,7 @@
       return (
         <div className="flex h-[84vh] bg-slate-900">
           {/* Left Column - Scrollable Building List */}
-          <div className="w-1/3 flex flex-col bg-slate-800 border-r border-slate-700">
+          <div className="w-1/5 flex flex-col bg-slate-800 border-r border-slate-700">
             {/* Search Bar */}
             <div className="p-4 border-b border-slate-700">
               <input
@@ -2716,20 +2716,18 @@
           </div>
 
           {/* Right Column - Building Grid (with stable size) */}
-          <div className="w-2/3 bg-slate-900 p-6 flex flex-col h-full">
+          <div className="w-4/5 bg-slate-900 p-2 flex flex-col h-full min-h-0">
             {/* Building Placement Grid */}
-            <div className="bg-slate-800 rounded-lg p-4 border-2 border-dashed border-slate-600 flex-1 flex flex-col">
-              <h3 className="text-lg font-semibold text-white mb-3">Building Grid (30x40)</h3>
+            <div className="bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 flex-1 flex flex-col min-h-0">
               <div
                 id="buildingGrid"
                 className="grid grid-cols-40 grid-rows-30 gap-0 bg-slate-800 rounded flex-1 overflow-auto relative"
                 style={{
-                  minHeight: '600px',
-                  maxHeight: '600px',
+                  maxHeight: '100%',
                   width: '100%',
                   display: 'grid',
-                  gridTemplateRows: 'repeat(30, 32px)',
-                  gridTemplateColumns: 'repeat(40, 32px)'
+                  gridTemplateRows: 'repeat(30, 30px)',
+                  gridTemplateColumns: 'repeat(40, 30px)'
                 }}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -2738,10 +2736,10 @@
                 {/* Grid background - empty cells */}
                 <div className="absolute inset-0 grid grid-cols-40 grid-rows-30"
                   style={{
-                    width: '1280px', // 40 * 32
-                    height: '960px', // 30 * 32
-                    gridTemplateRows: 'repeat(30, 32px)',
-                    gridTemplateColumns: 'repeat(40, 32px)'
+                    width: '1200px', // 40 * 30
+                    height: '900px', // 30 * 30
+                    gridTemplateRows: 'repeat(30, 30px)',
+                    gridTemplateColumns: 'repeat(40, 30px)'
                   }}>
                   {Array.from({ length: 30 * 40 }).map((_, index) => {
                     const row = Math.floor(index / 40);
@@ -2794,6 +2792,8 @@
                       style={{
                         gridColumn: `${col + 1} / span 2`,  // 2 columns
                         gridRow: `${row + 1} / span 2`,     // 2 rows
+                        width: '100%',
+                        height: '100%'
                       }}
                       onMouseEnter={() => setSelectedBuilding(building.name)}
                       onMouseLeave={() => setSelectedBuilding(null)}
@@ -2801,7 +2801,7 @@
                       <img
                         src={getBuildingIconUrl(building.name)}
                         alt={building.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full"
                         draggable="true"
                         onDragStart={(e) => handleDragStart(e, building, true, instanceId)}
                         onError={(e) => {
