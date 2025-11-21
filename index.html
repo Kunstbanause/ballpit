@@ -2821,7 +2821,7 @@
           </div>
 
           {/* Mouse Position Tooltip Overlay */}
-          {selectedBuildingData && (() => {
+          {selectedBuildingData && !draggedBuilding && (() => {
             const tooltipPos = getTooltipPosition();
             return (
               <div
