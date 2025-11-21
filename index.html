@@ -2865,7 +2865,7 @@
                   return (
                     <div
                       key={`building-${instanceId}`}
-                      className="absolute bg-blue-700"
+                      className="absolute bg-blue-700 cursor-pointer"
                       style={{
                         gridColumn: `${col + 1} / span 2`,  // 2 columns
                         gridRow: `${row + 1} / span 2`,     // 2 rows
@@ -2874,6 +2874,10 @@
                       }}
                       onMouseEnter={() => setSelectedBuilding(building.name)}
                       onMouseLeave={() => setSelectedBuilding(null)}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        removeBuilding(instanceId);
+                      }}
                     >
                       <img
                         src={getBuildingIconUrl(building.name)}
