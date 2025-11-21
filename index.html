@@ -2414,7 +2414,29 @@
         function BallEvolutionGraph() {
           const [selectedBall, setSelectedBall] = useState(null);
           const [hoveredNode, setHoveredNode] = useState(null);
-          const [tab, setTab] = useState('Evolutions');
+          const [tab, setTab] = useState(() => {
+            const hash = window.location.hash.slice(1);
+            return ['balls', 'passives', 'buildings'].includes(hash) ? 
+              (hash === 'balls' ? 'Evolutions' : hash === 'passives' ? 'Passives' : 'Buildings') : 
+              'Evolutions';
+          });
+
+          useEffect(() => {
+            const handleHashChange = () => {
+              const hash = window.location.hash.slice(1);
+              if (hash === 'balls') setTab('Evolutions');
+              else if (hash === 'passives') setTab('Passives');
+              else if (hash === 'buildings') setTab('Buildings');
+              else setTab('Evolutions');
+            };
+            window.addEventListener('hashchange', handleHashChange);
+            return () => window.removeEventListener('hashchange', handleHashChange);
+          }, []);
+
+          const handleTabChange = (tabName, hash) => {
+            setTab(tabName);
+            window.location.hash = hash;
+          };
 
           const { evolutions, baseElements, nameMap, uniqueEvos, recipesByEvo, altNodes, baseInfoMap } = useMemo(() => {
             const data = jsonData;
@@ -2805,9 +2827,9 @@
                 <div className="flex items-center gap-3 mb-4">
                   <h1 className="text-4xl font-bold text-white mb-0">Ball x Pit</h1>
                   <div className="inline-flex rounded-md bg-slate-800/40 p-1">
-                    <button onClick={() => setTab('Evolutions')} className={`px-3 py-1 rounded ${tab === 'Evolutions' ? 'bg-slate-700 text-white' : 'text-slate-300'}`}>Evolutions</button>
-                    <button onClick={() => setTab('Passives')} className={`ml-2 px-3 py-1 rounded ${tab === 'Passives' ? 'bg-slate-700 text-white' : 'text-slate-300'}`}>Passives</button>
-                    <button onClick={() => setTab('Buildings')} className={`ml-2 px-3 py-1 rounded ${tab === 'Buildings' ? 'bg-slate-700 text-white' : 'text-slate-300'}`}>Buildings</button>
+                    <button onClick={() => handleTabChange('Evolutions', 'balls')} className={`px-3 py-1 rounded ${tab === 'Evolutions' ? 'bg-slate-700 text-white' : 'text-slate-300'}`}>Evolutions</button>
+                    <button onClick={() => handleTabChange('Passives', 'passives')} className={`ml-2 px-3 py-1 rounded ${tab === 'Passives' ? 'bg-slate-700 text-white' : 'text-slate-300'}`}>Passives</button>
+                    <button onClick={() => handleTabChange('Buildings', 'buildings')} className={`ml-2 px-3 py-1 rounded ${tab === 'Buildings' ? 'bg-slate-700 text-white' : 'text-slate-300'}`}>Buildings</button>
                   </div>
                 </div>
 
