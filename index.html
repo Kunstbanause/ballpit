@@ -2645,7 +2645,10 @@
       return (
         <div className="flex h-[84vh] bg-slate-900">
           {/* Left Column - Scrollable Building List */}
-          <div className="w-1/5 flex flex-col bg-slate-800 border-r border-slate-700">
+          <div
+            className="w-1/5 flex flex-col bg-slate-800 border-r border-slate-700"
+            onMouseLeave={() => setSelectedBuilding(null)}
+          >
             {/* Search Bar */}
             <div className="p-4 border-b border-slate-700">
               <input
