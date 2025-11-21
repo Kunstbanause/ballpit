@@ -2525,12 +2525,12 @@
         if (!gridElement) return;
 
         const rect = gridElement.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const x = e.clientX - rect.left + gridElement.scrollLeft;
+        const y = e.clientY - rect.top + gridElement.scrollTop;
 
         // Calculate grid cell based on mouse position
-        const cellWidth = rect.width / 40;
-        const cellHeight = rect.height / 30;
+        const cellWidth = 32;
+        const cellHeight = 32;
 
         // Calculate the top-left cell of a 2x2 building (snap to grid)
         const col = Math.floor(x / cellWidth);
@@ -2693,8 +2693,8 @@
                           draggable
                           onDragStart={(e) => handleDragStart(e, item, false)}
                           className={`p-3 cursor-pointer transition-colors rounded-md mb-2 ${selectedBuilding === item.name
-                              ? 'bg-blue-900 bg-opacity-50 border-l-4 border-blue-500'
-                              : 'bg-slate-800 hover:bg-slate-700 border-l-4 border-transparent'
+                            ? 'bg-blue-900 bg-opacity-50 border-l-4 border-blue-500'
+                            : 'bg-slate-800 hover:bg-slate-700 border-l-4 border-transparent'
                             }`}
                         >
                           <div className="flex items-start justify-between">
@@ -2728,8 +2728,8 @@
                   maxHeight: '600px',
                   width: '100%',
                   display: 'grid',
-                  gridTemplateRows: 'repeat(30, 1fr)',
-                  gridTemplateColumns: 'repeat(40, 1fr)'
+                  gridTemplateRows: 'repeat(30, 32px)',
+                  gridTemplateColumns: 'repeat(40, 32px)'
                 }}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -2738,8 +2738,10 @@
                 {/* Grid background - empty cells */}
                 <div className="absolute inset-0 grid grid-cols-40 grid-rows-30"
                   style={{
-                    gridTemplateRows: 'repeat(30, 1fr)',
-                    gridTemplateColumns: 'repeat(40, 1fr)'
+                    width: '1280px', // 40 * 32
+                    height: '960px', // 30 * 32
+                    gridTemplateRows: 'repeat(30, 32px)',
+                    gridTemplateColumns: 'repeat(40, 32px)'
                   }}>
                   {Array.from({ length: 30 * 40 }).map((_, index) => {
                     const row = Math.floor(index / 40);
