@@ -2246,6 +2246,31 @@
             return 'text-purple-400';
           };
 
+          const getResourceColor = (resourceType) => {
+            const colors = {
+              gold: 'text-yellow-500',
+              wheat: 'text-amber-600',
+              wood: 'text-amber-700',
+              stone: 'text-gray-400'
+            };
+            return colors[resourceType] || 'text-gray-400';
+          };
+
+          const getCategoryColor = (category) => {
+            const colors = {
+              'Economy': 'bg-green-900 text-green-200',
+              'Defense': 'bg-blue-900 text-blue-200',
+              'Housing': 'bg-purple-900 text-purple-200',
+              'Commerce': 'bg-yellow-900 text-yellow-200',
+              'Utility': 'bg-cyan-900 text-cyan-200',
+              'Production': 'bg-orange-900 text-orange-200',
+              'Government': 'bg-red-900 text-red-200',
+              'Training': 'bg-indigo-900 text-indigo-200',
+              'Trophy': 'bg-gray-700 text-gray-200'
+            };
+            return colors[category] || 'bg-gray-800 text-gray-200';
+          };
+
           const selectedBuildingData = useMemo(() => {
             if (!selectedBuilding) return null;
             return buildings.find(b => b.name === selectedBuilding);
@@ -2286,9 +2311,13 @@
                               : 'bg-slate-800 hover:bg-slate-700 border-l-4 border-transparent'
                           }`}
                         >
-                          <div className="font-bold text-white text-sm mb-1">{building.name}</div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${getCategoryColor(building.category)}`}>
+                              {building.category}
+                            </span>
+                            <div className="font-bold text-white text-sm">{building.name}</div>
+                          </div>
                           <div className="text-xs text-slate-300 line-clamp-2">{building.description}</div>
-                          <div className="text-xs text-slate-400 mt-1">Category: {building.category}</div>
                         </div>
                       ))}
                     </div>
@@ -2316,10 +2345,9 @@
                         <h2 className="text-3xl font-bold text-white mb-2">{selectedBuildingData.name}</h2>
                         <p className="text-slate-300 text-lg mb-4">{selectedBuildingData.description}</p>
                         <div className="flex space-x-4">
-                          <div className="bg-slate-800 rounded px-3 py-1">
-                            <div className="text-xs text-slate-400">Category</div>
-                            <div className="text-sm font-semibold text-white">{selectedBuildingData.category}</div>
-                          </div>
+                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getCategoryColor(selectedBuildingData.category)}`}>
+                            {selectedBuildingData.category}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -2330,25 +2358,25 @@
                       <div className="grid grid-cols-4 gap-4">
                         <div className="bg-slate-700 rounded p-3">
                           <div className="text-xs text-slate-400 mb-1">Gold</div>
-                          <div className={`text-2xl font-bold ${getCostColor(selectedBuildingData.cost.gold)}`}>
+                          <div className={`text-2xl font-bold ${getResourceColor('gold')}`}>
                             {selectedBuildingData.cost.gold}
                           </div>
                         </div>
                         <div className="bg-slate-700 rounded p-3">
                           <div className="text-xs text-slate-400 mb-1">Wheat</div>
-                          <div className={`text-2xl font-bold ${getCostColor(selectedBuildingData.cost.wheat)}`}>
+                          <div className={`text-2xl font-bold ${getResourceColor('wheat')}`}>
                             {selectedBuildingData.cost.wheat}
                           </div>
                         </div>
                         <div className="bg-slate-700 rounded p-3">
                           <div className="text-xs text-slate-400 mb-1">Wood</div>
-                          <div className={`text-2xl font-bold ${getCostColor(selectedBuildingData.cost.wood)}`}>
+                          <div className={`text-2xl font-bold ${getResourceColor('wood')}`}>
                             {selectedBuildingData.cost.wood}
                           </div>
                         </div>
                         <div className="bg-slate-700 rounded p-3">
                           <div className="text-xs text-slate-400 mb-1">Stone</div>
-                          <div className={`text-2xl font-bold ${getCostColor(selectedBuildingData.cost.stone)}`}>
+                          <div className={`text-2xl font-bold ${getResourceColor('stone')}`}>
                             {selectedBuildingData.cost.stone}
                           </div>
                         </div>
