@@ -2252,7 +2252,7 @@
           }, [selectedBuilding, buildings]);
 
           return (
-            <div className="flex h-screen bg-slate-900">
+            <div className="flex h-[84vh] bg-slate-900">
               {/* Left Column - Scrollable Building List */}
               <div className="w-1/3 flex flex-col bg-slate-800 border-r border-slate-700">
                 {/* Search Bar */}
@@ -2771,6 +2771,7 @@
                   <div className="inline-flex rounded-md bg-slate-800/40 p-1">
                     <button onClick={() => setTab('Evolutions')} className={`px-3 py-1 rounded ${tab === 'Evolutions' ? 'bg-slate-700 text-white' : 'text-slate-300'}`}>Evolutions</button>
                     <button onClick={() => setTab('Passives')} className={`ml-2 px-3 py-1 rounded ${tab === 'Passives' ? 'bg-slate-700 text-white' : 'text-slate-300'}`}>Passives</button>
+                    <button onClick={() => setTab('Buildings')} className={`ml-2 px-3 py-1 rounded ${tab === 'Buildings' ? 'bg-slate-700 text-white' : 'text-slate-300'}`}>Buildings</button>
                   </div>
                 </div>
 
@@ -2795,6 +2796,10 @@
 
                 <div style={{ display: tab === 'Passives' ? 'block' : 'none' }}>
                   <PassivesGraph />
+                </div>
+
+                <div style={{ display: tab === 'Buildings' ? 'block' : 'none' }}>
+                  <BuildingsViewer />
                 </div>
 
                 <div className="relative" style={{ display: tab === 'Evolutions' ? 'block' : 'none' }}>
@@ -2988,58 +2993,7 @@
           );
         }
 
-        function App() {
-          const [activeTab, setActiveTab] = useState('Evolutions');
-
-          return (
-            <div className="w-full h-screen">
-              {/* Tab Navigation */}
-              <div className="bg-slate-800 border-b border-slate-700">
-                <div className="flex">
-                  <button
-                    onClick={() => setActiveTab('Evolutions')}
-                    className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
-                      activeTab === 'Evolutions'
-                        ? 'text-blue-400 border-blue-500 bg-slate-700'
-                        : 'text-slate-400 border-transparent hover:text-slate-200'
-                    }`}
-                  >
-                    Ball Evolutions
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('Passives')}
-                    className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
-                      activeTab === 'Passives'
-                        ? 'text-blue-400 border-blue-500 bg-slate-700'
-                        : 'text-slate-400 border-transparent hover:text-slate-200'
-                    }`}
-                  >
-                    Passives
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('Buildings')}
-                    className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
-                      activeTab === 'Buildings'
-                        ? 'text-blue-400 border-blue-500 bg-slate-700'
-                        : 'text-slate-400 border-transparent hover:text-slate-200'
-                    }`}
-                  >
-                    Buildings
-                  </button>
-                </div>
-              </div>
-
-              {/* Tab Content */}
-              <div className="w-full h-[calc(100vh-53px)]">
-                {activeTab === 'Evolutions' && <BallEvolutionGraph />}
-                {activeTab === 'Passives' && <PassivesGraph />}
-                {activeTab === 'Buildings' && <BuildingsViewer />}
-              </div>
-            </div>
-          );
-        }
-
-        ReactDOM.render(<App />, document.getElementById('root'));
+        ReactDOM.render(<BallEvolutionGraph />, document.getElementById('root'));
     </script>
 </body>
 </html>
