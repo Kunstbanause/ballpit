@@ -2762,7 +2762,9 @@
                     }
 
                     // Don't show empty cell background if it's occupied or part of preview
-                    if (isOccupied || isPreview) return null;
+                    if (isOccupied || isPreview) {
+                      return <div key={`bg-${index}`}></div>;
+                    }
 
                     return (
                       <div
