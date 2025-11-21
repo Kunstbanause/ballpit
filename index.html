@@ -2219,13 +2219,21 @@
           const buildings = useMemo(() => buildingsData.buildings || [], []);
 
           const filteredBuildings = useMemo(() => {
-            if (!searchTerm.trim()) return buildings;
-            const lowerSearch = searchTerm.toLowerCase();
-            return buildings.filter(b => 
-              b.name.toLowerCase().includes(lowerSearch) ||
-              b.description.toLowerCase().includes(lowerSearch) ||
-              b.category.toLowerCase().includes(lowerSearch)
-            );
+            let result = buildings;
+            if (searchTerm.trim()) {
+              const lowerSearch = searchTerm.toLowerCase();
+              result = result.filter(b => 
+                b.name.toLowerCase().includes(lowerSearch) ||
+                b.description.toLowerCase().includes(lowerSearch) ||
+                b.category.toLowerCase().includes(lowerSearch)
+              );
+            }
+            // Sort by category first, then by name alphabetically
+            return result.sort((a, b) => {
+              const categoryCompare = a.category.localeCompare(b.category);
+              if (categoryCompare !== 0) return categoryCompare;
+              return a.name.localeCompare(b.name);
+            });
           }, [searchTerm, buildings]);
 
           const getBuildingIconSlug = (name) => {
