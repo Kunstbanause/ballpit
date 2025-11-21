@@ -1,0 +1,8 @@
+There is a little space between the tiles where I cannot place buiuldings, the grid. Can we improve this by accepting drag and drops anywher within the play field.
+
+
+Some buildings can only be placed once: I think all warfare and housing. Also market, workers guild. Also everything in economy but farm, Gatherers hut, goldmine, lumberyard
+
+
+
+Some tiles are of different size. Like the advanded resource tiles are 1x1
