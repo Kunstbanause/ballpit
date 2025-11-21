@@ -2646,8 +2646,42 @@
         return { x, y };
       };
 
+      // Global drop handler for dropping anywhere outside the grid
+      const handleGlobalDrop = (e) => {
+        e.preventDefault();
+        if (!draggedBuilding) return;
+
+        // Check if the drop target is within the grid
+        const gridElement = document.getElementById('buildingGrid');
+        if (!gridElement) return;
+
+        const rect = gridElement.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // If dropped outside the grid, remove building if it was from grid
+        const isOutsideGrid = x < 0 || x > rect.width || y < 0 || y > rect.height;
+
+        if (isOutsideGrid && wasDraggedFromGrid && draggedInstanceId) {
+          removeBuilding(draggedInstanceId);
+          setPreviewPosition(null);
+          setDraggedBuilding(null);
+          setWasDraggedFromGrid(false);
+          setDraggedInstanceId(null);
+        }
+      };
+
+      // Global drag over handler to allow dropping anywhere
+      const handleGlobalDragOver = (e) => {
+        e.preventDefault();
+      };
+
       return (
-        <div className="flex h-[84vh] bg-slate-900">
+        <div
+          className="flex h-[84vh] bg-slate-900"
+          onDrop={handleGlobalDrop}
+          onDragOver={handleGlobalDragOver}
+        >
           {/* Left Column - Scrollable Building List */}
           <div
             className="w-1/5 flex flex-col bg-slate-800 border-r border-slate-700"
