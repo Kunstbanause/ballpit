@@ -2334,7 +2334,8 @@
               for (const category in buildingsByCategory) {
                   const matching = buildingsByCategory[category].filter(b =>
                       b.name.toLowerCase().includes(lowerSearch) ||
-                      b.description.toLowerCase().includes(lowerSearch)
+                      b.description.toLowerCase().includes(lowerSearch) ||
+                      b.category.toLowerCase().includes(lowerSearch)
                   );
                   if (matching.length > 0) {
                       filtered[category] = matching;
