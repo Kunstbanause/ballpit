@@ -1,0 +1,3551 @@
+﻿const { useState, useMemo, useEffect, useRef } = React;
+
+    const passiveCategories = {
+      "crit": { color: "#ffb703" },
+      "baby balls": { color: "#fb8500" },
+      "healing": { color: "#d00000" },
+      "effigy": { color: "#6a040f" },
+      "defense": { color: "#0077b6" },
+      "pierce": { color: "#00b4d8" },
+      "special": { color: "#8338ec" },
+      "damage": { color: "#2d6a4f" },
+      "utility": { color: "#588157" },
+      "movement": { color: "#4f772d" },
+      "on-hit": { color: "#fca311" },
+    };
+
+    const jsonData = {
+      "evolutions": [
+        {
+          "name": "Vampire Lord",
+          "ingredients": ["Bleed", "Vampire"],
+          "category": "Bleed",
+          "description": "Each hit inflicts 3 stacks of bleed. Heals 1 health and consumes all stacks when hitting an enemy with at least 10 stacks of bleed"
+        },
+        {
+          "name": "Leech",
+          "ingredients": ["Bleed", "Brood Mother"],
+          "category": "Bleed",
+          "description": "Attaches up to 1 leech onto enemies it hits, which adds 2 stacks of bleed per second (max 24 stacks)"
+        },
+        {
+          "name": "Virus",
+          "ingredients": ["Bleed", "Poison"],
+          "category": "Bleed",
+          "description": "Applies 1 stack of disease to units it hits (max 8 stacks). Disease lasts for 6 seconds. Each stack of disease deals 3-6 damage per second and diseased units have a 15% chance of passing a stack to undiseased nearby enemies each second"
+        },
+        {
+          "name": "Berserk",
+          "ingredients": ["Bleed", "Charm"],
+          "category": "Bleed",
+          "description": "Each hit has a 30% chance of causing enemies to go berserk for 6 seconds. Berserk enemies deal 15-24 damage to adjacent enemies every second"
+        },
+        {
+          "name": "Sacrifice",
+          "ingredients": ["Bleed", "Dark"],
+          "category": "Bleed",
+          "description": "Inflicts 4 stacks of bleed (max 15 stacks) and applies curse to hit enemies. Cursed enemies are dealt 50-100 after being hit 5 times"
+        },
+        {
+          "name": "Hemorrhage",
+          "ingredients": ["Bleed", "Iron"],
+          "category": "Bleed",
+          "description": "Inflicts 3 stacks of bleed. When hitting an enemy with 12 stacks of bleed or more, consume all stacks of bleed to deal 20% of their current health"
+        },
+        {
+          "name": "Leech",
+          "ingredients": ["Brood Mother", "Bleed"],
+          "category": "Brood Mother",
+          "description": "Attaches up to 1 leech on to enemies it hits, which adds 2 stacks of bleed per second (max 24 stacks)"
+        },
+        {
+          "name": "Maggot",
+          "ingredients": ["Brood Mother", "Cell"],
+          "category": "Brood Mother",
+          "description": "Infest enemies on hit with maggots. When they die, they explode into 1-2 baby balls"
+        },
+        {
+          "name": "Spider Queen",
+          "ingredients": ["Brood Mother", "Egg Sac"],
+          "category": "Brood Mother",
+          "description": "Has a 25% chance of birthing an Egg Sac each time it hits an enemy"
+        },
+        {
+          "name": "Mosquito King",
+          "ingredients": ["Brood Mother", "Vampire"],
+          "category": "Brood Mother",
+          "description": "Spawns a mosquito each time it hits an enemy. Mosquitos attack a random enemy, dealing 80-120 damage each. If a mosquito kills an enemy, they steal 1 health"
+        },
+        {
+          "name": "Bomb",
+          "ingredients": ["Burn", "Iron"],
+          "category": "Burn",
+          "description": "Explodes when hitting an enemy, dealing 150-300 damage to nearby enemies. Has a 3-second cooldown before it can be shot again"
+        },
+        {
+          "name": "Magma",
+          "ingredients": ["Burn", "Earthquake"],
+          "category": "Burn",
+          "description": "Emits lava blobs over time. Enemies who walk into lava blobs are dealt 15-30 damage and gain 1 stack of burn (max 3 stacks). Burn lasts for 3 seconds, dealing 3-8 damage per stack per second. This ball and its lava blobs also deal 6-12 damage to nearby units"
+        },
+        {
+          "name": "Inferno",
+          "ingredients": ["Burn", "Wind"],
+          "category": "Burn",
+          "description": "Applies 1 stack of burn every second to all enemies within a 2 tile radius. Burn lasts for 6 seconds, dealing 3-7 damage per stack per second"
+        },
+        {
+          "name": "Berserk",
+          "ingredients": ["Burn", "Charm"],
+          "category": "Burn",
+          "description": "Each hit has a 30% chance of causing enemies to go berserk for 6 seconds. Berserk enemies deal 15-24 damage to adjacent enemies every second"
+        },
+        {
+          "name": "Sun",
+          "ingredients": ["Burn", "Light"],
+          "category": "Burn",
+          "description": "Blind all enemies in view and add 1 stack of burn every second (max 5 stacks). Burn lasts for 6 seconds and deals 6-12 damage per stack per second"
+        },
+        {
+          "name": "Frozen Flame",
+          "ingredients": ["Burn", "Freeze"],
+          "category": "Burn",
+          "description": "Add 1 stack of frostburn on hit for 20 seconds (max 4 stacks). Frostburnt units are dealt 8-12 damage per stack per second and receive 25% more damage from other sources"
+        },
+        {
+          "name": "Maggot",
+          "ingredients": ["Cell", "Brood Mother"],
+          "category": "Cell",
+          "description": "Infest enemies on hit with maggots. When they die, they explode into 1-2 baby balls"
+        },
+        {
+          "name": "Overgrowth",
+          "ingredients": ["Cell", "Earthquake"],
+          "category": "Cell",
+          "description": "Applies 1 stack of overgrowth. Upon reaching 3, consume all stacks and deal 0-200 damage to all enemies in a 3x3 tile square"
+        },
+        {
+          "name": "Radiation Beam",
+          "ingredients": ["Cell", "Laser"],
+          "category": "Cell",
+          "description": "Emit a radiation beam on hit that deals 24-48 damage and applies 1 stack of radiation (max 5 stacks). Radiation lasts for 15 seconds and causes enemies to receive 10% more damage from all sources per stack"
+        },
+        {
+          "name": "Virus",
+          "ingredients": ["Cell", "Poison"],
+          "category": "Cell",
+          "description": "Applies 1 stack of disease to units it hits (max 8 stacks). Disease lasts for 6 seconds. Each stack of disease deals 3-6 damage per second and diseased units have a 15% chance of passing a stack to undiseased nearby enemies each second"
+        },
+        {
+          "name": "Succubus",
+          "ingredients": ["Charm", "Vampire"],
+          "category": "Charm",
+          "description": "Each hit has a 4% chance of charming the enemy for 9 seconds. Heals 1 when hitting a charmed enemy"
+        },
+        {
+          "name": "Berserk",
+          "ingredients": ["Charm", "Burn"],
+          "category": "Charm",
+          "description": "Each hit has a 30% chance of causing enemies to go berserk for 6 seconds. Berserk enemies deal 15-24 damage to adjacent enemies every second"
+        },
+        {
+          "name": "Incubus",
+          "ingredients": ["Charm", "Dark"],
+          "category": "Charm",
+          "description": "Each hit has a 4% chance of charming the enemy for 9 seconds. Charmed enemies curse nearby enemies. Cursed enemies are dealt 100-200 after being hit 5 times"
+        },
+        {
+          "name": "Lovestruck",
+          "ingredients": ["Charm", "Light"],
+          "category": "Charm",
+          "description": "Inflicts lovestruck on hit enemies for 20 seconds. Lovestruck units have a 50% chance of healing you for 5 health when they attack"
+        },
+        {
+          "name": "Vampire Lord",
+          "ingredients": ["Dark", "Vampire"],
+          "category": "Dark",
+          "description": "Each hit inflicts 3 stacks of bleed. Heals 1 health and consumes all stacks when hitting an enemy with at least 10 stacks of bleed"
+        },
+        {
+          "name": "Assassin",
+          "ingredients": ["Dark", "Iron"],
+          "category": "Dark",
+          "description": "Passes through the front of enemies, but not the back. Backstabs deal 30% bonus damage"
+        },
+        {
+          "name": "Phantom",
+          "ingredients": ["Dark", "Ghost"],
+          "category": "Dark",
+          "description": "Curse enemies on hit. Cursed enemies are dealt 100-200 damage after being hit 5 times"
+        },
+        {
+          "name": "Sacrifice",
+          "ingredients": ["Dark", "Bleed"],
+          "category": "Dark",
+          "description": "Inflicts 4 stacks of bleed (max 15 stacks) and applies curse on hit to enemies. Cursed enemies are dealt 50-100 after being hit 5 times"
+        },
+        {
+          "name": "Incubus",
+          "ingredients": ["Dark", "Charm"],
+          "category": "Dark",
+          "description": "Each hit has a 4% chance of charming the enemy for 9 seconds. Charmed enemies curse nearby enemies. Cursed enemies are dealt 100-200 after being hit 5 times"
+        },
+        {
+          "name": "Black Hole",
+          "ingredients": ["Dark", "Sun"],
+          "category": "Dark",
+          "description": "Instantly kills the first non-boss enemy that it hits, but destroys itself afterwards. Has a 7-second cooldown before it can be shot again"
+        },
+        {
+          "name": "Noxious",
+          "ingredients": ["Dark", "Wind"],
+          "category": "Dark",
+          "description": "Passes through enemies and applies 3 stacks of poison to nearby enemies within a 2 tile radius. Poison lasts for 4 seconds and each stack deals 1-3 damage per second"
+        },
+        {
+          "name": "Flicker",
+          "ingredients": ["Dark", "Light"],
+          "category": "Dark",
+          "description": "Deals 1-7 damage to every enemy on screen ever 1.4 seconds"
+        },
+        {
+          "name": "Magma",
+          "ingredients": ["Earthquake", "Burn"],
+          "category": "Earthquake",
+          "description": "Emits lava blobs over time. Enemies who walk into lava blobs are dealt 15-30 damage and gain 1 stack of burn (max 3 stacks). Burn lasts for 3 seconds, dealing 3-8 damage per stack per second. This ball and its lava blobs also deal 6-12 damage to nearby units"
+        },
+        {
+          "name": "Swamp",
+          "ingredients": ["Earthquake", "Poison"],
+          "category": "Earthquake",
+          "description": "Leaves behind tar blobs over time. Enemies who walk into tar blobs are dealt 15-30, are slowed by 50% for 7 seconds and gain 1 stack of poison (max 8 stacks). Each stack of poison deals 1-3 damage per second. This ball and its tar blobs also deal 6-12 damage to nearby units"
+        },
+        {
+          "name": "Glacier",
+          "ingredients": ["Earthquake", "Freeze"],
+          "category": "Earthquake",
+          "description": "Releases glacial spikes over time that deal 15-30 damage to enemies that touch them and freeze them for 2.0 seconds. This ball and its glacial spikes also deal 6-12 damage to nearby units"
+        },
+        {
+          "name": "Sandstorm",
+          "ingredients": ["Earthquake", "Wind"],
+          "category": "Earthquake",
+          "description": "Goes through enemies and is surrounded by a raging storm dealing 10-20 damage per second and blinding nearby enemies for 3 seconds"
+        },
+        {
+          "name": "Overgrowth",
+          "ingredients": ["Earthquake", "Cell"],
+          "category": "Earthquake",
+          "description": "Applies 1 stack of overgrowth. Upon reaching 3, consume all stacks and deal 0-200 damage to all enemies in a 3x3 tile square"
+        },
+        {
+          "name": "Spider Queen",
+          "ingredients": ["Egg Sac", "Brood Mother"],
+          "category": "Egg Sac",
+          "description": "Has a 25% chance of birthing an Egg Sac each time it hits an enemy"
+        },
+        {
+          "name": "Mosquito Swarm",
+          "ingredients": ["Egg Sac", "Vampire"],
+          "category": "Egg Sac",
+          "description": "Explodes into 3-6 mosquitoes. Mosquitos attack random enemies, dealing 80-120 damage each. If a mosquito kills an enemy, they steal 1 health"
+        },
+        {
+          "name": "Shotgun",
+          "ingredients": ["Egg Sac", "Iron"],
+          "category": "Egg Sac",
+          "description": "Shoots 3-7 iron baby balls after hitting a wall. Iron baby balls move at 200% speed but are destroyed upon hitting anything"
+        },
+        {
+          "name": "Voluptuous Egg Sac",
+          "ingredients": ["Egg Sac", "Cell"],
+          "category": "Egg Sac",
+          "description": "Explodes into 2-3 egg sacs on hitting an enemy. Has a 3-second cooldown before it can be shot again"
+        },
+        {
+          "name": "Wraith",
+          "ingredients": ["Freeze", "Ghost"],
+          "category": "Freeze",
+          "description": "Freezes any enemy it passes through for 0.8 seconds"
+        },
+        {
+          "name": "Blizzard",
+          "ingredients": ["Freeze", "Lightning"],
+          "category": "Freeze",
+          "description": "Freezes all enemies within a 2 tile radius for 0.8 seconds, dealing 1-50 damage"
+        },
+        {
+          "name": "Freeze Ray",
+          "ingredients": ["Freeze", "Laser"],
+          "category": "Freeze",
+          "description": "Emits a freeze ray when hitting an enemy, dealing 20-50 to all enemies in its path, with a 10% chance of freezing them for 10.0 seconds"
+        },
+        {
+          "name": "Frozen Flame",
+          "ingredients": ["Freeze", "Burn"],
+          "category": "Freeze",
+          "description": "Add 1 stack of frostburn on hit for 20 seconds (max 4 stacks). Frostburnt units are dealt 8-12 damage per stack per second and receive 25% more damage from other sources"
+        },
+        {
+          "name": "Glacier",
+          "ingredients": ["Freeze", "Earthquake"],
+          "category": "Freeze",
+          "description": "Releases glacial spikes over time that deal 15-30 to enemies that touch them and freeze them for 2.0 seconds. This ball and its glacial spikes also deal 6-12 damage to nearby units"
+        },
+        {
+          "name": "Wraith",
+          "ingredients": ["Ghost", "Freeze"],
+          "category": "Ghost",
+          "description": "Freezes any enemy it passes through for 0.8 seconds"
+        },
+        {
+          "name": "Assassin",
+          "ingredients": ["Ghost", "Iron"],
+          "category": "Ghost",
+          "description": "Passes through the front of enemies, but not the back. Backstabs deal 30% bonus damage"
+        },
+        {
+          "name": "Virus",
+          "ingredients": ["Ghost", "Poison"],
+          "category": "Ghost",
+          "description": "Applies 1 stack of disease to units it hits (max 8 stacks). Disease lasts for 6 seconds. Each stack of disease deals 3-6 damage per second and diseased units have a 15% chance of passing a stack to undiseased nearby enemies each second"
+        },
+        {
+          "name": "Phantom",
+          "ingredients": ["Ghost", "Dark"],
+          "category": "Ghost",
+          "description": "Curse enemies on hit. Cursed enemies are dealt 100-200 damage after being hit 5 times"
+        },
+        {
+          "name": "Soul Sucker",
+          "ingredients": ["Ghost", "Vampire"],
+          "category": "Ghost",
+          "description": "Passes through enemies and saps them, with a 30% chance of stealing 1 health and reducing their attack damage by 20%. Lifesteal chance only applies once per enemy"
+        },
+        {
+          "name": "Bomb",
+          "ingredients": ["Iron", "Burn"],
+          "category": "Iron",
+          "description": "Explodes when hitting an enemy, dealing 150-300 damage to nearby enemies. Has a 3-second cooldown before it can be shot again"
+        },
+        {
+          "name": "Assassin",
+          "ingredients": ["Iron", "Ghost"],
+          "category": "Iron",
+          "description": "Passes through the front of enemies, but not the back. Backstabs deal 30% bonus damage"
+        },
+        {
+          "name": "Lightning Rod",
+          "ingredients": ["Iron", "Lightning"],
+          "category": "Iron",
+          "description": "Plants a lightning rod into enemies it hits. These enemies are struck by lightning every 3.0 seconds, dealing 1-30 damage to up to 8 nearby enemies"
+        },
+        {
+          "name": "Shotgun",
+          "ingredients": ["Iron", "Egg Sac"],
+          "category": "Iron",
+          "description": "Shoots 3-7 iron baby balls after hitting a wall. Iron baby balls move at 200% speed but are destroyed upon hitting anything"
+        },
+        {
+          "name": "Hemorrhage",
+          "ingredients": ["Iron", "Bleed"],
+          "category": "Iron",
+          "description": "Inflicts 3 stacks of bleed. When hitting an enemy with 12 stacks of bleed or more, consumes all stacks of bleed to deal 20% of their current health"
+        },
+        {
+          "name": "Holy Laser",
+          "ingredients": ["Laser (Horizontal)", "Laser (Vertical)"],
+          "category": "Laser",
+          "description": "Deals 24-36 damage to all enemies in the same row and column"
+        },
+        {
+          "name": "Freeze Ray",
+          "ingredients": ["Laser", "Freeze"],
+          "category": "Laser",
+          "description": "Emits a freeze ray when hitting an enemy, dealing 20-50 to all enemies in its path, with a 10% chance of freezing them for 10.0 seconds"
+        },
+        {
+          "name": "Laser Beam",
+          "ingredients": ["Laser", "Light"],
+          "category": "Laser",
+          "description": "Emit a laser beam on hit that deals 30-42 damage and blinds enemies for 8 seconds"
+        },
+        {
+          "name": "Radiation Beam",
+          "ingredients": ["Laser", "Cell"],
+          "category": "Laser",
+          "description": "Emit a radiation beam on hit that deals 24-48 damage and applies 1 stack of radiation (max 5 stacks). Radiation lasts for 15 seconds and cause enemies to receive 10% more damage from all sources per stack"
+        },
+        {
+          "name": "Sun",
+          "ingredients": ["Light", "Burn"],
+          "category": "Light",
+          "description": "Blind all enemies in view and add 1 stacks of burn every second (max 5 stacks). Burn lasts for 6 seconds and deals 6-12 damage per stack per second"
+        },
+        {
+          "name": "Laser Beam",
+          "ingredients": ["Light", "Laser"],
+          "category": "Light",
+          "description": "Emit a laser beam on hit that deals 30-42 damage and blinds enemies for 8 seconds"
+        },
+        {
+          "name": "Flash",
+          "ingredients": ["Light", "Lightning"],
+          "category": "Light",
+          "description": "Damage all enemies on screen for 1-3 damage after hitting an enemy and blind them for 2 seconds"
+        },
+        {
+          "name": "Flicker",
+          "ingredients": ["Light", "Dark"],
+          "category": "Light",
+          "description": "Deals 1-7 damage to every enemy on screen every 1.4 seconds"
+        },
+        {
+          "name": "Lovestruck",
+          "ingredients": ["Light", "Charm"],
+          "category": "Light",
+          "description": "Inflict lovestruck on hit to enemies for 20 seconds. Lovestruck units have a 50% chance of healing you for 5 health when they attack"
+        },
+        {
+          "name": "Lightning Rod",
+          "ingredients": ["Lightning", "Iron"],
+          "category": "Lightning",
+          "description": "Plants a lightning rod into enemies it hits. These enemies are struck by lightning every 3.0 seconds, dealing 1-30 damage to up to 8 nearby enemies"
+        },
+        {
+          "name": "Blizzard",
+          "ingredients": ["Lightning", "Freeze"],
+          "category": "Lightning",
+          "description": "Freezes all enemies within a 2 tile radius for 0.8 seconds, dealing 1-50 damage"
+        },
+        {
+          "name": "Flash",
+          "ingredients": ["Lightning", "Light"],
+          "category": "Lightning",
+          "description": "Damage all enemies on screen for 1-3 damage after hitting an enemy and blind them for 2 seconds"
+        },
+        {
+          "name": "Storm",
+          "ingredients": ["Lightning", "Wind"],
+          "category": "Lightning",
+          "description": "Emits lightning to strike nearby enemies every second, dealing 1-40 damage"
+        },
+        {
+          "name": "Lovestruck",
+          "ingredients": ["Lightning", "Charm"],
+          "category": "Lightning",
+          "description": "Inflicts lovestruck on hit enemies for 20 seconds. Lovestruck units have a 50% chance of healing you for 5 health when they attack"
+        },
+        {
+          "name": "Swamp",
+          "ingredients": ["Poison", "Earthquake"],
+          "category": "Poison",
+          "description": "Leaves behind tar blobs over time. Enemies who walk into tar blobs are dealt 15-30, are slowed by 50% for 7 seconds and gain 1 stack of poison (max 8 stacks). Each stack of poison deals 1-3 damage per second. This ball and its tar blobs also deal 6-12 damage to nearby units"
+        },
+        {
+          "name": "Nuclear Bomb",
+          "ingredients": ["Poison", "Bomb"],
+          "category": "Poison",
+          "description": "Explodes when hitting an enemy, dealing 300-500 damage to nearby enemies and applying 1 stack of radiation to everyone present indefinitely (max 5 stacks). Each stack of radiation increases damage received by 10%. Has a 3-second cooldown"
+        },
+        {
+          "name": "Virus",
+          "ingredients": ["Poison", "Ghost"],
+          "category": "Poison",
+          "description": "Applies 1 stack of disease to units it hits (max 8 stacks). Disease lasts for 6 seconds. Each stack of disease deals 3-6 damage per second and diseased units have a 15% chance of passing a stack to undiseased nearby enemies each second"
+        },
+        {
+          "name": "Radiation Beam",
+          "ingredients": ["Poison", "Laser"],
+          "category": "Poison",
+          "description": "Emit a radiation beam on hit that deals 24-48 damage and applies 1 stack of radiation (max 5 stacks). Radiation lasts for 15 seconds and cause enemies to receive 10% more damage from all sources per stack"
+        },
+        {
+          "name": "Noxious",
+          "ingredients": ["Poison", "Wind"],
+          "category": "Poison",
+          "description": "Passes through enemies and applies 3 stacks of poison to nearby enemies within a 2 tile radius. Poison lasts for 4 seconds and each stack deals 1-3 damage per second"
+        },
+        {
+          "name": "Vampire Lord",
+          "ingredients": ["Vampire", "Bleed"],
+          "category": "Vampire",
+          "description": "Each hit inflicts 3 stacks of bleed. Heals 1 health and consumes all stacks when hitting an enemy with at least 10 stacks of bleed"
+        },
+        {
+          "name": "Mosquito Swarm",
+          "ingredients": ["Vampire", "Egg Sac"],
+          "category": "Vampire",
+          "description": "Explode into 3-6 mosquitoes. Mosquitos attack random enemies, dealing 80-120 damage each. If a mosquito kills an enemy, they steal 1 health"
+        },
+        {
+          "name": "Mosquito King",
+          "ingredients": ["Vampire", "Brood Mother"],
+          "category": "Vampire",
+          "description": "Spawns a mosquito each time it hits an enemy. Mosquitos attack a random enemy, dealing 80-120 damage each. If a mosquito kills an enemy, they steal 1 health"
+        },
+        {
+          "name": "Succubus",
+          "ingredients": ["Vampire", "Charm"],
+          "category": "Vampire",
+          "description": "Each hit has a 4% chance of charming the enemy for 9 seconds. Heals 1 when hitting a charmed enemy"
+        },
+        {
+          "name": "Soul Sucker",
+          "ingredients": ["Vampire", "Ghost"],
+          "category": "Vampire",
+          "description": "Passes through enemies and saps them, with a 30% chance of stealing 1 health and reducing their attack, damage by 20%. Lifesteal chance only applies once per enemy"
+        },
+        {
+          "name": "Blizzard",
+          "ingredients": ["Wind", "Freeze"],
+          "category": "Wind",
+          "description": "Freezes all enemies within a 2 tile radius for 0.8 seconds, dealing 1-50 damage"
+        },
+        {
+          "name": "Inferno",
+          "ingredients": ["Wind", "Burn"],
+          "category": "Wind",
+          "description": "Applies 1 stack of burn every second to all enemies within a 2 tile radius. Burn lasts for 6 seconds, dealing 3-7 damage per stack per second"
+        },
+        {
+          "name": "Storm",
+          "ingredients": ["Wind", "Lightning"],
+          "category": "Lightning",
+          "description": "Emits lightning to strike nearby enemies every second, dealing 1-40 damage"
+        },
+        {
+          "name": "Noxious",
+          "ingredients": ["Wind", "Poison"],
+          "category": "Wind",
+          "description": "Passes through enemies and applies 3 stacks of poison to nearby enemies within a 2 tile radius. Poison lasts for 4 seconds and each stack deals 1-3 damage per second"
+        },
+        {
+          "name": "Sandstorm",
+          "ingredients": ["Wind", "Earthquake"],
+          "category": "Wind",
+          "description": "Goes through enemies and is surrounded by a raging storm dealing 10-20 damage per second and blinding nearby enemies for 3 seconds"
+        },
+        {
+          "name": "Satan",
+          "ingredients": ["Succubus", "Incubus"],
+          "category": "Special",
+          "description": "While active, add 1 stack of burn to all active enemies per second (max 5 stacks), dealing 10-20 damage per stack per second and make them go berserk, dealing 15-24 damage to adjacent enemies every second"
+        },
+        {
+          "name": "Nosferatu",
+          "ingredients": ["Vampire Lord", "Spider Queen", "Mosquito King"],
+          "category": "Special",
+          "description": "Spawns a vampire bat each bounce. Vampire bats fly towards a random enemy, dealing 132-176 damage on hit, turning into a Vampire Lord"
+        }
+      ]
+    };
+
+    const passivesData = {
+      "basePassives": [
+        {
+          "name": "Archer's Effigy",
+          "description": "Every 7-12 rows, spawn a stone archer with 160 health on your side. Stone archers are immune to ball damage and shoot arrows at enemies, dealing 10-20 each",
+          "requirement": "N/A",
+          "category": "effigy"
+        },
+        {
+          "name": "Artificial Heart",
+          "description": "Friendly pieces gain 100% more health",
+          "requirement": "The player needs to have at least one other passive that gives them 'friendly pieces' (e.g. Archer's Effigy)",
+          "category": "effigy"
+        },
+        {
+          "name": "Baby Rattle",
+          "description": "Gain 1.5x baby balls, but your aim becomes scattered",
+          "requirement": "N/A",
+          "category": "baby balls"
+        },
+        {
+          "name": "Bandage Roll",
+          "description": "Shoot 1-2 baby balls each time you're healed",
+          "requirement": "N/A",
+          "category": "healing"
+        },
+        {
+          "name": "Bottled Tornado",
+          "description": "When you catch a special ball, automatically shoot 1-3 new baby balls in random directions",
+          "requirement": "N/A",
+          "category": "baby balls"
+        },
+        {
+          "name": "Breastplate",
+          "description": "Decrease damage taken by 10%",
+          "requirement": "N/A",
+          "category": "defense"
+        },
+        {
+          "name": "Crown of Thorns",
+          "description": "Destroy the 2 nearest enemies when you are hit from close range",
+          "requirement": "N/A",
+          "category": "defense"
+        },
+        {
+          "name": "Cursed Elixir",
+          "description": "When a poisoned enemy dies, 10% chance for them to come back as a zombie with 240 health that moves up the board and fights enemies",
+          "requirement": "The player needs to have a ball that applies Poison",
+          "category": "special"
+        },
+        {
+          "name": "Deadeye's Amulet",
+          "description": "Critical hits deal 10-15 bonus damage",
+          "requirement": "N/A",
+          "category": "crit"
+        },
+        {
+          "name": "Diamond Hilted Dagger",
+          "description": "Increase crit chance to 20% when hitting enemies in the front",
+          "requirement": "N/A",
+          "category": "crit"
+        },
+        {
+          "name": "Dynamite",
+          "description": "Every 5-10 rows, spawn an enemy with dynamite attached to them. Destroying them will deal 200-500 damage to nearby enemies",
+          "requirement": "N/A",
+          "category": "damage"
+        },
+        {
+          "name": "Emerald Hilted Dagger",
+          "description": "Increase crit chance to 20% when hitting enemies on their right side",
+          "requirement": "N/A",
+          "category": "crit"
+        },
+        {
+          "name": "Ethereal Cloak",
+          "description": "Balls go through enemies and deal 25% bonus damage until they hit the back of the field",
+          "requirement": "N/A",
+          "category": "pierce"
+        },
+        {
+          "name": "Everflowing Goblet",
+          "description": "You can heal past your max health at 20% efficiency",
+          "requirement": "N/A",
+          "category": "healing"
+        },
+        {
+          "name": "Eye of the Beholder",
+          "description": "10% chance to dodge incoming attacks",
+          "requirement": "N/A",
+          "category": "defense"
+        },
+        {
+          "name": "Fleet Feet",
+          "description": "Increase movement speed by 10% and move at full speed while shooting",
+          "requirement": "N/A",
+          "category": "movement"
+        },
+        {
+          "name": "Frozen Spike",
+          "description": "When an enemy is frozen, they emit a chill to nearby enemies that deals 10-20 damage",
+          "requirement": "The player needs to have a ball that applies Freeze",
+          "category": "special"
+        },
+        {
+          "name": "Gemspring",
+          "description": "Every 7-11 rows, spawn a Gemspring. Dealing damage to them causes them to drop an increasing amount of XP gems",
+          "requirement": "N/A",
+          "category": "utility"
+        },
+        {
+          "name": "Ghostly Corset",
+          "description": "Balls go through enemies and deal 20% bonus damage when hitting them from the side",
+          "requirement": "N/A",
+          "category": "pierce"
+        },
+        {
+          "name": "Ghostly Shield",
+          "description": "Balls go through allies and heal them for 2 health",
+          "requirement": "The player needs to have at least one other passive that gives them 'allies' (e.g. Archer's Effigy)",
+          "category": "effigy"
+        },
+        {
+          "name": "Golden Bull",
+          "description": "Every 7-11 rows, spawn a golden bull with 400 health on your side. Golden bulls accrue 10 gold per minute. They also move up the field, blocking and attacking enemies in the way",
+          "requirement": "N/A",
+          "category": "effigy"
+        },
+        {
+          "name": "Hand Fan",
+          "description": "Slow down enemies in the same column as you by 50%",
+          "requirement": "N/A",
+          "category": "utility"
+        },
+        {
+          "name": "Hand Mirror",
+          "description": "Projectiles have a 50% chance to reflect upon hitting you, dealing 20-40 damage if they hit an enemy",
+          "requirement": "N/A",
+          "category": "defense"
+        },
+        {
+          "name": "Healer's Effigy",
+          "description": "Every 7-12 rows, spawn a stone healer with 100 health on your side, which heals you 10 health per minute while it's on the field. Healers are immune to ball damage and move up the field, blocking and attacking enemies in the way",
+          "requirement": "N/A",
+          "category": "effigy"
+        },
+        {
+          "name": "Hourglass",
+          "description": "Balls deal 150% damage, but damage decays by 30% each time they bounce (minimum 50%)",
+          "requirement": "N/A",
+          "category": "damage"
+        },
+        {
+          "name": "Kiss of Death",
+          "description": "Charmed enemies have a 10% chance of dying after recovering",
+          "requirement": "The player needs to have a ball that applies Charm",
+          "category": "special"
+        },
+        {
+          "name": "Lover's Quiver",
+          "description": "Projectiles have a 40% chance to heal you for 1 health instead of hurting you",
+          "requirement": "N/A",
+          "category": "healing"
+        },
+        {
+          "name": "Magic Staff",
+          "description": "Increase area-of-effect damage (such as earthquake, laser, and lightning) by 20%",
+          "requirement": "N/A",
+          "category": "damage"
+        },
+        {
+          "name": "Magnet",
+          "description": "Increase range at which you pick up items and catch balls by 1.0 tiles",
+          "requirement": "N/A",
+          "category": "utility"
+        },
+        {
+          "name": "Midnight Oil",
+          "description": "Balls that hit flaming enemies light on fire and deal 10-20 bonus fire damage on the next hit",
+          "requirement": "The player needs to have a ball that applies Burn",
+          "category": "damage"
+        },
+        {
+          "name": "Pressure Valve",
+          "description": "Enemies explode on death, dealing 20-30 damage to adjacent enemies",
+          "requirement": "N/A",
+          "category": "damage"
+        },
+        {
+          "name": "Protective Charm",
+          "description": "Gain a shield that blocks the next damage you would receive. Recharges after 60 seconds",
+          "requirement": "N/A",
+          "category": "defense"
+        },
+        {
+          "name": "Radiant Feather",
+          "description": "Increases ball launch speed by 20%, but get knocked back a little each time you shoot a ball",
+          "requirement": "N/A",
+          "category": "movement"
+        },
+        {
+          "name": "Reacher's Spear",
+          "description": "Increase crit chance to 20% when hitting enemies in the same column as you",
+          "requirement": "N/A",
+          "category": "crit"
+        },
+        {
+          "name": "Rubber Headband",
+          "description": "Balls start off at 70% speed but increase by 20% each bounce (max 200%)",
+          "requirement": "N/A",
+          "category": "damage"
+        },
+        {
+          "name": "Ruby Hilted Dagger",
+          "description": "Increase crit chance to 15% when hitting enemies in the back",
+          "requirement": "N/A",
+          "category": "crit"
+        },
+        {
+          "name": "Sapphire Hilted Dagger",
+          "description": "Increase crit chance to 30% when hitting enemies on their left side",
+          "requirement": "N/A",
+          "category": "crit"
+        },
+        {
+          "name": "Shortbow",
+          "description": "Increase fire rate by 15%",
+          "requirement": "N/A",
+          "category": "damage"
+        },
+        {
+          "name": "Silver Blindfold",
+          "description": "Increase crit chance to 20% when hitting blinded enemies",
+          "requirement": "N/A",
+          "category": "crit"
+        },
+        {
+          "name": "Silver Bullet",
+          "description": "Balls deal 20% bonus damage until they hit a wall",
+          "requirement": "N/A",
+          "category": "damage"
+        },
+        {
+          "name": "Slingshot",
+          "description": "25% chance to launch a baby ball when you pick up a gem",
+          "requirement": "N/A",
+          "category": "baby balls"
+        },
+        {
+          "name": "Spiked Collar",
+          "description": "Deal 30-50 to enemies the first time you get into their melee attack range",
+          "requirement": "N/A",
+          "category": "on-hit"
+        },
+        {
+          "name": "Stone Effigy",
+          "description": "Every 7-12 rows, spawn a stone soldier with 200 health on your side. Stone soldiers are immune to ball damage and move up the field, blocking and attacking enemies in the way",
+          "requirement": "N/A",
+          "category": "effigy"
+        },
+        {
+          "name": "Traitor's Cowl",
+          "description": "Stone allies can now be damaged by your balls, but you heal 2 health when a ball hits one",
+          "requirement": "The player needs to have at least one other passive that gives them 'stone allies' (e.g. Archer's Effigy)",
+          "category": "effigy"
+        },
+        {
+          "name": "Turret",
+          "description": "Floats around your character and shoots a baby ball at enemies every 2.0 seconds",
+          "requirement": "N/A",
+          "category": "baby balls"
+        },
+        {
+          "name": "Upturned Hatchet",
+          "description": "Balls deal 80% more damage after hitting the back of the field, otherwise damage is reduced by 20%",
+          "requirement": "N/A",
+          "category": "damage"
+        },
+        {
+          "name": "Vampiric Sword",
+          "description": "Each kill heals you by 5, but each shot you take deals 2 damage to you",
+          "requirement": "N/A",
+          "category": "healing"
+        },
+        {
+          "name": "Voodoo Doll",
+          "description": "Curse has a 10% chance of killing enemies",
+          "requirement": "The player needs to have a ball that applies Curse",
+          "category": "special"
+        },
+        {
+          "name": "Wagon Wheel",
+          "description": "Each time a ball hits a wall, it deals 30% extra damage on the next hit",
+          "requirement": "N/A",
+          "category": "damage"
+        },
+        {
+          "name": "War Horn",
+          "description": "All baby balls deal 20% more damage",
+          "requirement": "N/A",
+          "category": "baby balls"
+        },
+        {
+          "name": "Wretched Onion",
+          "description": "Deal 6-12 per second to enemies within 2 tiles",
+          "requirement": "N/A",
+          "category": "damage"
+        }
+      ],
+      "evolvedPassives": [
+        {
+          "name": "Cornucopia",
+          "ingredients": ["Baby Rattle", "War Horn"],
+          "description": "Each time baby balls are created, spawn 0-1 additional baby balls",
+          "category": "baby balls"
+        },
+        {
+          "name": "Gracious Impaler",
+          "ingredients": ["Reacher's Spear", "Deadeye's Amulet"],
+          "description": "Critical hits have a 5% chance to instantly kill enemies",
+          "category": "crit"
+        },
+        {
+          "name": "Odiferous Shell",
+          "ingredients": ["Wretched Onion", "Breastplate"],
+          "description": "When you touch enemies, they have a 50% chance of instantly dying",
+          "category": "on-hit"
+        },
+        {
+          "name": "Phantom Regalia",
+          "ingredients": ["Ghostly Corset", "Ethereal Cloak"],
+          "description": "Balls go through enemies until they hit the back wall. Balls deal 50% more damage when going through enemies",
+          "category": "pierce"
+        },
+        {
+          "name": "Soul Reaver",
+          "ingredients": ["Vampiric Sword", "Everflowing Goblet"],
+          "description": "Each kill heals you by 1 and you can heal past your max health at 30% efficiency",
+          "category": "healing"
+        },
+        {
+          "name": "Tormenters Mask",
+          "ingredients": ["Spiked Collar", "Crown of Thorns"],
+          "description": "Enemies have a 10% chance of dying immediately the first time they detect you",
+          "category": "on-hit"
+        },
+        {
+          "name": "Wings of the Anointed",
+          "ingredients": ["Fleet Feet", "Radiant Feather"],
+          "description": "Balls move 40% faster and you move 20% faster. You no longer are affected by environmental hazards on the ground",
+          "category": "movement"
+        },
+        {
+          "name": "Deadeye's Cross",
+          "ingredients": ["Diamond Hilted Dagger", "Emerald Hilted Dagger", "Ruby Hilted Dagger", "Sapphire Hilted Dagger"],
+          "description": "Increase critical hit chance to 60%",
+          "category": "crit"
+        }
+      ]
+    };
+
+    function PassivesGraph() {
+      const [selected, setSelected] = useState(null);
+      const [hovered, setHovered] = useState(null);
+      const [searchTerm, setSearchTerm] = useState('');
+      const containerRef = useRef(null);
+      const tooltipRef = useRef(null);
+      const [tooltipTop, setTooltipTop] = useState(0);
+
+      const base = passivesData.basePassives || [];
+      const evolved = passivesData.evolvedPassives || [];
+
+      // ingredients set
+      const ingredientSet = useMemo(() => new Set(evolved.flatMap(e => e.ingredients || [])), [evolved]);
+
+      const categoryOrder = [
+        'effigy', 'baby balls', 'healing', 'crit', 'damage',
+        'defense', 'pierce', 'movement', 'on-hit', 'special', 'utility'
+      ];
+
+      const noUpgrade = useMemo(() => {
+        const unsorted = base.filter(b => !ingredientSet.has(b.name));
+        return unsorted.sort((a, b) => {
+          const catA = categoryOrder.indexOf(a.category);
+          const catB = categoryOrder.indexOf(b.category);
+          if (catA === -1 && catB === -1) return a.name.localeCompare(b.name);
+          if (catA === -1) return 1;
+          if (catB === -1) return -1;
+          if (catA !== catB) return catA - catB;
+          return a.name.localeCompare(b.name);
+        });
+      }, [base, ingredientSet]);
+
+      const hasUpgrade = useMemo(() => base.filter(b => ingredientSet.has(b.name)), [base, ingredientSet]);
+
+      const col1 = useMemo(() => noUpgrade.filter((_, i) => i % 2 === 0), [noUpgrade]);
+      const col2 = useMemo(() => noUpgrade.filter((_, i) => i % 2 === 1), [noUpgrade]);
+      const col3 = hasUpgrade;
+      const col4 = evolved;
+
+      const allNodeNames = useMemo(() => Array.from(new Set([...base.map(b => b.name), ...evolved.map(e => e.name)])).sort(), [base, evolved]);
+
+      const searchResults = useMemo(() => {
+        if (!searchTerm) return [];
+        return allNodeNames.filter(n => n.toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 10);
+      }, [searchTerm, allNodeNames]);
+
+      // layout positions for 4 columns
+      const positions = useMemo(() => {
+        const map = {};
+        const paddingTop = 40;
+        const rowSpacing = 72;
+        const colXs = [20, 220, 420, 620];
+        const nodeW = 170; const nodeH = 56;
+
+        // place evolved passives (col4) first so we can compute target positions
+        // move them further down and increase their vertical spacing so connectors have shallower angles
+        const col4Offset = 60;
+        const col4RowSpacing = rowSpacing + 50;
+        col4.forEach((item, idx) => {
+          map[item.name] = { x: colXs[3], y: paddingTop + col4Offset + idx * col4RowSpacing, width: nodeW, height: nodeH };
+        });
+
+        // place leftmost columns (no-upgrade) using simple stacking
+        col1.forEach((item, idx) => {
+          map[item.name] = { x: colXs[0], y: paddingTop + idx * rowSpacing, width: nodeW, height: nodeH };
+        });
+        col2.forEach((item, idx) => {
+          map[item.name] = { x: colXs[1], y: paddingTop + idx * rowSpacing, width: nodeW, height: nodeH };
+        });
+
+        // For column 3 (has upgrades), compute desired y as the average center-y of evolved passives that reference it
+        // but clamp to not go below a minimum Y to keep col3 independent from col4's extra offset
+        const col3MinY = paddingTop + col4Offset * 0.3; // only partially affected by col4 offset
+        const desired = col3.map(p => {
+          const usedBy = col4.filter(e => (e.ingredients || []).includes(p.name));
+          if (usedBy.length === 0) return { name: p.name, desiredY: col3MinY };
+          const avg = usedBy.reduce((sum, e) => {
+            const pos = map[e.name];
+            return sum + (pos.y + pos.height / 2);
+          }, 0) / usedBy.length;
+          // clamp so col3 doesn't move as much as col4
+          return { name: p.name, desiredY: Math.max(col3MinY, avg - col4Offset * 0.7) };
+        });
+
+        // sort by desiredY so nodes sit near their targets, then assign positions with spacing to avoid overlaps
+        desired.sort((a, b) => a.desiredY - b.desiredY);
+        let currentY = col3MinY;
+        desired.forEach(d => {
+          const y = Math.max(currentY, d.desiredY - nodeH / 2);
+          map[d.name] = { x: colXs[2], y: y, width: nodeW, height: nodeH };
+          currentY = y + rowSpacing;
+        });
+
+        return map;
+      }, [col1, col2, col3, col4]);
+
+      const svgWidth = 1200;
+      const svgHeight = useMemo(() => {
+        const ys = Object.values(positions).map(p => p.y + p.height);
+        return Math.max(600, (ys.length ? Math.max(...ys) + 80 : 600));
+      }, [positions]);
+
+      const getAncestors = (name) => {
+        const ancestors = new Set();
+        const toProcess = [name];
+        const processed = new Set();
+        while (toProcess.length) {
+          const cur = toProcess.pop();
+          if (processed.has(cur)) continue;
+          processed.add(cur);
+          evolved.forEach(e => {
+            if (e.name === cur) {
+              (e.ingredients || []).forEach(ing => { ancestors.add(ing); toProcess.push(ing); });
+            }
+          });
+        }
+        return ancestors;
+      };
+
+      const getDescendants = (name) => {
+        const descendants = new Set();
+        const toProcess = [name];
+        const processed = new Set();
+        while (toProcess.length) {
+          const cur = toProcess.pop();
+          if (processed.has(cur)) continue;
+          processed.add(cur);
+          evolved.forEach(e => {
+            if ((e.ingredients || []).includes(cur)) {
+              descendants.add(e.name);
+              toProcess.push(e.name);
+            }
+          });
+        }
+        return descendants;
+      };
+
+      const highlightedChain = useMemo(() => {
+        if (!selected) return new Set();
+        const a = getAncestors(selected);
+        const d = getDescendants(selected);
+        return new Set([selected, ...a, ...d]);
+      }, [selected]);
+
+      // icon helpers for passives
+      const getPassiveIconSlug = (name) => {
+        if (!name) return '';
+        return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      };
+
+      const getPassiveIconUrl = (name) => {
+        const slug = getPassiveIconSlug(name);
+        if (!slug) return '';
+        return `icons_passives/${slug}.png`;
+      };
+
+      // hover handlers (tooltip will be shown in fixed bottom-left panel)
+      const onNodeHover = (e, node) => {
+        setHovered(node);
+      };
+      const onNodeLeave = () => { setHovered(null); };
+
+      // update tooltip position so it sits at the bottom-left of the visible scroll area
+      useEffect(() => {
+        const update = () => {
+          const c = containerRef.current;
+          const t = tooltipRef.current;
+          if (!c || !t) return;
+          const scrollTop = c.scrollTop;
+          const clientH = c.clientHeight;
+          const tipH = t.offsetHeight || 80;
+          const top = scrollTop + clientH - tipH - 8; // 8px margin from bottom
+          setTooltipTop(top);
+        };
+        update();
+        const c = containerRef.current;
+        if (c) c.addEventListener('scroll', update);
+        window.addEventListener('resize', update);
+        const mo = new MutationObserver(update);
+        if (c) mo.observe(c, { childList: true, subtree: true, attributes: true });
+        return () => { if (c) c.removeEventListener('scroll', update); window.removeEventListener('resize', update); if (mo) mo.disconnect(); };
+      }, [containerRef, hovered, selected]);
+
+      const renderRectNode = (name, isEvolved = false) => {
+        const pos = positions[name];
+        if (!pos) return null;
+        const displayName = name;
+        const inChain = highlightedChain.has(name);
+        const nodeData = isEvolved ? evolved.find(e => e.name === name) : base.find(b => b.name === name);
+        const category = nodeData?.category;
+        const categoryColor = category && passiveCategories[category] ? passiveCategories[category].color : null;
+
+        const baseFill = isEvolved ? 'rgba(245,158,11,0.08)' : 'rgba(30,41,59,0.8)';
+        const fill = categoryColor ? `${categoryColor}33` : baseFill;
+        const opacity = !selected || inChain ? 1 : 0.3;
+
+        return (
+          <g key={name} transform={`translate(${pos.x}, ${pos.y})`} style={{ opacity: opacity, transition: 'opacity 0.2s' }}>
+            <rect
+              x={0} y={0} rx={8} ry={8}
+              width={pos.width} height={pos.height}
+              fill={fill}
+              stroke={inChain ? '#f59e0b' : (categoryColor || (isEvolved ? '#b45309' : '#374151'))}
+              strokeWidth={inChain ? 2 : 1}
+              onMouseEnter={(ev) => onNodeHover(ev, (isEvolved ? evolved.find(e => e.name === name) : base.find(b => b.name === name)))}
+              onMouseMove={(ev) => onNodeHover(ev, (isEvolved ? evolved.find(e => e.name === name) : base.find(b => b.name === name)))}
+              onMouseLeave={onNodeLeave}
+              onClick={() => setSelected(selected === name ? null : name)}
+              style={{ cursor: 'pointer' }}
+            />
+            {/* icon inside node */}
+            {(() => {
+              const url = getPassiveIconUrl(name);
+              const imgSize = 48;
+              const imgX = 6;
+              const imgY = (pos.height - imgSize) / 2;
+              return url ? (
+                <image href={url} x={imgX} y={imgY} width={imgSize} height={imgSize} preserveAspectRatio="xMidYMid slice" onError={(e) => { e.target.style.display = 'none'; }} onMouseEnter={(ev) => onNodeHover(ev, (isEvolved ? evolved.find(e => e.name === name) : base.find(b => b.name === name)))} onMouseMove={(ev) => onNodeHover(ev, (isEvolved ? evolved.find(e => e.name === name) : base.find(b => b.name === name)))} onMouseLeave={onNodeLeave} onClick={() => setSelected(selected === name ? null : name)} style={{ cursor: 'pointer' }} />
+              ) : null;
+            })()}
+            {/* wrap name into multiple lines to fit smaller node width */}
+            {(() => {
+              const paddingLeft = 6 + 48 + 6; // imgX + imgSize + gap
+              const maxChars = Math.max(8, Math.floor((pos.width - paddingLeft - 12) / 7));
+              const words = displayName.split(' ');
+              const lines = [];
+              let current = '';
+              for (let w of words) {
+                if ((current + ' ' + w).trim().length > maxChars && current.length > 0) { lines.push(current); current = w; }
+                else { current = (current + ' ' + w).trim(); }
+              }
+              if (current) lines.push(current);
+              return (
+                <text x={paddingLeft} y={pos.height / 2 - (lines.length - 1) * 6} fill={isEvolved ? '#f59e0b' : '#fff'} fontWeight="600" fontSize="12" dominantBaseline="middle" onMouseEnter={(ev) => onNodeHover(ev, (isEvolved ? evolved.find(e => e.name === name) : base.find(b => b.name === name)))} onMouseMove={(ev) => onNodeHover(ev, (isEvolved ? evolved.find(e => e.name === name) : base.find(b => b.name === name)))} onMouseLeave={onNodeLeave} onClick={() => setSelected(selected === name ? null : name)} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                  {lines.map((ln, i) => <tspan key={i} x={paddingLeft} dy={i === 0 ? 0 : '1.2em'}>{ln}</tspan>)}
+                </text>
+              );
+            })()}
+          </g>
+        );
+      };
+
+      // build connector lines from ingredients to evolved nodes (include src/tgt names)
+      const connectors = useMemo(() => {
+        const out = [];
+        col4.forEach(e => {
+          const target = positions[e.name];
+          if (!target) return;
+          (e.ingredients || []).forEach(ing => {
+            const src = positions[ing];
+            if (!src) return;
+            out.push({ src: ing, tgt: e.name, x1: src.x + src.width, y1: src.y + src.height / 2, x2: target.x, y2: target.y + target.height / 2 });
+          });
+        });
+        return out;
+      }, [col4, positions]);
+
+      return (
+        <div className="p-4">
+          <div className="relative mb-3">
+            <input
+              type="text"
+              placeholder="Search passives..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-slate-700 text-white placeholder-slate-400 rounded-md py-2 px-4"
+            />
+            {searchResults.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                {searchResults.map(name => (
+                  <div key={name} onClick={() => { setSelected(name); setSearchTerm(''); }} className="px-4 py-2 text-white hover:bg-slate-700 cursor-pointer">
+                    {name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div ref={containerRef} className="bg-slate-700 rounded-lg overflow-auto relative" style={{ maxHeight: '72vh' }}>
+            <svg width={svgWidth} height={svgHeight} viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="block">
+              <defs>
+                <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8" />
+                </marker>
+              </defs>
+
+              {/* connectors (show full opacity only when source or target is selected) */}
+              {connectors.map((c, i) => {
+                const full = selected === c.src || selected === c.tgt;
+                const opacity = full ? 0.9 : 0.12;
+                return (
+                  <line key={i} x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2} stroke="#94a3b8" strokeWidth={full ? 1.8 : 1} markerEnd="url(#arrow)" strokeOpacity={opacity} />
+                );
+              })}
+
+              {/* render nodes */}
+              {col1.map(p => renderRectNode(p.name, false))}
+              {col2.map(p => renderRectNode(p.name, false))}
+              {col3.map(p => renderRectNode(p.name, false))}
+              {col4.map(e => renderRectNode(e.name, true))}
+            </svg>
+
+            {/* removed mouse-position tooltip; use bottom-left fixed tooltip instead */}
+
+            {/* bottom-left tooltip panel (fixed inside graph container) */}
+            {(selected || hovered) && (
+              <div ref={tooltipRef} style={{ position: 'absolute', left: 8, top: tooltipTop, zIndex: 10, background: 'rgba(15,23,42,0.75)' }} className="backdrop-blur-sm rounded-lg p-4 max-w-md">
+                <div className="text-white mb-2">
+                  <div className="font-semibold">{(selected || (hovered && hovered.name))}</div>
+                  <div className="font-normal text-slate-200 mt-1">{(() => {
+                    const name = selected || (hovered && hovered.name);
+                    if (!name) return '';
+                    const evo = evolved.find(e => e.name === name);
+                    if (evo) return evo.description || '';
+                    const b = base.find(bi => bi.name === name);
+                    return b ? b.description || '' : '';
+                  })()}</div>
+                </div>
+                {(() => {
+                  const name = selected || (hovered && hovered.name);
+                  if (!name) return null;
+                  const b = base.find(bi => bi.name === name);
+                  if (b && b.requirement && b.requirement !== 'N/A') {
+                    return (
+                      <div className="text-amber-300 text-sm mb-2 border-l-2 border-amber-300 pl-2">
+                        <strong>Requirement:</strong> {b.requirement}
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+                {(() => {
+                  const name = selected || (hovered && hovered.name);
+                  if (!name) return null;
+                  const evo = evolved.find(e => e.name === name);
+                  if (!evo) return null;
+                  return (
+                    <div className="text-slate-300 text-sm">
+                      <div>Ingredients: {(evo.ingredients || []).join(' + ')}</div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+
+          {/* bottom detail panel removed per request; node hover tooltip remains inside graph */}
+        </div>
+      );
+    }
+
+    const buildingsData = {
+      "buildings": [
+        {
+          "name": "Farm",
+          "description": "Assign a character to harvest 1 Wheat from each adjacent Wheat field every 6 minutes.",
+          "Drop Location": "Not specified",
+          "category": "Economy",
+          "cost": {
+            "gold": 100,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Gatherer's Hut",
+          "description": "Assign a character to automatically harvest in a preset direction every 10 minutes for 10 seconds.",
+          "Drop Location": "Not specified",
+          "category": "Economy",
+          "cost": {
+            "gold": 50,
+            "wheat": 5,
+            "wood": 2,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Gold Mine",
+          "description": "Assign a worker to mine Gold. When bounced on, they mine 1–2 Gold (up to 100 times per harvest).",
+          "Drop Location": "Not specified",
+          "category": "Economy",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 10,
+            "stone": 12
+          }
+        },
+        {
+          "name": "Lumberyard",
+          "description": "Assign a character to harvest 1 Wood from each adjacent forest every 9 minutes.",
+          "Drop Location": "Not specified",
+          "category": "Economy",
+          "cost": {
+            "gold": 75,
+            "wheat": 5,
+            "wood": 0,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Market",
+          "description": "Unlocks the ability to exchange Gold for other resources.",
+          "Drop Location": "Not specified",
+          "category": "Economy",
+          "cost": {
+            "gold": 500,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Road Keeper",
+          "description": "Increases movement speed during harvests by 10%.",
+          "Drop Location": "Not specified",
+          "category": "Economy",
+          "cost": {
+            "gold": 0,
+            "wheat": 20,
+            "wood": 0,
+            "stone": 5
+          }
+        },
+        {
+          "name": "Spa",
+          "description": "Spend Gold to harvest more than once immediately.",
+          "Drop Location": "Not specified",
+          "category": "Economy",
+          "cost": {
+            "gold": 500,
+            "wheat": 10,
+            "wood": 2,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Stone Mine",
+          "description": "Assign a character to harvest 1 Stone from each adjacent boulder every 10 minutes.",
+          "Drop Location": "Not specified",
+          "category": "Economy",
+          "cost": {
+            "gold": 100,
+            "wheat": 0,
+            "wood": 5,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Watch Tower",
+          "description": "Increases the harvest clock by 2 seconds.",
+          "Drop Location": "Not specified",
+          "category": "Economy",
+          "cost": {
+            "gold": 0,
+            "wheat": 20,
+            "wood": 10,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Worker's Guild",
+          "description": "Lets workers gather up to 24 hours' worth of resources while the game is closed (50% slower).",
+          "Drop Location": "Not specified",
+          "category": "Economy",
+          "cost": {
+            "gold": 5000,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Abbey",
+          "description": "Increase XP gained by 5%.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 300,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 10
+          }
+        },
+        {
+          "name": "Alchemist",
+          "description": "Increase Endurance scaling to D (related stats like HP improve faster).",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 100,
+            "wheat": 0,
+            "wood": 15,
+            "stone": 5
+          }
+        },
+        {
+          "name": "Antique Shop",
+          "description": "Begin each battle with the choice of a passive.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 1000,
+            "wheat": 0,
+            "wood": 40,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Archery Range",
+          "description": "Increase Dexterity scaling to D (stats like Reload Length improve faster).",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 12,
+            "wood": 12,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Bag Maker",
+          "description": "Add 1 ball slot.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 5000,
+            "wheat": 100,
+            "wood": 0,
+            "stone": 30
+          }
+        },
+        {
+          "name": "Bank",
+          "description": "Increase gold found in battles by 5%.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 20,
+            "stone": 20
+          }
+        },
+        {
+          "name": "Barracks",
+          "description": "All characters gain +1 bonus Strength (affects special ball damage).",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 2,
+            "wood": 3,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Boneyard Trophy",
+          "description": "Gain +0.05 Status Effect Power per character completed; each Fast tier adds +0.005 per character.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 100,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 4
+          }
+        },
+        {
+          "name": "Candle Maker",
+          "description": "Fusion reactors contain a minimum of 2 free upgrades.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 1500,
+            "wheat": 200,
+            "wood": 20,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Capitolium",
+          "description": "Gain +1 bonus Leadership. Can be upgraded infinitely.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 80,
+            "wood": 20,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Carpenter",
+          "description": "Add 1 passive slot.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 5000,
+            "wheat": 0,
+            "wood": 100,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Casino",
+          "description": "Reduce level up reroll cost by 20%.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 400,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Clinic",
+          "description": "All characters gain +1 bonus Endurance (affects max health).",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 3,
+            "wood": 2,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Consulate",
+          "description": "All characters gain +1 bonus Leadership (affects baby ball count & damage).",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 10,
+            "wood": 0,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Desert Trophy",
+          "description": "Gain +0.1% Critical Hit Chance per character completed; each Fast tier adds +0.01% per character.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 300,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 12
+          }
+        },
+        {
+          "name": "Diplomacy Hall",
+          "description": "Increase Leadership scaling to D (related stats like Baby Ball Damage improve faster).",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 125,
+            "wheat": 0,
+            "wood": 10,
+            "stone": 4
+          }
+        },
+        {
+          "name": "Evolution Chamber",
+          "description": "New balls all start at level 2.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 4000,
+            "wood": 0,
+            "stone": 1000
+          }
+        },
+        {
+          "name": "Exorcist",
+          "description": "Add the ability to banish upgrades when leveling up, up to 2 times.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 50,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 20
+          }
+        },
+        {
+          "name": "Gambler's Den",
+          "description": "Gain 2 free level up re-rolls per battle.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 50,
+            "wheat": 5,
+            "wood": 0,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Gemsmith",
+          "description": "Begin each battle with a choice of an extra ball.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 1000,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 20
+          }
+        },
+        {
+          "name": "Gory Trophy",
+          "description": "Gain +0.05 Ball Speed per character completed; each Fast tier adds +0.005 per character.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 500,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 20
+          }
+        },
+        {
+          "name": "Grand Museum",
+          "description": "Gain +1 bonus Intelligence. Can be upgraded infinitely.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 500,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 40
+          }
+        },
+        {
+          "name": "Gunsmith",
+          "description": "All characters gain +1 bonus Dexterity (affects fire rate, reload time, crit chance).",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 2,
+            "stone": 2
+          }
+        },
+        {
+          "name": "Heavenly Trophy",
+          "description": "Gain +0.05 Passive Power per character completed; each Fast tier adds +0.005 per character.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 800,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 30
+          }
+        },
+        {
+          "name": "Hospital",
+          "description": "Gain +1 bonus Endurance. Can be upgraded infinitely.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 100,
+            "wood": 40,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Jeweler",
+          "description": "Increase starter ball level to 2.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 200,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 10
+          }
+        },
+        {
+          "name": "Magnet Factory",
+          "description": "Increase pickup range by 0.5 tiles.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 10,
+            "stone": 20
+          }
+        },
+        {
+          "name": "Marksman Guild",
+          "description": "Gain +1 bonus Dexterity. Can be upgraded infinitely.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 60,
+            "wood": 0,
+            "stone": 20
+          }
+        },
+        {
+          "name": "Matchmaker",
+          "description": "Bring two characters into a run, combining their abilities.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 200,
+            "wood": 40,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Meditation Tent",
+          "description": "Increase the number of upgrade choices when leveling, up to 4.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 1000,
+            "wheat": 100,
+            "wood": 0,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Military Academy",
+          "description": "Increase Strength scaling to D (Base Damage improves faster).",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 200,
+            "wheat": 50,
+            "wood": 0,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Necromancer",
+          "description": "Once per battle, on death revive with 25% health and kill all nearby enemies.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 500,
+            "wheat": 0,
+            "wood": 10,
+            "stone": 10
+          }
+        },
+        {
+          "name": "Relic Collector",
+          "description": "New passives all start at level 2.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 1500
+          }
+        },
+        {
+          "name": "Schoolhouse",
+          "description": "All characters gain +1 bonus Intelligence (affects AOE and passive ability damage).",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 5,
+            "wood": 0,
+            "stone": 2
+          }
+        },
+        {
+          "name": "Shoemaker",
+          "description": "All characters gain +1 bonus Speed (affects move speed and ball speed).",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 3,
+            "stone": 1
+          }
+        },
+        {
+          "name": "Shroom Trophy",
+          "description": "Gain +1 HP per character completed; each Fast tier adds +0.1 per character.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 400,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 16
+          }
+        },
+        {
+          "name": "Smoldering Trophy",
+          "description": "Gain +1 Baby Ball Damage per character completed; each Fast tier adds +0.1 per character.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 600,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 24
+          }
+        },
+        {
+          "name": "Snowy Trophy",
+          "description": "Gain +0.05 AOE Power per character completed; each Fast tier adds +0.005 per character.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 200,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 8
+          }
+        },
+        {
+          "name": "University",
+          "description": "Increase Intelligence scaling to D (AOE Power improves faster).",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 200,
+            "wheat": 0,
+            "wood": 20,
+            "stone": 5
+          }
+        },
+        {
+          "name": "Void Trophy",
+          "description": "Gain +1 Base Damage per character completed; each Fast tier adds +0.1 per character.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 800,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 30
+          }
+        },
+        {
+          "name": "Wagon Factory",
+          "description": "Gain +1 bonus Speed. Can be upgraded infinitely.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 50,
+            "stone": 30
+          }
+        },
+        {
+          "name": "War Room",
+          "description": "Send characters to complete levels on their own.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 0,
+            "wheat": 300,
+            "wood": 0,
+            "stone": 50
+          }
+        },
+        {
+          "name": "Warrior's Guild",
+          "description": "Gain +1 bonus Strength. Can be upgraded infinitely.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 300,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 60
+          }
+        },
+        {
+          "name": "Wheelwright",
+          "description": "Increase Speed scaling to D (Move Speed improves faster).",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 150,
+            "wheat": 20,
+            "wood": 0,
+            "stone": 5
+          }
+        },
+        {
+          "name": "Wishing Well",
+          "description": "Add a 4% chance to get an extra upgrade point when leveling up.",
+          "Drop Location": "Not specified",
+          "category": "Warfare",
+          "cost": {
+            "gold": 1000,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 60
+          }
+        },
+        {
+          "name": "Campground",
+          "description": "Unlocks The Radical",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 0,
+            "wheat": 120,
+            "wood": 20,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Cozy Home",
+          "description": "Unlocks The Cohabitants",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 0,
+            "wheat": 20,
+            "wood": 5,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Single Family Home",
+          "description": "Unlocks The Empty Nester",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 50,
+            "wheat": 0,
+            "wood": 30,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Sheriff's Office",
+          "description": "Unlocks The Itchy Finger",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 5,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Haunted House",
+          "description": "Unlocks The Repentant",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 5,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Villa",
+          "description": "Unlocks the Coagitator",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 10
+          }
+        },
+        {
+          "name": "Mausoleum",
+          "description": "Unlocks The Shade",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 30
+          }
+        },
+        {
+          "name": "Iron Fortress",
+          "description": "Unlocks The Shieldbearer",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 70
+          }
+        },
+        {
+          "name": "Captain's Quarters",
+          "description": "Unlocks The Tactician",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 50,
+            "stone": 40
+          }
+        },
+        {
+          "name": "Rocky Hill",
+          "description": "Unlocks The Makeshift Sisyphus",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 50
+          }
+        },
+        {
+          "name": "Monastery",
+          "description": "Unlocks The Flagellant",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 0,
+            "wheat": 80,
+            "wood": 20,
+            "stone": 15
+          }
+        },
+        {
+          "name": "Laboratory",
+          "description": "Unlocks The Physicist",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 300,
+            "wheat": 0,
+            "wood": 50,
+            "stone": 20
+          }
+        },
+        {
+          "name": "Veteran's Hut",
+          "description": "Unlocks The Embedded",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 0,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 5
+          }
+        },
+        {
+          "name": "Mansion",
+          "description": "Unlocks The Spendthrift",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 500,
+            "wheat": 0,
+            "wood": 30,
+            "stone": 10
+          }
+        },
+        {
+          "name": "Theater",
+          "description": "Unlocks The Juggler",
+          "Drop Location": "Not specified",
+          "category": "Housing",
+          "cost": {
+            "gold": 300,
+            "wheat": 0,
+            "wood": 30,
+            "stone": 0
+          }
+        }
+      ],
+      "resource_tiles": [
+        {
+          "name": "Wheat Field",
+          "description": "Initial 2x2 Wheat resource tile. Capacity: 1. Does NOT bounce characters.",
+          "Drop Location": "Not specified",
+          "category": "Resource",
+          "cost": {
+            "gold": 30,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Forest",
+          "description": "Initial 2x2 Wood resource tile. Capacity: 1. Bounces characters.",
+          "Drop Location": "Not specified",
+          "category": "Resource",
+          "cost": {
+            "gold": 50,
+            "wheat": 2,
+            "wood": 0,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Boulder",
+          "description": "Initial 1x1 Stone resource tile. Capacity: 1. Bounces characters.",
+          "Drop Location": "Not specified",
+          "category": "Resource",
+          "cost": {
+            "gold": 80,
+            "wheat": 0,
+            "wood": 2,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Dense Wheat",
+          "description": "Advanced 1x1 Wheat variant with superior regrowth and capacity. Capacity: 4.",
+          "Drop Location": "Not specified",
+          "category": "Resource",
+          "cost": {
+            "gold": 100,
+            "wheat": 1,
+            "wood": 0,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Grand Tree",
+          "description": "Advanced 1x1 Wood variant with superior regrowth and capacity. Capacity: 3. Bounces characters.",
+          "Drop Location": "Not specified",
+          "category": "Resource",
+          "cost": {
+            "gold": 150,
+            "wheat": 0,
+            "wood": 1,
+            "stone": 0
+          }
+        },
+        {
+          "name": "Granite Slab",
+          "description": "Advanced 1x1 Stone variant with superior regrowth and capacity. Capacity: 3. Bounces characters.",
+          "Drop Location": "Not specified",
+          "category": "Resource",
+          "cost": {
+            "gold": 250,
+            "wheat": 0,
+            "wood": 0,
+            "stone": 1
+          }
+        }
+      ]
+    };
+
+    const baseballsData = {
+      "baseBalls": [
+        {
+          "name": "Bleed",
+          "description": "Inflicts 2 stacks of bleed. Bleeding enemies receive 1 damage per stack when hit by a ball (max 8 stacks)",
+          "startCharacter": "The Warrior"
+        },
+        {
+          "name": "Brood Mother",
+          "description": "Has a 25% chance of birthing a baby ball each time it hits an enemy",
+          "startCharacter": "The Cohabitants"
+        },
+        {
+          "name": "Burn",
+          "description": "Add 1 stack of burn on hit for 3 seconds (max 3 stacks). Burnt units are dealt 4-8 damage per stack per second",
+          "startCharacter": "The Itchy Finger"
+        },
+        {
+          "name": "Cell",
+          "description": "Splits into a clone on hit 2 times",
+          "startCharacter": "N/A"
+        },
+        {
+          "name": "Charm",
+          "description": "Each hit has a 4% chance of charming the enemy for 5 seconds. Charmed units walk up the board and attack enemies",
+          "startCharacter": "N/A"
+        },
+        {
+          "name": "Dark",
+          "description": "Deals 3.0x damage but destroys itself after hitting an enemy. Has a 3 second cooldown before it can be shot again",
+          "startCharacter": "The Shade"
+        },
+        {
+          "name": "Earthquake",
+          "description": "Deals 5-13 damage to nearby units in a 3x3 tile square",
+          "startCharacter": "The Makeshift Sisyphus"
+        },
+        {
+          "name": "Egg Sac",
+          "description": "Explodes into 2-4 baby balls on hitting an enemy. Has a 3 second cooldown before it can be shot again",
+          "startCharacter": "The Flagellant"
+        },
+        {
+          "name": "Freeze",
+          "description": "Has a 4% chance to freeze enemies for 5.0 seconds. Frozen enemies receive 25% more damage",
+          "startCharacter": "The Repentant"
+        },
+        {
+          "name": "Ghost",
+          "description": "Passes through enemies",
+          "startCharacter": "The Empty Nester"
+        },
+        {
+          "name": "Iron",
+          "description": "Deals double damage but moves 40% slower",
+          "startCharacter": "The Shieldbearer, The Tactician"
+        },
+        {
+          "name": "Laser (Horizontal)",
+          "description": "Deals 9-18 damage to all enemies in the same row",
+          "startCharacter": "N/A"
+        },
+        {
+          "name": "Laser (Vertical)",
+          "description": "Deals 9-18 damage to all enemies in the same column",
+          "startCharacter": "The Cogitator"
+        },
+        {
+          "name": "Light",
+          "description": "Blinds enemies on hit for 3 seconds. Blinded units have a hard time detecting you and have a 50% chance of missing when they attack",
+          "startCharacter": "The Physicist"
+        },
+        {
+          "name": "Lightning",
+          "description": "Deals 1-20 damage to up to 3 nearby enemies",
+          "startCharacter": "The Juggler"
+        },
+        {
+          "name": "Poison",
+          "description": "Applies 1 stack of poison on hit (max 5 stacks). Poison lasts for 6 seconds and each stack deals 1-4 damage per second",
+          "startCharacter": "The Embedded"
+        },
+        {
+          "name": "Vampire",
+          "description": "Each hit has a 4.5% chance of healing 1 health",
+          "startCharacter": "The Spendthrift"
+        },
+        {
+          "name": "Wind",
+          "description": "Passes through enemies and slows them down by 30% for 5 seconds, but deals 25% less damage",
+          "startCharacter": "The Radical"
+        }
+      ]
+    };
+
+    function BuildingsViewer() {
+      const [selectedBuilding, setSelectedBuilding] = useState(null);
+      const [searchTerm, setSearchTerm] = useState('');
+      const [scrollContainer, setScrollContainer] = useState(null);
+      // Track the top-left position of each placed building (with unique IDs)
+      const [placedBuildings, setPlacedBuildings] = useState([]);
+      // Track which cells are occupied (for collision detection)
+      const [occupiedCells, setOccupiedCells] = useState(() => {
+        // Initialize a 30x40 grid (1200 cells) with all cells empty
+        return Array(30 * 40).fill(false);
+      });
+      const [draggedBuilding, setDraggedBuilding] = useState(null);
+      const [previewPosition, setPreviewPosition] = useState(null);
+      const [wasDraggedFromGrid, setWasDraggedFromGrid] = useState(false);
+      const [draggedInstanceId, setDraggedInstanceId] = useState(null);
+      const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+      const allItems = useMemo(() => {
+        const buildings = buildingsData.buildings || [];
+        const tiles = buildingsData.resource_tiles || [];
+        return [...buildings, ...tiles];
+      }, []);
+
+      const buildingsByCategory = useMemo(() => {
+        const cats = {};
+        allItems.forEach(b => {
+          if (!cats[b.category]) {
+            cats[b.category] = [];
+          }
+          cats[b.category].push(b);
+        });
+        // Sort categories for consistent order
+        const sortedCats = {};
+        const categoryOrder = [
+          "Economy", "Warfare", "Housing", "Resource",
+          "Trophy"
+        ];
+
+        categoryOrder.forEach(cat => {
+          if (cats[cat]) {
+            sortedCats[cat] = cats[cat];
+          }
+        });
+
+        // Add any other categories not in the predefined order
+        Object.keys(cats).forEach(cat => {
+          if (!sortedCats[cat]) {
+            sortedCats[cat] = cats[cat];
+          }
+        });
+
+        return sortedCats;
+      }, [allItems]);
+
+      const filteredCategories = useMemo(() => {
+        if (!searchTerm) return buildingsByCategory;
+        const lowerSearch = searchTerm.toLowerCase();
+        const filtered = {};
+        for (const category in buildingsByCategory) {
+          const matching = buildingsByCategory[category].filter(b =>
+            b.name.toLowerCase().includes(lowerSearch) ||
+            b.description.toLowerCase().includes(lowerSearch) ||
+            b.category.toLowerCase().includes(lowerSearch)
+          );
+          if (matching.length > 0) {
+            filtered[category] = matching;
+          }
+        }
+        return filtered;
+      }, [searchTerm, buildingsByCategory]);
+
+      const getBuildingIconSlug = (name) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      const getBuildingIconUrl = (name) => {
+        const slug = getBuildingIconSlug(name);
+        if (!slug) return '';
+        // Assume resource tiles don't have icons for now, or handle separately if they do
+        return `icons_build/${slug}.jpg`;
+      };
+
+      const getCategoryColor = (category) => {
+        const colors = {
+          'Economy': 'bg-green-900 text-green-200',
+          'Warfare': 'bg-red-900 text-red-200',
+          'Housing': 'bg-purple-900 text-purple-200',
+          'Trophy': 'bg-gray-700 text-gray-200',
+          'Resource': 'bg-emerald-800 text-emerald-200',
+          'Commerce': 'bg-yellow-900 text-yellow-200',
+          'Utility': 'bg-cyan-900 text-cyan-200',
+          'Production': 'bg-orange-900 text-orange-200',
+          'Government': 'bg-rose-900 text-rose-200',
+          'Training': 'bg-indigo-900 text-indigo-200',
+        };
+        return colors[category] || 'bg-slate-800 text-gray-200';
+      };
+
+      const selectedBuildingData = useMemo(() => {
+        if (!selectedBuilding) return null;
+        return allItems.find(b => b.name === selectedBuilding);
+      }, [selectedBuilding, allItems]);
+
+      // Find all occupied positions for a building at a given top-left position
+      const getOccupiedPositions = (topLeftRow, topLeftCol) => {
+        return [
+          topLeftRow * 40 + topLeftCol,         // top-left
+          topLeftRow * 40 + (topLeftCol + 1),   // top-right
+          (topLeftRow + 1) * 40 + topLeftCol,   // bottom-left
+          (topLeftRow + 1) * 40 + (topLeftCol + 1) // bottom-right
+        ];
+      };
+
+      // Check if a 2x2 building can be placed at a given position
+      const canPlaceBuilding = (row, col, buildingName = null) => {
+        if (col >= 39 || row >= 29) return false; // Not enough space for 2x2
+
+        const positions = getOccupiedPositions(row, col);
+
+        for (const pos of positions) {
+          // If any position is occupied, check if it's the same building we're moving
+          if (occupiedCells[pos]) {
+            // If buildingName is provided, check if this occupied position is for the same building name
+            // that we're trying to place. If it is, this is likely the building we're moving from
+            // its current position, so we should allow the placement at the new position.
+            const isSameBuildingName = placedBuildings.some(pb =>
+              pb.topLeftIndex === pos && pb.building.name === buildingName
+            );
+
+            // If occupied by a different building name, placement is not allowed
+            if (buildingName && !isSameBuildingName) {
+              return false;
+            } else if (!buildingName) {
+              // If no building name provided, any occupation makes it invalid
+              return false;
+            }
+          }
+        }
+        return true;
+      };
+
+      // Place a building at a given position
+      const placeBuilding = (row, col, building) => {
+        if (!canPlaceBuilding(row, col, building.name)) return false;
+
+        const topLeftIndex = row * 40 + col;
+
+        // Create a unique ID for this instance
+        const instanceId = `${building.name}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+        // Get current values to avoid stale closure issues
+        const currentWasDraggedFromGrid = wasDraggedFromGrid;
+        const currentDraggedInstanceId = draggedInstanceId;
+
+        // Update both state variables in a coordinated way to avoid race conditions
+        setPlacedBuildings(prev => {
+          let instanceToRemove = null;
+
+          // If this is moving an existing building (wasDraggedFromGrid is true),
+          // we know the specific instance from draggedInstanceId
+          if (currentWasDraggedFromGrid && currentDraggedInstanceId) {
+            instanceToRemove = currentDraggedInstanceId;
+          }
+
+          // Calculate new state
+          let newPlacedBuildings = [...prev];
+          if (instanceToRemove) {
+            // Remove the instance being moved
+            newPlacedBuildings = newPlacedBuildings.filter(pb => pb.instanceId !== instanceToRemove);
+          }
+
+          // Add the new instance
+          newPlacedBuildings.push({
+            instanceId,
+            building,
+            topLeftIndex,
+            row,
+            col
+          });
+
+          // Update occupied cells
+          setOccupiedCells(currentOccupiedCells => {
+            // Create a copy of the current occupied cells
+            const newOccupiedCells = [...currentOccupiedCells];
+
+            // If we're moving a building, clear its old position first
+            if (currentWasDraggedFromGrid && instanceToRemove) {
+              const buildingToMove = prev.find(pb => pb.instanceId === instanceToRemove);
+              if (buildingToMove) {
+                getOccupiedPositions(buildingToMove.row, buildingToMove.col).forEach(pos => {
+                  newOccupiedCells[pos] = false;
+                });
+              }
+            }
+
+            // Mark the new position as occupied
+            getOccupiedPositions(row, col).forEach(pos => {
+              newOccupiedCells[pos] = true;
+            });
+
+            return newOccupiedCells;
+          });
+
+          return newPlacedBuildings;
+        });
+
+        return true;
+      };
+
+      // Remove a building from the grid by instance ID
+      const removeBuilding = (instanceId) => {
+        setPlacedBuildings(prev => {
+          // Get the building that's being removed to update occupied cells
+          const buildingToRemove = prev.find(pb => pb.instanceId === instanceId);
+
+          // Update occupied cells based on the current state
+          if (buildingToRemove) {
+            const newOccupiedCells = [...occupiedCells];
+            getOccupiedPositions(buildingToRemove.row, buildingToRemove.col).forEach(pos => {
+              newOccupiedCells[pos] = false;
+            });
+            setOccupiedCells(newOccupiedCells);
+          }
+
+          // Return new array without the removed building
+          return prev.filter(pb => pb.instanceId !== instanceId);
+        });
+      };
+
+      // Drag and drop functions
+      const handleDragStart = (e, building, fromGrid = false, instanceId = null) => {
+        setDraggedBuilding(building);
+        setWasDraggedFromGrid(fromGrid);
+        setDraggedInstanceId(instanceId);
+        e.dataTransfer.setData('text/plain', building.name);
+        e.dataTransfer.effectAllowed = fromGrid ? 'move' : 'copy';
+      };
+
+      const handleDragOver = (e) => {
+        e.preventDefault(); // Necessary to allow dropping
+        e.stopPropagation();
+        const gridElement = document.getElementById('buildingGrid');
+        if (!gridElement) return;
+
+        const rect = gridElement.getBoundingClientRect();
+        const x = e.clientX - rect.left + gridElement.scrollLeft;
+        const y = e.clientY - rect.top + gridElement.scrollTop;
+
+        // Calculate grid cell based on mouse position
+        const cellWidth = 30;
+        const cellHeight = 30;
+
+        // Calculate the top-left cell of a 2x2 building (snap to grid)
+        let col = Math.floor(x / cellWidth);
+        let row = Math.floor(y / cellHeight);
+
+        // Clamp to valid grid range (0-38 for col, 0-28 for row for 2x2 buildings)
+        col = Math.max(0, Math.min(38, col));
+        row = Math.max(0, Math.min(28, row));
+
+        if (canPlaceBuilding(row, col, draggedBuilding?.name)) {
+          setPreviewPosition({ row, col });
+        } else {
+          setPreviewPosition(null);
+        }
+      };
+
+      const handleDragLeave = (e) => {
+        // Only clear if we're actually leaving the container, not just entering a child
+        const container = e.currentTarget;
+        if (!container.contains(e.relatedTarget)) {
+          setPreviewPosition(null);
+        }
+      };
+
+      const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!draggedBuilding) return;
+
+        if (previewPosition) {
+          placeBuilding(previewPosition.row, previewPosition.col, draggedBuilding);
+        }
+
+        setPreviewPosition(null);
+        setDraggedBuilding(null);
+        setWasDraggedFromGrid(false);
+        setDraggedInstanceId(null);
+      };
+
+      // Track mouse position for tooltip
+      useEffect(() => {
+        const handleMouseMove = (e) => {
+          setMousePosition({ x: e.clientX, y: e.clientY });
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+
+        return () => {
+          document.removeEventListener('mousemove', handleMouseMove);
+        };
+      }, []);
+
+      // Calculate tooltip position to keep it within viewport
+      const getTooltipPosition = () => {
+        if (typeof window === 'undefined') return { x: 0, y: 0 };
+
+        const offsetX = 15;
+        const offsetY = 15;
+        const tooltipWidth = 320; // Approximate width of tooltip
+        const tooltipHeight = 200; // Approximate height of tooltip
+
+        let x = mousePosition.x + offsetX;
+        let y = mousePosition.y + offsetY;
+
+        // Prevent tooltip from going off-right of screen
+        if (x + tooltipWidth > window.innerWidth) {
+          x = mousePosition.x - tooltipWidth - 5;
+        }
+
+        // Prevent tooltip from going off-bottom of screen
+        if (y + tooltipHeight > window.innerHeight) {
+          y = mousePosition.y - tooltipHeight - 5;
+        }
+
+        // Prevent tooltip from going off-left of screen
+        if (x < 0) {
+          x = 5;
+        }
+
+        // Prevent tooltip from going off-top of screen
+        if (y < 0) {
+          y = 5;
+        }
+
+        return { x, y };
+      };
+
+      // Global drop handler for dropping anywhere outside the grid
+      const handleGlobalDrop = (e) => {
+        e.preventDefault();
+        if (!draggedBuilding) return;
+
+        // If dropped outside the grid (and not caught by handleDrop), remove building if it was from grid
+        if (wasDraggedFromGrid && draggedInstanceId) {
+          removeBuilding(draggedInstanceId);
+          setPreviewPosition(null);
+          setDraggedBuilding(null);
+          setWasDraggedFromGrid(false);
+          setDraggedInstanceId(null);
+        }
+      };
+
+      // Global drag over handler to allow dropping anywhere
+      const handleGlobalDragOver = (e) => {
+        e.preventDefault();
+      };
+
+      return (
+        <div
+          className="flex h-[84vh] bg-slate-900"
+          onDrop={handleGlobalDrop}
+          onDragOver={handleGlobalDragOver}
+        >
+          {/* Left Column - Scrollable Building List */}
+          <div
+            className="w-1/5 flex flex-col bg-slate-800 border-r border-slate-700"
+            onMouseLeave={() => setSelectedBuilding(null)}
+          >
+            {/* Search Bar */}
+            <div className="p-4 border-b border-slate-700">
+              <input
+                type="text"
+                placeholder="Search buildings & tiles..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-700 text-white rounded border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-400"
+              />
+              {/* Category Badge Buttons */}
+              <div className="mt-3">
+                <div className="flex flex-wrap gap-2">
+                  {Object.keys(buildingsByCategory).map(category => (
+                    <button
+                      key={category}
+                      onClick={() => {
+                        setSearchTerm(category);
+                        setSelectedBuilding(null);
+                      }}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(category)} cursor-pointer hover:opacity-80 transition-opacity`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="text-xs text-slate-400 mt-2">
+                Showing {Object.values(filteredCategories).reduce((acc, val) => acc + val.length, 0)} of {allItems.length} items
+              </div>
+            </div>
+
+            {/* Building List */}
+            <div ref={setScrollContainer} className="flex-1 overflow-y-auto">
+              {Object.keys(filteredCategories).length === 0 ? (
+                <div className="p-4 text-slate-400 text-center">No items found</div>
+              ) : (
+                <div className="space-y-2 p-2">
+                  {Object.entries(filteredCategories).map(([category, items]) => (
+                    <div key={category}>
+                      {items.map((item) => (
+                        <div
+                          key={item.name}
+                          onClick={() => setSelectedBuilding(item.name)}
+                          onMouseEnter={() => setSelectedBuilding(item.name)}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, item, false)}
+                          className={`p-3 cursor-pointer transition-colors rounded-md mb-2 ${selectedBuilding === item.name
+                            ? 'bg-blue-900 bg-opacity-50 border-l-4 border-blue-500'
+                            : 'bg-slate-800 hover:bg-slate-700 border-l-4 border-transparent'
+                            }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="font-bold text-white text-sm">{item.name}</div>
+                              <div className="text-xs text-slate-300 line-clamp-2">{item.description}</div>
+                            </div>
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getCategoryColor(item.category)}`}>
+                              {item.category}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Building Grid (with stable size) */}
+          <div className="w-4/5 bg-slate-900 p-2 flex flex-col h-full min-h-0">
+            {/* Building Placement Grid */}
+            <div
+              className="bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 flex-1 flex flex-col min-h-0"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <div
+                id="buildingGrid"
+                className="grid grid-cols-40 grid-rows-30 gap-0 bg-slate-800 rounded flex-1 overflow-auto relative"
+                style={{
+                  maxHeight: '100%',
+                  width: '100%',
+                  display: 'grid',
+                  gridTemplateRows: 'repeat(30, 30px)',
+                  gridTemplateColumns: 'repeat(40, 30px)'
+                }}
+              >
+                {/* Chunk borders - 8x6 blocks */}
+                <div className="absolute inset-0 pointer-events-none"
+                  style={{
+                    width: '1200px',
+                    height: '900px',
+                  }}>
+                  {/* Draw vertical chunk borders every 8 cells (240px) */}
+                  {[1, 2, 3, 4].map(i => (
+                    <div
+                      key={`v-chunk-${i}`}
+                      className="absolute bg-yellow-500/40"
+                      style={{
+                        left: `${i * 8 * 30}px`,
+                        top: 0,
+                        width: '2px',
+                        height: '100%'
+                      }}
+                    />
+                  ))}
+                  {/* Draw horizontal chunk borders every 6 cells (180px) */}
+                  {[1, 2, 3, 4].map(i => (
+                    <div
+                      key={`h-chunk-${i}`}
+                      className="absolute bg-yellow-500/40"
+                      style={{
+                        left: 0,
+                        top: `${i * 6 * 30}px`,
+                        width: '100%',
+                        height: '2px'
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Grid background - empty cells */}
+                <div className="absolute inset-0 grid grid-cols-40 grid-rows-30"
+                  style={{
+                    width: '1200px', // 40 * 30
+                    height: '900px', // 30 * 30
+                    gridTemplateRows: 'repeat(30, 30px)',
+                    gridTemplateColumns: 'repeat(40, 30px)'
+                  }}>
+                  {Array.from({ length: 30 * 40 }).map((_, index) => {
+                    const row = Math.floor(index / 40);
+                    const col = index % 40;
+
+                    // Check if this cell is occupied by a building or part of preview
+                    const isOccupied = occupiedCells[index];
+                    let isPreview = false;
+                    if (previewPosition && draggedBuilding) {
+                      const previewTopLeftIndex = previewPosition.row * 40 + previewPosition.col;
+                      isPreview = [
+                        previewTopLeftIndex,
+                        previewTopLeftIndex + 1,
+                        previewTopLeftIndex + 40,
+                        previewTopLeftIndex + 41
+                      ].includes(index);
+                    }
+
+                    // Don't show empty cell background if it's occupied or part of preview
+                    if (isOccupied || isPreview) {
+                      return <div key={`bg-${index}`}></div>;
+                    }
+
+                    return (
+                      <div
+                        key={`bg-${index}`}
+                        className="border border-slate-700 bg-slate-900/30"
+                      ></div>
+                    );
+                  })}
+                </div>
+
+                {/* Preview overlay for dragged building */}
+                {previewPosition && draggedBuilding && (
+                  <div
+                    className="absolute bg-blue-500/50 border-2 border-dashed border-blue-400"
+                    style={{
+                      gridColumn: `${previewPosition.col + 1} / span 2`,
+                      gridRow: `${previewPosition.row + 1} / span 2`,
+                    }}
+                  ></div>
+                )}
+
+                {/* Render placed buildings as 2x2 blocks */}
+                {placedBuildings.map((placedBuilding) => {
+                  const { instanceId, building, row, col } = placedBuilding;
+
+                  return (
+                    <div
+                      key={`building-${instanceId}`}
+                      className="absolute bg-blue-700 cursor-pointer"
+                      style={{
+                        gridColumn: `${col + 1} / span 2`,  // 2 columns
+                        gridRow: `${row + 1} / span 2`,     // 2 rows
+                        width: '100%',
+                        height: '100%'
+                      }}
+                      onMouseEnter={() => setSelectedBuilding(building.name)}
+                      onMouseLeave={() => setSelectedBuilding(null)}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        removeBuilding(instanceId);
+                      }}
+                    >
+                      <img
+                        src={getBuildingIconUrl(building.name)}
+                        alt={building.name}
+                        className="w-full h-full"
+                        draggable="true"
+                        onDragStart={(e) => handleDragStart(e, building, true, instanceId)}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Mouse Position Tooltip Overlay */}
+          {selectedBuildingData && !draggedBuilding && (() => {
+            const tooltipPos = getTooltipPosition();
+            return (
+              <div
+                id="tooltip-overlay"
+                className="fixed z-50 pointer-events-none"
+                style={{
+                  left: tooltipPos.x + 'px',
+                  top: tooltipPos.y + 'px',
+                  maxWidth: '30rem'
+                }}
+              >
+                <div className="bg-slate-900/90 backdrop-blur-sm rounded-lg p-4 border border-slate-700 shadow-xl">
+                  {/* Building Icon and Name */}
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0">
+                      <img
+                        src={getBuildingIconUrl(selectedBuildingData.name)}
+                        alt={selectedBuildingData.name}
+                        className="w-16 h-16 rounded object-cover border border-slate-600"
+                        onError={(e) => {
+                          e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect fill="%23475569" width="64" height="64"/%3E%3C/svg%3E';
+                        }}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-xl font-bold text-white mb-1">{selectedBuildingData.name}</h2>
+                      <p className="text-slate-300 text-sm mb-2">{selectedBuildingData.description}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(selectedBuildingData.category)}`}>
+                          {selectedBuildingData.category}
+                        </span>
+                        {selectedBuildingData.cost.gold > 0 && (
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-300">
+                            {selectedBuildingData.cost.gold} gold
+                          </span>
+                        )}
+                        {selectedBuildingData.cost.wheat > 0 && (
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-amber-600/20 text-amber-200">
+                            {selectedBuildingData.cost.wheat} wheat
+                          </span>
+                        )}
+                        {selectedBuildingData.cost.wood > 0 && (
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-amber-800/20 text-amber-200">
+                            {selectedBuildingData.cost.wood} wood
+                          </span>
+                        )}
+                        {selectedBuildingData.cost.stone > 0 && (
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-500/20 text-gray-300">
+                            {selectedBuildingData.cost.stone} stone
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      );
+    }
+
+    function BallEvolutionGraph() {
+      const [selectedBall, setSelectedBall] = useState(null);
+      const [hoveredNode, setHoveredNode] = useState(null);
+      const [tab, setTab] = useState(() => {
+        const hash = window.location.hash.slice(1);
+        return ['balls', 'passives', 'buildings'].includes(hash) ?
+          (hash === 'balls' ? 'Evolutions' : hash === 'passives' ? 'Passives' : 'Buildings') :
+          'Evolutions';
+      });
+
+      useEffect(() => {
+        const handleHashChange = () => {
+          const hash = window.location.hash.slice(1);
+          if (hash === 'balls') setTab('Evolutions');
+          else if (hash === 'passives') setTab('Passives');
+          else if (hash === 'buildings') setTab('Buildings');
+          else setTab('Evolutions');
+        };
+        window.addEventListener('hashchange', handleHashChange);
+        return () => window.removeEventListener('hashchange', handleHashChange);
+      }, []);
+
+      const handleTabChange = (tabName, hash) => {
+        setTab(tabName);
+        window.location.hash = hash;
+      };
+
+      const { evolutions, baseElements, nameMap, uniqueEvos, recipesByEvo, altNodes, baseInfoMap } = useMemo(() => {
+        const data = jsonData;
+        const newNameMap = {};
+        const allNames = new Set();
+        data.evolutions.forEach(e => {
+          allNames.add(e.name);
+          e.ingredients.forEach(i => allNames.add(i));
+        });
+        allNames.forEach(name => newNameMap[name.toUpperCase().replace(/\s/g, ' ')] = name);
+
+        const evos = data.evolutions.map(e => ({
+          ...e,
+          name: e.name.toUpperCase().replace(/\s/g, ' '),
+          ingredients: e.ingredients.map(i => i.toUpperCase().replace(/\s/g, ' '))
+        }));
+
+        const evoNames = new Set(evos.map(e => e.name));
+        const allIngredients = new Set(evos.flatMap(e => e.ingredients));
+        const base = [...allIngredients].filter(ing => !evoNames.has(ing));
+
+        // Build a lookup map for base ball metadata from `baseballsData`.
+        const baseInfoMap = {};
+        try {
+          if (typeof baseballsData !== 'undefined' && Array.isArray(baseballsData.baseBalls)) {
+            baseballsData.baseBalls.forEach(b => {
+              const key = (b.name || '').toUpperCase().replace(/\s/g, ' ');
+              baseInfoMap[key] = b;
+            });
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        const uniqueEvos = [];
+        const seenUnique = new Set();
+        evos.forEach(evo => {
+          if (!seenUnique.has(evo.name)) {
+            seenUnique.add(evo.name);
+            uniqueEvos.push(evo);
+          }
+        });
+
+        const recipesByEvo = {};
+        // Normalize and deduplicate recipes so mirrored combinations (A+B and B+A)
+        // are only shown once per evolution.
+        evos.forEach(evo => {
+          const name = evo.name;
+          const ingredients = evo.ingredients;
+          if (!recipesByEvo[name]) recipesByEvo[name] = [];
+          const normalized = ingredients.slice().sort().join('||');
+          const already = recipesByEvo[name].some(r => r.slice().sort().join('||') === normalized);
+          if (!already) recipesByEvo[name].push(ingredients);
+        });
+
+        // Collect nodes that participate in alternative (non-primary) recipes
+        // so we can style their borders in gold for easier parsing.
+        const altNodes = new Set();
+        Object.entries(recipesByEvo).forEach(([evoName, recs]) => {
+          recs.forEach((rec, idx) => {
+            if (idx > 0) {
+              altNodes.add(evoName);
+              rec.forEach(i => altNodes.add(i));
+            }
+          });
+        });
+
+        return { evolutions: evos, baseElements: base.sort(), nameMap: newNameMap, uniqueEvos, recipesByEvo, altNodes, baseInfoMap };
+      }, []);
+
+      const getColor = (element) => {
+        const colors = {
+          'BLEED': '#ae5353', 'BROOD MOTHER': '#8a5ab5', 'BURN': '#b56c46', 'CELL': '#4b9265', 'CHARM': '#ae547c',
+          'DARK': '#1f2937', 'EARTHQUAKE': '#9a6a45', 'EGG SAC': '#739247', 'FREEZE': '#448999', 'GHOST': '#475569',
+          'IRON': '#64748b', 'LASER': '#b59a44', 'LASER (HORIZONTAL)': '#b59a44', 'LASER (VERTICAL)': '#b59a44',
+          'LIGHT': '#bda64b', 'LIGHTNING': '#6863b3', 'POISON': '#438b75', 'VAMPIRE': '#9f4c6f', 'WIND': '#427591',
+        };
+        if (evolutions) {
+          const evoColorSource = evolutions.find(e => e.name === element);
+          if (evoColorSource) return colors[evoColorSource.ingredients[0]] || '#6b7280';
+        }
+        return colors[element] || '#6b7280';
+      };
+
+      const getIconSlug = (name) => {
+        if (!name) return '';
+        return name.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
+      };
+
+      const getIconUrls = (name) => {
+        const slug = getIconSlug(name);
+        if (!slug) return [];
+        return [`icons/${slug}.png`];
+      };
+
+      const baseWidth = 140;
+      const baseHeight = 45;
+      const rowSpacing = 80;
+      const evoSpacing = 60;
+
+      const { positions, svgWidth, svgHeight, levels, columnAreas, columnHeaders } = useMemo(() => {
+        if (!uniqueEvos || !baseElements) return { positions: {}, svgWidth: 1400, svgHeight: 900, levels: {}, columnAreas: {}, columnHeaders: [] };
+
+        const levels = {};
+        let maxLevel = 0;
+        baseElements.forEach(b => levels[b] = 0);
+
+        let changed = true;
+        while (changed) {
+          changed = false;
+          uniqueEvos.forEach(evo => {
+            if (levels[evo.name] !== undefined) return;
+            const ingredientLevels = evo.ingredients.map(ing => levels[ing]);
+            if (ingredientLevels.some(l => l === undefined)) return;
+            const maxIngredientLevel = Math.max(...ingredientLevels);
+            levels[evo.name] = maxIngredientLevel + 1;
+            if (levels[evo.name] > maxLevel) maxLevel = levels[evo.name];
+            changed = true;
+          });
+        }
+
+        uniqueEvos.forEach(evo => {
+          if (levels[evo.name] === undefined) {
+            levels[evo.name] = maxLevel + 1;
+          }
+        });
+
+        const positions = {};
+        const columnWidth = baseWidth + 100;
+
+        baseElements.forEach((element, idx) => {
+          positions[element] = { x: 40, y: 50 + idx * rowSpacing };
+        });
+
+        let totalHeight = 50 + baseElements.length * rowSpacing;
+
+        const numSubColumns = 2;
+        const subColumnWidth = baseWidth + 80;
+        const level1StartX = 40 + columnWidth;
+        const subColumnYOffsets = new Array(numSubColumns).fill(50);
+
+        if (maxLevel >= 1) {
+          const level1Nodes = uniqueEvos.filter(evo => levels[evo.name] === 1);
+          const level1Groups = {};
+          level1Nodes.forEach(node => {
+            const category = uniqueEvos.find(e => e.name === node.name)?.category.toUpperCase() || '';
+            if (!level1Groups[category]) {
+              level1Groups[category] = [];
+            }
+            level1Groups[category].push(node);
+          });
+
+          baseElements.forEach((baseElement, index) => {
+            const group = level1Groups[baseElement];
+            if (!group || group.length === 0) return;
+
+            const subColIndex = index % numSubColumns;
+            const groupX = level1StartX + subColIndex * subColumnWidth;
+
+            const baseElementY = positions[baseElement].y;
+            let groupY = Math.max(baseElementY, subColumnYOffsets[subColIndex]);
+
+            group.forEach((node, nodeIndex) => {
+              const y = groupY + nodeIndex * evoSpacing;
+              positions[node.name] = { x: groupX, y: y };
+            });
+
+            subColumnYOffsets[subColIndex] = groupY + group.length * evoSpacing + rowSpacing / 2;
+          });
+
+          totalHeight = Math.max(totalHeight, ...subColumnYOffsets);
+        }
+
+        const level2PlusStartX = level1StartX + (maxLevel > 0 ? numSubColumns * subColumnWidth : 0);
+        for (let level = 2; level <= maxLevel + 1; level++) {
+          const nodesInLevel = Object.keys(levels).filter(name => levels[name] === level);
+          const nodesWithTargetY = nodesInLevel.map(name => {
+            const evo = uniqueEvos.find(e => e.name === name) || { ingredients: [] };
+            const ingredientPositions = evo.ingredients.map(ing => positions[ing]).filter(p => p);
+            let targetY = 0;
+            if (ingredientPositions.length > 0) {
+              targetY = ingredientPositions.reduce((sum, p) => sum + p.y, 0) / ingredientPositions.length;
+            }
+            return { name, targetY };
+          });
+
+          nodesWithTargetY.sort((a, b) => a.targetY - b.targetY);
+
+          let lastYInColumn = 0;
+          nodesWithTargetY.forEach(({ name, targetY }) => {
+            const x = level2PlusStartX + (level - 2) * columnWidth;
+            const y = Math.max(targetY, lastYInColumn + evoSpacing);
+            positions[name] = { x, y };
+            lastYInColumn = y;
+          });
+          if (lastYInColumn > totalHeight) totalHeight = lastYInColumn;
+        }
+
+        const newSvgWidth = level2PlusStartX + (maxLevel > 1 ? (maxLevel - 1) * columnWidth : 0) + baseWidth + 40;
+
+        const columnAreas = {
+          base: { x: 0, width: columnWidth + 20 },
+          evolved: { x: columnWidth + 20, width: numSubColumns * subColumnWidth },
+          ultimate: { x: columnWidth + 20 + numSubColumns * subColumnWidth, width: newSvgWidth - (columnWidth + 20 + numSubColumns * subColumnWidth) }
+        };
+
+        const columnHeaders = [
+          { text: 'Base Balls', x: columnAreas.base.x + columnAreas.base.width / 2, y: 30, id: 'base' },
+          { text: 'Evolved Balls', x: columnAreas.evolved.x + columnAreas.evolved.width / 2, y: 30, id: 'evolved' },
+          { text: 'Ultimate Balls', x: columnAreas.ultimate.x + columnAreas.ultimate.width / 2, y: 30, id: 'ultimate' }
+        ];
+
+        return { positions, svgWidth: newSvgWidth, svgHeight: totalHeight + baseHeight, levels, columnAreas, columnHeaders };
+      }, [uniqueEvos, baseElements]);
+
+      const getAncestors = (ballName, allEvolutions) => {
+        const ancestors = new Set();
+        const toProcess = [ballName];
+        const processed = new Set();
+
+        while (toProcess.length > 0) {
+          const currentBall = toProcess.pop();
+          if (processed.has(currentBall)) continue;
+          processed.add(currentBall);
+
+          const recipes = allEvolutions.filter(e => e.name === currentBall);
+          recipes.forEach(recipe => {
+            recipe.ingredients.forEach(ing => {
+              ancestors.add(ing);
+              toProcess.push(ing);
+            });
+          });
+        }
+        return ancestors;
+      };
+
+      const getDescendants = (ballName, allEvolutions) => {
+        const descendants = new Set();
+        const toProcess = [ballName];
+        const processed = new Set();
+
+        while (toProcess.length > 0) {
+          const currentBall = toProcess.pop();
+          if (processed.has(currentBall)) continue;
+          processed.add(currentBall);
+
+          const children = allEvolutions.filter(e => e.ingredients.includes(currentBall));
+          children.forEach(child => {
+            descendants.add(child.name);
+            toProcess.push(child.name);
+          });
+        }
+        return descendants;
+      };
+
+      const highlightedChain = useMemo(() => {
+        if (!selectedBall || !evolutions) return new Set();
+        const ancestors = getAncestors(selectedBall, evolutions);
+        const descendants = getDescendants(selectedBall, evolutions);
+        const chain = new Set([...ancestors, ...descendants, selectedBall]);
+        return chain;
+      }, [selectedBall, evolutions]);
+
+      const NodeContent = ({ name, pos, nameMap }) => {
+        const displayName = nameMap[name] || name;
+        const urls = getIconUrls(displayName);
+        const imgSize = 36;
+        const padding = 5;
+        const imgX = pos.x + padding;
+        const imgY = pos.y + (baseHeight - imgSize) / 2;
+        const primary = urls[0];
+
+        const textX = pos.x + padding + imgSize + padding;
+        const textY = pos.y + baseHeight / 2;
+
+        const wrapText = (text) => {
+          const maxCharsPerLine = 15;
+          if (text.length <= maxCharsPerLine) return [text];
+          const words = text.split(' ');
+          const lines = [];
+          let currentLine = '';
+          for (const word of words) {
+            if ((currentLine + ' ' + word).trim().length > maxCharsPerLine && currentLine.length > 0) {
+              lines.push(currentLine);
+              currentLine = word;
+            } else {
+              currentLine = (currentLine + ' ' + word).trim();
+            }
+          }
+          if (currentLine) lines.push(currentLine);
+          return lines;
+        };
+        const lines = wrapText(displayName);
+
+        return (
+          <g>
+            {primary && (
+              <image
+                href={primary} x={imgX} y={imgY} width={imgSize} height={imgSize}
+                preserveAspectRatio="xMidYMid slice"
+                onError={(e) => { e.target.style.display = 'none'; }}
+                className="pointer-events-none select-none"
+              />
+            )}
+            <text
+              x={textX}
+              y={textY - (lines.length > 1 ? (lines.length - 1) * 6 : 0)}
+              textAnchor="start"
+              dominantBaseline="middle"
+              fontSize={displayName.length > 15 ? "10" : "11"}
+              fontWeight="bold"
+              fill="white"
+              className="pointer-events-none select-none"
+            >
+              {lines.map((line, i) => (
+                <tspan key={i} x={textX} dy={i === 0 ? 0 : '1.2em'}>{line}</tspan>
+              ))}
+            </text>
+          </g>
+        );
+      };
+
+      const [searchTerm, setSearchTerm] = useState('');
+
+      const allNodeNames = useMemo(() => {
+        if (!baseElements || !evolutions) return [];
+        const evoNames = new Set(evolutions.map(e => e.name));
+        const allNames = new Set([...baseElements, ...evoNames]);
+        return Array.from(allNames).sort();
+      }, [evolutions, baseElements]);
+
+      const searchResults = useMemo(() => {
+        if (!searchTerm || !allNodeNames) return [];
+        return allNodeNames
+          .filter(name => (nameMap[name] || name).toLowerCase().includes(searchTerm.toLowerCase()))
+          .slice(0, 10);
+      }, [searchTerm, allNodeNames, nameMap]);
+
+
+      const activeNode = selectedBall || hoveredNode;
+      const recipesForActiveNode = useMemo(() => {
+        if (!activeNode || !evolutions) return [];
+
+        // If the active node is an evolution, show its recipes (ingredients combinations)
+        const evoRecipes = evolutions
+          .filter(evo => evo.name === activeNode)
+          .map(evo => {
+            const sortedIngredients = evo.ingredients
+              .map(ing => nameMap[ing] || ing)
+              .sort();
+            return sortedIngredients.join(' + ');
+          });
+
+        if (evoRecipes.length > 0) {
+          return [...new Set(evoRecipes)];
+        }
+
+        // Do not list evolutions for base balls — the graph conveys upgrades.
+        return [];
+      }, [activeNode, evolutions, nameMap]);
+
+      const descriptionForActiveNode = useMemo(() => {
+        if (!activeNode) return '';
+        // if it's an evolution, return evo description
+        if (evolutions) {
+          const evo = evolutions.find(e => e.name === activeNode);
+          if (evo && evo.description) return evo.description;
+        }
+        // otherwise check base info map for description only
+        if (typeof baseInfoMap !== 'undefined' && baseInfoMap[activeNode]) {
+          const b = baseInfoMap[activeNode];
+          return b.description || '';
+        }
+        return '';
+      }, [activeNode, evolutions, baseInfoMap]);
+
+      const startCharacterForActiveNode = useMemo(() => {
+        if (!activeNode) return '';
+        if (typeof baseInfoMap !== 'undefined' && baseInfoMap[activeNode]) {
+          return baseInfoMap[activeNode].startCharacter || '';
+        }
+        return '';
+      }, [activeNode, baseInfoMap]);
+
+      return (
+        <div className="w-full h-full bg-gradient-to-br from-slate-900 to-slate-950 p-6 overflow-hidden">
+          <div className="max-w-full h-full">
+            <div className="flex items-center gap-3 mb-4">
+              <h1 className="text-4xl font-bold text-white mb-0">Ball x Pit</h1>
+              <div className="inline-flex rounded-md bg-slate-800/40 p-1">
+                <button onClick={() => handleTabChange('Evolutions', 'balls')} className={`px-3 py-1 rounded ${tab === 'Evolutions' ? 'bg-slate-700 text-white' : 'text-slate-300'}`}>Evolutions</button>
+                <button onClick={() => handleTabChange('Passives', 'passives')} className={`ml-2 px-3 py-1 rounded ${tab === 'Passives' ? 'bg-slate-700 text-white' : 'text-slate-300'}`}>Passives</button>
+                <button onClick={() => handleTabChange('Buildings', 'buildings')} className={`ml-2 px-3 py-1 rounded ${tab === 'Buildings' ? 'bg-slate-700 text-white' : 'text-slate-300'}`}>Buildings</button>
+              </div>
+            </div>
+
+            <div className="relative mb-4 max-w-md" style={{ display: tab === 'Evolutions' ? 'block' : 'none' }}>
+              <input
+                type="text"
+                placeholder="Search for a ball..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-slate-700 text-white placeholder-slate-400 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {searchResults.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                  {searchResults.map(name => (
+                    <div key={name} onClick={() => { setSelectedBall(name); setSearchTerm(''); }} className="px-4 py-2 text-white hover:bg-slate-700 cursor-pointer">
+                      {nameMap[name] || name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: tab === 'Passives' ? 'block' : 'none' }}>
+              <PassivesGraph />
+            </div>
+
+            <div style={{ display: tab === 'Buildings' ? 'block' : 'none' }}>
+              <BuildingsViewer />
+            </div>
+
+            <div className="relative" style={{ display: tab === 'Evolutions' ? 'block' : 'none' }}>
+              <div className="bg-slate-800 rounded-lg overflow-y-auto overflow-x-auto" style={{ maxHeight: '84vh' }}>
+                <svg
+                  width={svgWidth}
+                  height={svgHeight}
+                  viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+                  className="bg-slate-700"
+                  style={{ minHeight: '900px', display: 'block' }}
+                >
+                  <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                      <polygon points="0 0, 10 3, 0 6" fill="#94a3b8" />
+                    </marker>
+                    <marker id="arrowhead-gold" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                      <polygon points="0 0, 10 3, 0 6" fill="#f59e0b" />
+                    </marker>
+                    {/* Background Gradients */}
+                    <linearGradient id="base-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" style={{ stopColor: 'rgba(156, 163, 175, 0.15)' }} />
+                      <stop offset="100%" style={{ stopColor: 'rgba(156, 163, 175, 0)' }} />
+                    </linearGradient>
+                    <linearGradient id="evolved-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" style={{ stopColor: 'rgba(59, 130, 246, 0.08)' }} />
+                      <stop offset="100%" style={{ stopColor: 'rgba(59, 130, 246, 0)' }} />
+                    </linearGradient>
+                    <linearGradient id="ultimate-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" style={{ stopColor: 'rgba(252, 211, 77, 0.1)' }} />
+                      <stop offset="100%" style={{ stopColor: 'rgba(252, 211, 77, 0)' }} />
+                    </linearGradient>
+                    {/* Text Gradients */}
+                    <linearGradient id="base-text-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#e2e8f0" />
+                      <stop offset="100%" stopColor="#94a3b8" />
+                    </linearGradient>
+                    <linearGradient id="evolved-text-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#93c5fd" />
+                      <stop offset="100%" stopColor="#3b82f6" />
+                    </linearGradient>
+                    <linearGradient id="ultimate-text-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#fde047" />
+                      <stop offset="100%" stopColor="#f59e0b" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Backgrounds */}
+                  {columnAreas.base && <rect x={columnAreas.base.x} y="0" width={columnAreas.base.width} height="100%" fill="url(#base-gradient)" />}
+                  {columnAreas.evolved && <rect x={columnAreas.evolved.x} y="0" width={columnAreas.evolved.width} height="100%" fill="url(#evolved-gradient)" />}
+                  {columnAreas.ultimate && <rect x={columnAreas.ultimate.x} y="0" width={columnAreas.ultimate.width} height="100%" fill="url(#ultimate-gradient)" />}
+
+                  {/* Headers */}
+                  {columnHeaders.map(header => (
+                    <text
+                      key={header.id}
+                      x={header.x}
+                      y={header.y}
+                      textAnchor="middle"
+                      fontSize="20"
+                      fontWeight="bold"
+                      fill={`url(#${header.id}-text-gradient)`}
+                      style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}
+                    >
+                      {header.text}
+                    </text>
+                  ))}
+
+                  {/* Lines */}
+                  {Object.entries(recipesByEvo).map(([evoName, recipes]) => {
+                    const endPos = positions[evoName];
+                    if (!endPos) return null;
+                    const numRecipes = recipes.length;
+
+                    return recipes.map((recipe, recipeIndex) => {
+                      const yOffset = (baseHeight / (numRecipes + 1)) * (recipeIndex + 1);
+                      const lineStyle = recipeIndex === 0 ? "none" : recipeIndex === 1 ? "4 4" : "1 5";
+
+                      return recipe.map((ing, ingIdx) => {
+                        const startPos = positions[ing];
+                        if (!startPos) return null;
+
+                        const isHighlighted = highlightedChain.has(evoName) && highlightedChain.has(ing);
+                        const isAlt = recipeIndex > 0;
+                        // Keep alternative (non-primary) recipes gold even when highlighted;
+                        // highlight should affect width/opacity but not change alt color.
+                        const strokeColor = isAlt ? '#f59e0b' : (isHighlighted ? '#3b82f6' : '#64748b');
+                        const markerId = isAlt ? 'arrowhead-gold' : 'arrowhead';
+
+                        return (
+                          <line
+                            key={`line-${evoName}-${recipeIndex}-${ingIdx}`}
+                            x1={startPos.x + baseWidth}
+                            y1={startPos.y + baseHeight / 2}
+                            x2={endPos.x}
+                            y2={endPos.y + yOffset}
+                            stroke={strokeColor}
+                            strokeWidth={isHighlighted ? 2 : 1}
+                            strokeDasharray={lineStyle}
+                            markerEnd={`url(#${markerId})`}
+                            opacity={!selectedBall ? 0.4 : (isHighlighted ? 1 : 0.3)}
+                            className="transition-all"
+                          />
+                        );
+                      });
+                    });
+                  })}
+
+                  {/* Nodes */}
+                  {baseElements.map((element) => {
+                    const pos = positions[element];
+                    if (!pos) return null;
+                    const isSelected = selectedBall === element;
+                    const isInChain = highlightedChain.has(element);
+                    const isAltNode = altNodes && altNodes.has && altNodes.has(element);
+
+                    return (
+                      <g key={`base-${element}`}>
+                        <rect
+                          x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
+                          fill={getColor(element)}
+                          stroke={isSelected ? '#fff' : (isAltNode ? '#f59e0b' : (isInChain ? '#3b82f6' : 'none'))}
+                          strokeWidth={isSelected ? 2 : (isAltNode ? 1.5 : (isInChain ? 1.5 : 0))}
+                          opacity={!selectedBall || isInChain ? 1 : 0.3}
+                          className="cursor-pointer transition-all hover:opacity-100"
+                          onClick={() => setSelectedBall(selectedBall === element ? null : element)}
+                          onMouseEnter={() => setHoveredNode(element)}
+                          onMouseLeave={() => setHoveredNode(null)}
+                        />
+                        <NodeContent name={element} pos={pos} nameMap={nameMap} />
+                      </g>
+                    );
+                  })}
+
+                  {uniqueEvos.map((evo, idx) => {
+                    const pos = positions[evo.name];
+                    if (!pos) return null;
+
+                    const level = levels[evo.name];
+                    const isUltimate = level >= 2;
+                    const isSelected = selectedBall === evo.name;
+                    const isInChain = highlightedChain.has(evo.name);
+                    const isAltNode = altNodes && altNodes.has && altNodes.has(evo.name);
+
+                    return (
+                      <g key={`evo-${evo.name}-${idx}`}>
+                        <rect
+                          x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
+                          fill={getColor(evo.name)}
+                          stroke={isSelected ? '#fff' : (isAltNode ? '#f59e0b' : (isUltimate ? 'gold' : (isInChain ? '#3b82f6' : 'none')))}
+                          strokeWidth={isSelected ? 2 : (isAltNode ? 1.5 : (isUltimate ? 2.5 : (isInChain ? 1.5 : 0)))}
+                          opacity={!selectedBall || isInChain ? 1 : 0.3}
+                          className="cursor-pointer transition-all hover:opacity-100"
+                          onClick={() => setSelectedBall(selectedBall === evo.name ? null : evo.name)}
+                          onMouseEnter={() => setHoveredNode(evo.name)}
+                          onMouseLeave={() => setHoveredNode(null)}
+                        />
+                        <NodeContent name={evo.name} pos={pos} nameMap={nameMap} />
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+
+              {activeNode && (
+                <div className="absolute bottom-2 left-2 z-10 bg-slate-900/75 backdrop-blur-sm rounded-lg p-4 max-w-md">
+                  <div className="text-white mb-2">
+                    <div className="font-semibold">{(nameMap[activeNode] || activeNode)}</div>
+                    {descriptionForActiveNode && <div className="font-normal text-slate-200 mt-1">{descriptionForActiveNode}</div>}
+                    {startCharacterForActiveNode && <div className="text-slate-400 text-sm mt-2">{startCharacterForActiveNode}</div>}
+                  </div>
+                  {recipesForActiveNode.length > 0 ? (
+                    <div className="text-slate-300 text-sm">
+                      {recipesForActiveNode.map((r, i) => (
+                        <div key={i}>{r}</div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+            <footer className="mt-6 text-slate-400 text-sm text-center">
+              Rights to their respective owners:
+              <a href="https://store.steampowered.com/app/2062430/BALL_x_PIT/" target="_blank" rel="noopener noreferrer" className="text-slate-200 underline">Ball X Pit</a>
+              {' '} / {' '}
+              <a href="https://www.devolverdigital.com/" target="_blank" rel="noopener noreferrer" className="text-slate-200 underline">Devolver Digital</a>
+              . Data from: {' '}
+              <a href="https://ballpit.fandom.com/wiki/Ball_X_Pit_Wiki" target="_blank" rel="noopener noreferrer" className="text-slate-200 underline">Ball X Pit Wiki</a>.
+            </footer>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<BallEvolutionGraph />, document.getElementById('root'));
