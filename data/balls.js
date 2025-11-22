@@ -1,0 +1,623 @@
+// Ball evolution data
+export const jsonData = {
+    "evolutions": [
+        {
+            "name": "Vampire Lord",
+            "ingredients": ["Bleed", "Vampire"],
+            "category": "Bleed",
+            "description": "Each hit inflicts 3 stacks of bleed. Heals 1 health and consumes all stacks when hitting an enemy with at least 10 stacks of bleed"
+        },
+        {
+            "name": "Leech",
+            "ingredients": ["Bleed", "Brood Mother"],
+            "category": "Bleed",
+            "description": "Attaches up to 1 leech onto enemies it hits, which adds 2 stacks of bleed per second (max 24 stacks)"
+        },
+        {
+            "name": "Virus",
+            "ingredients": ["Bleed", "Poison"],
+            "category": "Bleed",
+            "description": "Applies 1 stack of disease to units it hits (max 8 stacks). Disease lasts for 6 seconds. Each stack of disease deals 3-6 damage per second and diseased units have a 15% chance of passing a stack to undiseased nearby enemies each second"
+        },
+        {
+            "name": "Berserk",
+            "ingredients": ["Bleed", "Charm"],
+            "category": "Bleed",
+            "description": "Each hit has a 30% chance of causing enemies to go berserk for 6 seconds. Berserk enemies deal 15-24 damage to adjacent enemies every second"
+        },
+        {
+            "name": "Sacrifice",
+            "ingredients": ["Bleed", "Dark"],
+            "category": "Bleed",
+            "description": "Inflicts 4 stacks of bleed (max 15 stacks) and applies curse to hit enemies. Cursed enemies are dealt 50-100 after being hit 5 times"
+        },
+        {
+            "name": "Hemorrhage",
+            "ingredients": ["Bleed", "Iron"],
+            "category": "Bleed",
+            "description": "Inflicts 3 stacks of bleed. When hitting an enemy with 12 stacks of bleed or more, consume all stacks of bleed to deal 20% of their current health"
+        },
+        {
+            "name": "Leech",
+            "ingredients": ["Brood Mother", "Bleed"],
+            "category": "Brood Mother",
+            "description": "Attaches up to 1 leech on to enemies it hits, which adds 2 stacks of bleed per second (max 24 stacks)"
+        },
+        {
+            "name": "Maggot",
+            "ingredients": ["Brood Mother", "Cell"],
+            "category": "Brood Mother",
+            "description": "Infest enemies on hit with maggots. When they die, they explode into 1-2 baby balls"
+        },
+        {
+            "name": "Spider Queen",
+            "ingredients": ["Brood Mother", "Egg Sac"],
+            "category": "Brood Mother",
+            "description": "Has a 25% chance of birthing an Egg Sac each time it hits an enemy"
+        },
+        {
+            "name": "Mosquito King",
+            "ingredients": ["Brood Mother", "Vampire"],
+            "category": "Brood Mother",
+            "description": "Spawns a mosquito each time it hits an enemy. Mosquitos attack a random enemy, dealing 80-120 damage each. If a mosquito kills an enemy, they steal 1 health"
+        },
+        {
+            "name": "Bomb",
+            "ingredients": ["Burn", "Iron"],
+            "category": "Burn",
+            "description": "Explodes when hitting an enemy, dealing 150-300 damage to nearby enemies. Has a 3-second cooldown before it can be shot again"
+        },
+        {
+            "name": "Magma",
+            "ingredients": ["Burn", "Earthquake"],
+            "category": "Burn",
+            "description": "Emits lava blobs over time. Enemies who walk into lava blobs are dealt 15-30 damage and gain 1 stack of burn (max 3 stacks). Burn lasts for 3 seconds, dealing 3-8 damage per stack per second. This ball and its lava blobs also deal 6-12 damage to nearby units"
+        },
+        {
+            "name": "Inferno",
+            "ingredients": ["Burn", "Wind"],
+            "category": "Burn",
+            "description": "Applies 1 stack of burn every second to all enemies within a 2 tile radius. Burn lasts for 6 seconds, dealing 3-7 damage per stack per second"
+        },
+        {
+            "name": "Berserk",
+            "ingredients": ["Burn", "Charm"],
+            "category": "Burn",
+            "description": "Each hit has a 30% chance of causing enemies to go berserk for 6 seconds. Berserk enemies deal 15-24 damage to adjacent enemies every second"
+        },
+        {
+            "name": "Sun",
+            "ingredients": ["Burn", "Light"],
+            "category": "Burn",
+            "description": "Blind all enemies in view and add 1 stack of burn every second (max 5 stacks). Burn lasts for 6 seconds and deals 6-12 damage per stack per second"
+        },
+        {
+            "name": "Frozen Flame",
+            "ingredients": ["Burn", "Freeze"],
+            "category": "Burn",
+            "description": "Add 1 stack of frostburn on hit for 20 seconds (max 4 stacks). Frostburnt units are dealt 8-12 damage per stack per second and receive 25% more damage from other sources"
+        },
+        {
+            "name": "Maggot",
+            "ingredients": ["Cell", "Brood Mother"],
+            "category": "Cell",
+            "description": "Infest enemies on hit with maggots. When they die, they explode into 1-2 baby balls"
+        },
+        {
+            "name": "Overgrowth",
+            "ingredients": ["Cell", "Earthquake"],
+            "category": "Cell",
+            "description": "Applies 1 stack of overgrowth. Upon reaching 3, consume all stacks and deal 0-200 damage to all enemies in a 3x3 tile square"
+        },
+        {
+            "name": "Radiation Beam",
+            "ingredients": ["Cell", "Laser"],
+            "category": "Cell",
+            "description": "Emit a radiation beam on hit that deals 24-48 damage and applies 1 stack of radiation (max 5 stacks). Radiation lasts for 15 seconds and causes enemies to receive 10% more damage from all sources per stack"
+        },
+        {
+            "name": "Virus",
+            "ingredients": ["Cell", "Poison"],
+            "category": "Cell",
+            "description": "Applies 1 stack of disease to units it hits (max 8 stacks). Disease lasts for 6 seconds. Each stack of disease deals 3-6 damage per second and diseased units have a 15% chance of passing a stack to undiseased nearby enemies each second"
+        },
+        {
+            "name": "Succubus",
+            "ingredients": ["Charm", "Vampire"],
+            "category": "Charm",
+            "description": "Each hit has a 4% chance of charming the enemy for 9 seconds. Heals 1 when hitting a charmed enemy"
+        },
+        {
+            "name": "Berserk",
+            "ingredients": ["Charm", "Burn"],
+            "category": "Charm",
+            "description": "Each hit has a 30% chance of causing enemies to go berserk for 6 seconds. Berserk enemies deal 15-24 damage to adjacent enemies every second"
+        },
+        {
+            "name": "Incubus",
+            "ingredients": ["Charm", "Dark"],
+            "category": "Charm",
+            "description": "Each hit has a 4% chance of charming the enemy for 9 seconds. Charmed enemies curse nearby enemies. Cursed enemies are dealt 100-200 after being hit 5 times"
+        },
+        {
+            "name": "Lovestruck",
+            "ingredients": ["Charm", "Light"],
+            "category": "Charm",
+            "description": "Inflicts lovestruck on hit enemies for 20 seconds. Lovestruck units have a 50% chance of healing you for 5 health when they attack"
+        },
+        {
+            "name": "Vampire Lord",
+            "ingredients": ["Dark", "Vampire"],
+            "category": "Dark",
+            "description": "Each hit inflicts 3 stacks of bleed. Heals 1 health and consumes all stacks when hitting an enemy with at least 10 stacks of bleed"
+        },
+        {
+            "name": "Assassin",
+            "ingredients": ["Dark", "Iron"],
+            "category": "Dark",
+            "description": "Passes through the front of enemies, but not the back. Backstabs deal 30% bonus damage"
+        },
+        {
+            "name": "Phantom",
+            "ingredients": ["Dark", "Ghost"],
+            "category": "Dark",
+            "description": "Curse enemies on hit. Cursed enemies are dealt 100-200 damage after being hit 5 times"
+        },
+        {
+            "name": "Sacrifice",
+            "ingredients": ["Dark", "Bleed"],
+            "category": "Dark",
+            "description": "Inflicts 4 stacks of bleed (max 15 stacks) and applies curse on hit to enemies. Cursed enemies are dealt 50-100 after being hit 5 times"
+        },
+        {
+            "name": "Incubus",
+            "ingredients": ["Dark", "Charm"],
+            "category": "Dark",
+            "description": "Each hit has a 4% chance of charming the enemy for 9 seconds. Charmed enemies curse nearby enemies. Cursed enemies are dealt 100-200 after being hit 5 times"
+        },
+        {
+            "name": "Black Hole",
+            "ingredients": ["Dark", "Sun"],
+            "category": "Dark",
+            "description": "Instantly kills the first non-boss enemy that it hits, but destroys itself afterwards. Has a 7-second cooldown before it can be shot again"
+        },
+        {
+            "name": "Noxious",
+            "ingredients": ["Dark", "Wind"],
+            "category": "Dark",
+            "description": "Passes through enemies and applies 3 stacks of poison to nearby enemies within a 2 tile radius. Poison lasts for 4 seconds and each stack deals 1-3 damage per second"
+        },
+        {
+            "name": "Flicker",
+            "ingredients": ["Dark", "Light"],
+            "category": "Dark",
+            "description": "Deals 1-7 damage to every enemy on screen ever 1.4 seconds"
+        },
+        {
+            "name": "Magma",
+            "ingredients": ["Earthquake", "Burn"],
+            "category": "Earthquake",
+            "description": "Emits lava blobs over time. Enemies who walk into lava blobs are dealt 15-30 damage and gain 1 stack of burn (max 3 stacks). Burn lasts for 3 seconds, dealing 3-8 damage per stack per second. This ball and its lava blobs also deal 6-12 damage to nearby units"
+        },
+        {
+            "name": "Swamp",
+            "ingredients": ["Earthquake", "Poison"],
+            "category": "Earthquake",
+            "description": "Leaves behind tar blobs over time. Enemies who walk into tar blobs are dealt 15-30, are slowed by 50% for 7 seconds and gain 1 stack of poison (max 8 stacks). Each stack of poison deals 1-3 damage per second. This ball and its tar blobs also deal 6-12 damage to nearby units"
+        },
+        {
+            "name": "Glacier",
+            "ingredients": ["Earthquake", "Freeze"],
+            "category": "Earthquake",
+            "description": "Releases glacial spikes over time that deal 15-30 damage to enemies that touch them and freeze them for 2.0 seconds. This ball and its glacial spikes also deal 6-12 damage to nearby units"
+        },
+        {
+            "name": "Sandstorm",
+            "ingredients": ["Earthquake", "Wind"],
+            "category": "Earthquake",
+            "description": "Goes through enemies and is surrounded by a raging storm dealing 10-20 damage per second and blinding nearby enemies for 3 seconds"
+        },
+        {
+            "name": "Overgrowth",
+            "ingredients": ["Earthquake", "Cell"],
+            "category": "Earthquake",
+            "description": "Applies 1 stack of overgrowth. Upon reaching 3, consume all stacks and deal 0-200 damage to all enemies in a 3x3 tile square"
+        },
+        {
+            "name": "Spider Queen",
+            "ingredients": ["Egg Sac", "Brood Mother"],
+            "category": "Egg Sac",
+            "description": "Has a 25% chance of birthing an Egg Sac each time it hits an enemy"
+        },
+        {
+            "name": "Mosquito Swarm",
+            "ingredients": ["Egg Sac", "Vampire"],
+            "category": "Egg Sac",
+            "description": "Explodes into 3-6 mosquitoes. Mosquitos attack random enemies, dealing 80-120 damage each. If a mosquito kills an enemy, they steal 1 health"
+        },
+        {
+            "name": "Shotgun",
+            "ingredients": ["Egg Sac", "Iron"],
+            "category": "Egg Sac",
+            "description": "Shoots 3-7 iron baby balls after hitting a wall. Iron baby balls move at 200% speed but are destroyed upon hitting anything"
+        },
+        {
+            "name": "Voluptuous Egg Sac",
+            "ingredients": ["Egg Sac", "Cell"],
+            "category": "Egg Sac",
+            "description": "Explodes into 2-3 egg sacs on hitting an enemy. Has a 3-second cooldown before it can be shot again"
+        },
+        {
+            "name": "Wraith",
+            "ingredients": ["Freeze", "Ghost"],
+            "category": "Freeze",
+            "description": "Freezes any enemy it passes through for 0.8 seconds"
+        },
+        {
+            "name": "Blizzard",
+            "ingredients": ["Freeze", "Lightning"],
+            "category": "Freeze",
+            "description": "Freezes all enemies within a 2 tile radius for 0.8 seconds, dealing 1-50 damage"
+        },
+        {
+            "name": "Freeze Ray",
+            "ingredients": ["Freeze", "Laser"],
+            "category": "Freeze",
+            "description": "Emits a freeze ray when hitting an enemy, dealing 20-50 to all enemies in its path, with a 10% chance of freezing them for 10.0 seconds"
+        },
+        {
+            "name": "Frozen Flame",
+            "ingredients": ["Freeze", "Burn"],
+            "category": "Freeze",
+            "description": "Add 1 stack of frostburn on hit for 20 seconds (max 4 stacks). Frostburnt units are dealt 8-12 damage per stack per second and receive 25% more damage from other sources"
+        },
+        {
+            "name": "Glacier",
+            "ingredients": ["Freeze", "Earthquake"],
+            "category": "Freeze",
+            "description": "Releases glacial spikes over time that deal 15-30 to enemies that touch them and freeze them for 2.0 seconds. This ball and its glacial spikes also deal 6-12 damage to nearby units"
+        },
+        {
+            "name": "Wraith",
+            "ingredients": ["Ghost", "Freeze"],
+            "category": "Ghost",
+            "description": "Freezes any enemy it passes through for 0.8 seconds"
+        },
+        {
+            "name": "Assassin",
+            "ingredients": ["Ghost", "Iron"],
+            "category": "Ghost",
+            "description": "Passes through the front of enemies, but not the back. Backstabs deal 30% bonus damage"
+        },
+        {
+            "name": "Virus",
+            "ingredients": ["Ghost", "Poison"],
+            "category": "Ghost",
+            "description": "Applies 1 stack of disease to units it hits (max 8 stacks). Disease lasts for 6 seconds. Each stack of disease deals 3-6 damage per second and diseased units have a 15% chance of passing a stack to undiseased nearby enemies each second"
+        },
+        {
+            "name": "Phantom",
+            "ingredients": ["Ghost", "Dark"],
+            "category": "Ghost",
+            "description": "Curse enemies on hit. Cursed enemies are dealt 100-200 damage after being hit 5 times"
+        },
+        {
+            "name": "Soul Sucker",
+            "ingredients": ["Ghost", "Vampire"],
+            "category": "Ghost",
+            "description": "Passes through enemies and saps them, with a 30% chance of stealing 1 health and reducing their attack damage by 20%. Lifesteal chance only applies once per enemy"
+        },
+        {
+            "name": "Bomb",
+            "ingredients": ["Iron", "Burn"],
+            "category": "Iron",
+            "description": "Explodes when hitting an enemy, dealing 150-300 damage to nearby enemies. Has a 3-second cooldown before it can be shot again"
+        },
+        {
+            "name": "Assassin",
+            "ingredients": ["Iron", "Ghost"],
+            "category": "Iron",
+            "description": "Passes through the front of enemies, but not the back. Backstabs deal 30% bonus damage"
+        },
+        {
+            "name": "Lightning Rod",
+            "ingredients": ["Iron", "Lightning"],
+            "category": "Iron",
+            "description": "Plants a lightning rod into enemies it hits. These enemies are struck by lightning every 3.0 seconds, dealing 1-30 damage to up to 8 nearby enemies"
+        },
+        {
+            "name": "Shotgun",
+            "ingredients": ["Iron", "Egg Sac"],
+            "category": "Iron",
+            "description": "Shoots 3-7 iron baby balls after hitting a wall. Iron baby balls move at 200% speed but are destroyed upon hitting anything"
+        },
+        {
+            "name": "Hemorrhage",
+            "ingredients": ["Iron", "Bleed"],
+            "category": "Iron",
+            "description": "Inflicts 3 stacks of bleed. When hitting an enemy with 12 stacks of bleed or more, consumes all stacks of bleed to deal 20% of their current health"
+        },
+        {
+            "name": "Holy Laser",
+            "ingredients": ["Laser (Horizontal)", "Laser (Vertical)"],
+            "category": "Laser",
+            "description": "Deals 24-36 damage to all enemies in the same row and column"
+        },
+        {
+            "name": "Freeze Ray",
+            "ingredients": ["Laser", "Freeze"],
+            "category": "Laser",
+            "description": "Emits a freeze ray when hitting an enemy, dealing 20-50 to all enemies in its path, with a 10% chance of freezing them for 10.0 seconds"
+        },
+        {
+            "name": "Laser Beam",
+            "ingredients": ["Laser", "Light"],
+            "category": "Laser",
+            "description": "Emit a laser beam on hit that deals 30-42 damage and blinds enemies for 8 seconds"
+        },
+        {
+            "name": "Radiation Beam",
+            "ingredients": ["Laser", "Cell"],
+            "category": "Laser",
+            "description": "Emit a radiation beam on hit that deals 24-48 damage and applies 1 stack of radiation (max 5 stacks). Radiation lasts for 15 seconds and cause enemies to receive 10% more damage from all sources per stack"
+        },
+        {
+            "name": "Sun",
+            "ingredients": ["Light", "Burn"],
+            "category": "Light",
+            "description": "Blind all enemies in view and add 1 stacks of burn every second (max 5 stacks). Burn lasts for 6 seconds and deals 6-12 damage per stack per second"
+        },
+        {
+            "name": "Laser Beam",
+            "ingredients": ["Light", "Laser"],
+            "category": "Light",
+            "description": "Emit a laser beam on hit that deals 30-42 damage and blinds enemies for 8 seconds"
+        },
+        {
+            "name": "Flash",
+            "ingredients": ["Light", "Lightning"],
+            "category": "Light",
+            "description": "Damage all enemies on screen for 1-3 damage after hitting an enemy and blind them for 2 seconds"
+        },
+        {
+            "name": "Flicker",
+            "ingredients": ["Light", "Dark"],
+            "category": "Light",
+            "description": "Deals 1-7 damage to every enemy on screen every 1.4 seconds"
+        },
+        {
+            "name": "Lovestruck",
+            "ingredients": ["Light", "Charm"],
+            "category": "Light",
+            "description": "Inflict lovestruck on hit to enemies for 20 seconds. Lovestruck units have a 50% chance of healing you for 5 health when they attack"
+        },
+        {
+            "name": "Lightning Rod",
+            "ingredients": ["Lightning", "Iron"],
+            "category": "Lightning",
+            "description": "Plants a lightning rod into enemies it hits. These enemies are struck by lightning every 3.0 seconds, dealing 1-30 damage to up to 8 nearby enemies"
+        },
+        {
+            "name": "Blizzard",
+            "ingredients": ["Lightning", "Freeze"],
+            "category": "Lightning",
+            "description": "Freezes all enemies within a 2 tile radius for 0.8 seconds, dealing 1-50 damage"
+        },
+        {
+            "name": "Flash",
+            "ingredients": ["Lightning", "Light"],
+            "category": "Lightning",
+            "description": "Damage all enemies on screen for 1-3 damage after hitting an enemy and blind them for 2 seconds"
+        },
+        {
+            "name": "Storm",
+            "ingredients": ["Lightning", "Wind"],
+            "category": "Lightning",
+            "description": "Emits lightning to strike nearby enemies every second, dealing 1-40 damage"
+        },
+        {
+            "name": "Lovestruck",
+            "ingredients": ["Lightning", "Charm"],
+            "category": "Lightning",
+            "description": "Inflicts lovestruck on hit enemies for 20 seconds. Lovestruck units have a 50% chance of healing you for 5 health when they attack"
+        },
+        {
+            "name": "Swamp",
+            "ingredients": ["Poison", "Earthquake"],
+            "category": "Poison",
+            "description": "Leaves behind tar blobs over time. Enemies who walk into tar blobs are dealt 15-30, are slowed by 50% for 7 seconds and gain 1 stack of poison (max 8 stacks). Each stack of poison deals 1-3 damage per second. This ball and its tar blobs also deal 6-12 damage to nearby units"
+        },
+        {
+            "name": "Nuclear Bomb",
+            "ingredients": ["Poison", "Bomb"],
+            "category": "Poison",
+            "description": "Explodes when hitting an enemy, dealing 300-500 damage to nearby enemies and applying 1 stack of radiation to everyone present indefinitely (max 5 stacks). Each stack of radiation increases damage received by 10%. Has a 3-second cooldown"
+        },
+        {
+            "name": "Virus",
+            "ingredients": ["Poison", "Ghost"],
+            "category": "Poison",
+            "description": "Applies 1 stack of disease to units it hits (max 8 stacks). Disease lasts for 6 seconds. Each stack of disease deals 3-6 damage per second and diseased units have a 15% chance of passing a stack to undiseased nearby enemies each second"
+        },
+        {
+            "name": "Radiation Beam",
+            "ingredients": ["Poison", "Laser"],
+            "category": "Poison",
+            "description": "Emit a radiation beam on hit that deals 24-48 damage and applies 1 stack of radiation (max 5 stacks). Radiation lasts for 15 seconds and cause enemies to receive 10% more damage from all sources per stack"
+        },
+        {
+            "name": "Noxious",
+            "ingredients": ["Poison", "Wind"],
+            "category": "Poison",
+            "description": "Passes through enemies and applies 3 stacks of poison to nearby enemies within a 2 tile radius. Poison lasts for 4 seconds and each stack deals 1-3 damage per second"
+        },
+        {
+            "name": "Vampire Lord",
+            "ingredients": ["Vampire", "Bleed"],
+            "category": "Vampire",
+            "description": "Each hit inflicts 3 stacks of bleed. Heals 1 health and consumes all stacks when hitting an enemy with at least 10 stacks of bleed"
+        },
+        {
+            "name": "Mosquito Swarm",
+            "ingredients": ["Vampire", "Egg Sac"],
+            "category": "Vampire",
+            "description": "Explode into 3-6 mosquitoes. Mosquitos attack random enemies, dealing 80-120 damage each. If a mosquito kills an enemy, they steal 1 health"
+        },
+        {
+            "name": "Mosquito King",
+            "ingredients": ["Vampire", "Brood Mother"],
+            "category": "Vampire",
+            "description": "Spawns a mosquito each time it hits an enemy. Mosquitos attack a random enemy, dealing 80-120 damage each. If a mosquito kills an enemy, they steal 1 health"
+        },
+        {
+            "name": "Succubus",
+            "ingredients": ["Vampire", "Charm"],
+            "category": "Vampire",
+            "description": "Each hit has a 4% chance of charming the enemy for 9 seconds. Heals 1 when hitting a charmed enemy"
+        },
+        {
+            "name": "Soul Sucker",
+            "ingredients": ["Vampire", "Ghost"],
+            "category": "Vampire",
+            "description": "Passes through enemies and saps them, with a 30% chance of stealing 1 health and reducing their attack, damage by 20%. Lifesteal chance only applies once per enemy"
+        },
+        {
+            "name": "Blizzard",
+            "ingredients": ["Wind", "Freeze"],
+            "category": "Wind",
+            "description": "Freezes all enemies within a 2 tile radius for 0.8 seconds, dealing 1-50 damage"
+        },
+        {
+            "name": "Inferno",
+            "ingredients": ["Wind", "Burn"],
+            "category": "Wind",
+            "description": "Applies 1 stack of burn every second to all enemies within a 2 tile radius. Burn lasts for 6 seconds, dealing 3-7 damage per stack per second"
+        },
+        {
+            "name": "Storm",
+            "ingredients": ["Wind", "Lightning"],
+            "category": "Lightning",
+            "description": "Emits lightning to strike nearby enemies every second, dealing 1-40 damage"
+        },
+        {
+            "name": "Noxious",
+            "ingredients": ["Wind", "Poison"],
+            "category": "Wind",
+            "description": "Passes through enemies and applies 3 stacks of poison to nearby enemies within a 2 tile radius. Poison lasts for 4 seconds and each stack deals 1-3 damage per second"
+        },
+        {
+            "name": "Sandstorm",
+            "ingredients": ["Wind", "Earthquake"],
+            "category": "Wind",
+            "description": "Goes through enemies and is surrounded by a raging storm dealing 10-20 damage per second and blinding nearby enemies for 3 seconds"
+        },
+        {
+            "name": "Satan",
+            "ingredients": ["Succubus", "Incubus"],
+            "category": "Special",
+            "description": "While active, add 1 stack of burn to all active enemies per second (max 5 stacks), dealing 10-20 damage per stack per second and make them go berserk, dealing 15-24 damage to adjacent enemies every second"
+        },
+        {
+            "name": "Nosferatu",
+            "ingredients": ["Vampire Lord", "Spider Queen", "Mosquito King"],
+            "category": "Special",
+            "description": "Spawns a vampire bat each bounce. Vampire bats fly towards a random enemy, dealing 132-176 damage on hit, turning into a Vampire Lord"
+        }
+    ]
+};
+
+// Base ball data
+export const baseballsData = {
+    "baseBalls": [
+        {
+            "name": "Bleed",
+            "description": "Inflicts 2 stacks of bleed. Bleeding enemies receive 1 damage per stack when hit by a ball (max 8 stacks)",
+            "startCharacter": "The Warrior"
+        },
+        {
+            "name": "Brood Mother",
+            "description": "Has a 25% chance of birthing a baby ball each time it hits an enemy",
+            "startCharacter": "The Cohabitants"
+        },
+        {
+            "name": "Burn",
+            "description": "Add 1 stack of burn on hit for 3 seconds (max 3 stacks). Burnt units are dealt 4-8 damage per stack per second",
+            "startCharacter": "The Itchy Finger"
+        },
+        {
+            "name": "Cell",
+            "description": "Splits into a clone on hit 2 times",
+            "startCharacter": "N/A"
+        },
+        {
+            "name": "Charm",
+            "description": "Each hit has a 4% chance of charming the enemy for 5 seconds. Charmed units walk up the board and attack enemies",
+            "startCharacter": "N/A"
+        },
+        {
+            "name": "Dark",
+            "description": "Deals 3.0x damage but destroys itself after hitting an enemy. Has a 3 second cooldown before it can be shot again",
+            "startCharacter": "The Shade"
+        },
+        {
+            "name": "Earthquake",
+            "description": "Deals 5-13 damage to nearby units in a 3x3 tile square",
+            "startCharacter": "The Makeshift Sisyphus"
+        },
+        {
+            "name": "Egg Sac",
+            "description": "Explodes into 2-4 baby balls on hitting an enemy. Has a 3 second cooldown before it can be shot again",
+            "startCharacter": "The Flagellant"
+        },
+        {
+            "name": "Freeze",
+            "description": "Has a 4% chance to freeze enemies for 5.0 seconds. Frozen enemies receive 25% more damage",
+            "startCharacter": "The Repentant"
+        },
+        {
+            "name": "Ghost",
+            "description": "Passes through enemies",
+            "startCharacter": "The Empty Nester"
+        },
+        {
+            "name": "Iron",
+            "description": "Deals double damage but moves 40% slower",
+            "startCharacter": "The Shieldbearer, The Tactician"
+        },
+        {
+            "name": "Laser (Horizontal)",
+            "description": "Deals 9-18 damage to all enemies in the same row",
+            "startCharacter": "N/A"
+        },
+        {
+            "name": "Laser (Vertical)",
+            "description": "Deals 9-18 damage to all enemies in the same column",
+            "startCharacter": "The Cogitator"
+        },
+        {
+            "name": "Light",
+            "description": "Blinds enemies on hit for 3 seconds. Blinded units have a hard time detecting you and have a 50% chance of missing when they attack",
+            "startCharacter": "The Physicist"
+        },
+        {
+            "name": "Lightning",
+            "description": "Deals 1-20 damage to up to 3 nearby enemies",
+            "startCharacter": "The Juggler"
+        },
+        {
+            "name": "Poison",
+            "description": "Applies 1 stack of poison on hit (max 5 stacks). Poison lasts for 6 seconds and each stack deals 1-4 damage per second",
+            "startCharacter": "The Embedded"
+        },
+        {
+            "name": "Vampire",
+            "description": "Each hit has a 4.5% chance of healing 1 health",
+            "startCharacter": "The Spendthrift"
+        },
+        {
+            "name": "Wind",
+            "description": "Passes through enemies and slows them down by 30% for 5 seconds, but deals 25% less damage",
+            "startCharacter": "The Radical"
+        }
+    ]
+};
