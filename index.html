@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 
 <head>
@@ -2521,6 +2521,7 @@
 
       const handleDragOver = (e) => {
         e.preventDefault(); // Necessary to allow dropping
+        e.stopPropagation();
         const gridElement = document.getElementById('buildingGrid');
         if (!gridElement) return;
 
@@ -2533,64 +2534,36 @@
         const cellHeight = 30;
 
         // Calculate the top-left cell of a 2x2 building (snap to grid)
-        const col = Math.floor(x / cellWidth);
-        const row = Math.floor(y / cellHeight);
+        let col = Math.floor(x / cellWidth);
+        let row = Math.floor(y / cellHeight);
 
-        // Snap to grid - ensure valid position
-        if (col >= 0 && col < 39 && row >= 0 && row < 29) { // 39 and 29 to allow 2x2 building
-          if (canPlaceBuilding(row, col, draggedBuilding?.name)) {
-            setPreviewPosition({ row, col });
-          } else {
-            setPreviewPosition(null);
-          }
+        // Clamp to valid grid range (0-38 for col, 0-28 for row for 2x2 buildings)
+        col = Math.max(0, Math.min(38, col));
+        row = Math.max(0, Math.min(28, row));
+
+        if (canPlaceBuilding(row, col, draggedBuilding?.name)) {
+          setPreviewPosition({ row, col });
         } else {
           setPreviewPosition(null);
         }
       };
 
-      const handleDragLeave = () => {
-        setPreviewPosition(null);
+      const handleDragLeave = (e) => {
+        // Only clear if we're actually leaving the container, not just entering a child
+        const container = e.currentTarget;
+        if (!container.contains(e.relatedTarget)) {
+          setPreviewPosition(null);
+        }
       };
 
       const handleDrop = (e) => {
         e.preventDefault();
+        e.stopPropagation();
         if (!draggedBuilding) return;
 
-        // Get the drop location relative to the grid
-        const gridElement = document.getElementById('buildingGrid');
-        if (!gridElement) return;
-
-        const rect = gridElement.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        // Check if drop is inside the grid
-        if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
-          // Drop outside the grid - remove the building if it was moved
-          if (wasDraggedFromGrid && draggedInstanceId) {
-            removeBuilding(draggedInstanceId);
-          }
-          setPreviewPosition(null);
-          setDraggedBuilding(null);
-          setWasDraggedFromGrid(false);
-          setDraggedInstanceId(null);
-          return;
+        if (previewPosition) {
+          placeBuilding(previewPosition.row, previewPosition.col, draggedBuilding);
         }
-
-        if (!previewPosition) {
-          // Drop inside grid but no valid position calculated - also remove if dragged from grid
-          if (wasDraggedFromGrid && draggedInstanceId) {
-            removeBuilding(draggedInstanceId);
-          }
-          setPreviewPosition(null);
-          setDraggedBuilding(null);
-          setWasDraggedFromGrid(false);
-          setDraggedInstanceId(null);
-          return;
-        }
-
-        // Place the building at the preview position
-        placeBuilding(previewPosition.row, previewPosition.col, draggedBuilding);
 
         setPreviewPosition(null);
         setDraggedBuilding(null);
@@ -2651,18 +2624,8 @@
         e.preventDefault();
         if (!draggedBuilding) return;
 
-        // Check if the drop target is within the grid
-        const gridElement = document.getElementById('buildingGrid');
-        if (!gridElement) return;
-
-        const rect = gridElement.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        // If dropped outside the grid, remove building if it was from grid
-        const isOutsideGrid = x < 0 || x > rect.width || y < 0 || y > rect.height;
-
-        if (isOutsideGrid && wasDraggedFromGrid && draggedInstanceId) {
+        // If dropped outside the grid (and not caught by handleDrop), remove building if it was from grid
+        if (wasDraggedFromGrid && draggedInstanceId) {
           removeBuilding(draggedInstanceId);
           setPreviewPosition(null);
           setDraggedBuilding(null);
@@ -2759,7 +2722,12 @@
           {/* Right Column - Building Grid (with stable size) */}
           <div className="w-4/5 bg-slate-900 p-2 flex flex-col h-full min-h-0">
             {/* Building Placement Grid */}
-            <div className="bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 flex-1 flex flex-col min-h-0">
+            <div
+              className="bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 flex-1 flex flex-col min-h-0"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               <div
                 id="buildingGrid"
                 className="grid grid-cols-40 grid-rows-30 gap-0 bg-slate-800 rounded flex-1 overflow-auto relative"
@@ -2770,9 +2738,6 @@
                   gridTemplateRows: 'repeat(30, 30px)',
                   gridTemplateColumns: 'repeat(40, 30px)'
                 }}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
               >
                 {/* Chunk borders - 8x6 blocks */}
                 <div className="absolute inset-0 pointer-events-none"
