@@ -30,7 +30,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Economy",
           "cost": { "gold": 75, "wheat": 5, "wood": 0, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Market",
@@ -38,7 +39,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Economy",
           "cost": { "gold": 500, "wheat": 0, "wood": 0, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Road Keeper",
@@ -46,7 +48,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Economy",
           "cost": { "gold": 0, "wheat": 20, "wood": 0, "stone": 5 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Spa",
@@ -54,7 +57,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Economy",
           "cost": { "gold": 500, "wheat": 10, "wood": 2, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Stone Mine",
@@ -70,7 +74,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Economy",
           "cost": { "gold": 0, "wheat": 20, "wood": 10, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Worker's Guild",
@@ -78,7 +83,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Economy",
           "cost": { "gold": 5000, "wheat": 0, "wood": 0, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Abbey",
@@ -86,7 +92,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 300, "wheat": 0, "wood": 0, "stone": 10 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Alchemist",
@@ -94,7 +101,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 100, "wheat": 0, "wood": 15, "stone": 5 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Antique Shop",
@@ -102,7 +110,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 1000, "wheat": 0, "wood": 40, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Archery Range",
@@ -110,7 +119,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 12, "wood": 12, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Bag Maker",
@@ -118,7 +128,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 5000, "wheat": 100, "wood": 0, "stone": 30 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Bank",
@@ -126,7 +137,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 0, "wood": 20, "stone": 20 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Barracks",
@@ -134,7 +146,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 2, "wood": 3, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Boneyard Trophy",
@@ -142,7 +155,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 100, "wheat": 0, "wood": 0, "stone": 4 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Candle Maker",
@@ -150,7 +164,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 1500, "wheat": 200, "wood": 20, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Capitolium",
@@ -158,7 +173,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 80, "wood": 20, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Carpenter",
@@ -166,7 +182,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 5000, "wheat": 0, "wood": 100, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Casino",
@@ -174,7 +191,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 400, "wheat": 0, "wood": 0, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Clinic",
@@ -182,7 +200,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 3, "wood": 2, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Consulate",
@@ -190,7 +209,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 10, "wood": 0, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Desert Trophy",
@@ -198,7 +218,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 300, "wheat": 0, "wood": 0, "stone": 12 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Diplomacy Hall",
@@ -206,7 +227,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 125, "wheat": 0, "wood": 10, "stone": 4 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Evolution Chamber",
@@ -214,7 +236,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 4000, "wood": 0, "stone": 1000 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Exorcist",
@@ -222,7 +245,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 50, "wheat": 0, "wood": 0, "stone": 20 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Gambler's Den",
@@ -230,7 +254,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 50, "wheat": 5, "wood": 0, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Gemsmith",
@@ -238,7 +263,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 1000, "wheat": 0, "wood": 0, "stone": 20 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Gory Trophy",
@@ -246,7 +272,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 500, "wheat": 0, "wood": 0, "stone": 20 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Grand Museum",
@@ -254,7 +281,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 500, "wheat": 0, "wood": 0, "stone": 40 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Gunsmith",
@@ -262,7 +290,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 0, "wood": 2, "stone": 2 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Heavenly Trophy",
@@ -270,7 +299,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 800, "wheat": 0, "wood": 0, "stone": 30 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Hospital",
@@ -278,7 +308,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 100, "wood": 40, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Jeweler",
@@ -286,7 +317,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 200, "wheat": 0, "wood": 0, "stone": 10 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Magnet Factory",
@@ -294,7 +326,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 0, "wood": 10, "stone": 20 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Marksman Guild",
@@ -302,7 +335,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 60, "wood": 0, "stone": 20 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Matchmaker",
@@ -310,7 +344,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 200, "wood": 40, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Meditation Tent",
@@ -318,7 +353,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 1000, "wheat": 100, "wood": 0, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Military Academy",
@@ -326,7 +362,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 200, "wheat": 50, "wood": 0, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Necromancer",
@@ -334,7 +371,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 500, "wheat": 0, "wood": 10, "stone": 10 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Relic Collector",
@@ -342,7 +380,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 0, "wood": 0, "stone": 1500 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Schoolhouse",
@@ -350,7 +389,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 5, "wood": 0, "stone": 2 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Shoemaker",
@@ -358,7 +398,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 0, "wood": 3, "stone": 1 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Shroom Trophy",
@@ -366,7 +407,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 400, "wheat": 0, "wood": 0, "stone": 16 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Smoldering Trophy",
@@ -374,7 +416,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 600, "wheat": 0, "wood": 0, "stone": 24 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Snowy Trophy",
@@ -382,7 +425,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 200, "wheat": 0, "wood": 0, "stone": 8 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "University",
@@ -390,7 +434,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 200, "wheat": 0, "wood": 20, "stone": 5 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Void Trophy",
@@ -398,7 +443,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 800, "wheat": 0, "wood": 0, "stone": 30 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Wagon Factory",
@@ -406,7 +452,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 0, "wood": 50, "stone": 30 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "War Room",
@@ -414,7 +461,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 0, "wheat": 300, "wood": 0, "stone": 50 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Warrior's Guild",
@@ -422,7 +470,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 300, "wheat": 0, "wood": 0, "stone": 60 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Wheelwright",
@@ -430,7 +479,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 150, "wheat": 20, "wood": 0, "stone": 5 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Wishing Well",
@@ -438,7 +488,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 1000, "wheat": 0, "wood": 0, "stone": 60 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Campground",
@@ -446,7 +497,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 0, "wheat": 120, "wood": 20, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Cozy Home",
@@ -454,7 +506,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 0, "wheat": 20, "wood": 5, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Single Family Home",
@@ -462,7 +515,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 50, "wheat": 0, "wood": 30, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Sheriff's Office",
@@ -470,15 +524,18 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 0, "wheat": 0, "wood": 5, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Haunted House",
           "description": "Unlocks The Repentant",
           "Drop Location": "Not specified",
           "category": "Housing",
+
           "cost": { "gold": 0, "wheat": 0, "wood": 5, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Villa",
@@ -486,7 +543,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 0, "wheat": 0, "wood": 0, "stone": 10 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Mausoleum",
@@ -494,7 +552,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 0, "wheat": 0, "wood": 0, "stone": 30 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Iron Fortress",
@@ -502,7 +561,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 0, "wheat": 0, "wood": 0, "stone": 70 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Captain's Quarters",
@@ -510,7 +570,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 0, "wheat": 0, "wood": 50, "stone": 40 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Rocky Hill",
@@ -518,7 +579,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 0, "wheat": 0, "wood": 0, "stone": 50 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Monastery",
@@ -526,7 +588,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 0, "wheat": 80, "wood": 20, "stone": 15 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Laboratory",
@@ -534,7 +597,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 300, "wheat": 0, "wood": 50, "stone": 20 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Veteran's Hut",
@@ -542,7 +606,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 0, "wheat": 0, "wood": 0, "stone": 5 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Mansion",
@@ -550,7 +615,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 500, "wheat": 0, "wood": 30, "stone": 10 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         },
         {
           "name": "Theater",
@@ -558,7 +624,8 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Housing",
           "cost": { "gold": 300, "wheat": 0, "wood": 30, "stone": 0 },
-          "size": { "w": 2, "h": 2 }
+          "size": { "w": 2, "h": 2 },
+          "max_placeable": 1
         }
       ],
       "resource_tiles": [

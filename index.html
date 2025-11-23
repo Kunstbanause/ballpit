@@ -511,6 +511,13 @@
       };
 
       const canPlaceBuilding = (row, col, building, fromGrid, instanceIdToDrag) => {
+        if (building.max_placeable) {
+          const count = placedBuildings.filter(pb => pb.building.name === building.name).length;
+          if (count >= building.max_placeable) {
+            return false;
+          }
+        }
+
         const width = building.size?.w ?? 2;
         const height = building.size?.h ?? 2;
 
