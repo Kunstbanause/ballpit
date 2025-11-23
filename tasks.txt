@@ -1,0 +1,6 @@
+move build limit to the list
+
+image in list of buildings
+
+save build layout in url code
+
