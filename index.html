@@ -401,6 +401,7 @@
       const [wasDraggedFromGrid, setWasDraggedFromGrid] = useState(false);
       const [draggedInstanceId, setDraggedInstanceId] = useState(null);
       const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+      const [placementError, setPlacementError] = useState(null);
 
       const getTooltipPosition = () => {
         if (typeof window === 'undefined') return { x: 0, y: 0 };
@@ -512,16 +513,19 @@
 
       const canPlaceBuilding = (row, col, building, fromGrid, instanceIdToDrag) => {
         if (building.max_placeable) {
-          const count = placedBuildings.filter(pb => pb.building.name === building.name).length;
+          let count = placedBuildings.filter(pb => pb.building.name === building.name).length;
+          if (fromGrid && instanceIdToDrag) {
+            count--;
+          }
           if (count >= building.max_placeable) {
-            return false;
+            return { canPlace: false, reason: 'limit-reached' };
           }
         }
 
         const width = building.size?.w ?? 2;
         const height = building.size?.h ?? 2;
 
-        if (col + width > 40 || row + height > 30) return false;
+        if (col + width > 40 || row + height > 30) return { canPlace: false, reason: 'out-of-bounds' };
 
         const positions = getOccupiedPositions(row, col, width, height);
 
@@ -538,14 +542,15 @@
                     }
                 }
                 // The position is occupied by another building.
-                return false;
+                return { canPlace: false, reason: 'occupied' };
             }
         }
-        return true;
+        return { canPlace: true, reason: null };
       };
 
       const placeBuilding = (row, col, building, fromGrid, instanceIdToDrag) => {
-        if (!canPlaceBuilding(row, col, building, fromGrid, instanceIdToDrag)) return false;
+        const placementCheck = canPlaceBuilding(row, col, building, fromGrid, instanceIdToDrag);
+        if (!placementCheck.canPlace) return false;
 
         const topLeftIndex = row * 40 + col;
 
@@ -646,10 +651,18 @@
         col = Math.max(0, Math.min(40 - buildingWidth, col));
         row = Math.max(0, Math.min(30 - buildingHeight, row));
 
-        if (canPlaceBuilding(row, col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId)) {
+        const placementCheck = canPlaceBuilding(row, col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId);
+
+        if (placementCheck.canPlace) {
           setPreviewPosition({ row, col });
+          setPlacementError(null);
         } else {
           setPreviewPosition(null);
+          if (placementCheck.reason === 'limit-reached') {
+            setPlacementError('You can only place one of this building.');
+          } else {
+            setPlacementError(null);
+          }
         }
       };
 
@@ -667,7 +680,12 @@
         if (!draggedBuilding) return;
 
         if (previewPosition) {
-          placeBuilding(previewPosition.row, previewPosition.col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId);
+          const placementCheck = canPlaceBuilding(previewPosition.row, previewPosition.col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId);
+          if (placementCheck.canPlace) {
+            placeBuilding(previewPosition.row, previewPosition.col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId);
+          } else if (placementCheck.reason === 'limit-reached') {
+            setPlacementError('You can only place one of this building.');
+          }
         }
 
         setPreviewPosition(null);
@@ -711,6 +729,15 @@
       const handleGlobalDragOver = (e) => {
         e.preventDefault();
       };
+
+      useEffect(() => {
+        if (placementError) {
+          const timer = setTimeout(() => {
+            setPlacementError(null);
+          }, 3000);
+          return () => clearTimeout(timer);
+        }
+      }, [placementError]);
 
       return (
         <div
@@ -794,6 +821,12 @@
 
           {/* Right Column - Building Grid (with stable size) */}
           <div className="w-4/5 bg-slate-900 p-2 flex flex-col h-full min-h-0">
+            {/* Placement Error Message */}
+            {placementError && (
+              <div className="bg-red-500 text-white text-center p-2 rounded-md mb-2">
+                {placementError}
+              </div>
+            )}
             {/* Building Placement Grid */}
             <div
               className="bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 flex-1 flex flex-col min-h-0"
