@@ -1,5 +1,5 @@
 // Ball evolution data
-export const jsonData = {
+window.jsonData = {
     "evolutions": [
         {
             "name": "Vampire Lord",
@@ -527,7 +527,7 @@ export const jsonData = {
 };
 
 // Base ball data
-export const baseballsData = {
+window.baseballsData = {
     "baseBalls": [
         {
             "name": "Bleed",

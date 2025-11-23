@@ -1,56 +1,61 @@
-// Passive category color mappings
-export const passiveCategories = {
-    "crit": { color: "#ffb703" },
-    "baby balls": { color: "#fb8500" },
-    "healing": { color: "#d00000" },
-    "effigy": { color: "#6a040f" },
-    "defense": { color: "#0077b6" },
-    "pierce": { color: "#00b4d8" },
-    "special": { color: "#8338ec" },
-    "damage": { color: "#2d6a4f" },
-    "utility": { color: "#588157" },
-    "movement": { color: "#4f772d" },
-    "on-hit": { color: "#fca311" },
-};
-
-// Helper function to generate icon slug from passive name
-export const getPassiveIconSlug = (name) => {
+window.helpers = {
+  getPassiveIconSlug: (name) => {
     if (!name) return '';
     return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-};
+  },
 
-// Helper function to get passive icon URL
-export const getPassiveIconUrl = (name) => {
-    const slug = getPassiveIconSlug(name);
+  getPassiveIconUrl: (name) => {
+    const slug = window.helpers.getPassiveIconSlug(name);
     if (!slug) return '';
     return `icons_passives/${slug}.png`;
-};
+  },
 
-// Helper function to generate icon slug from building name
-export const getBuildingIconSlug = (name) => {
-    return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-};
+  getBuildingIconSlug: (name) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
 
-// Helper function to get building icon URL  
-export const getBuildingIconUrl = (name) => {
-    const slug = getBuildingIconSlug(name);
+  getBuildingIconUrl: (name) => {
+    const slug = window.helpers.getBuildingIconSlug(name);
     if (!slug) return '';
     return `icons_build/${slug}.jpg`;
-};
+  },
 
-// Helper function to get category color for buildings
-export const getCategoryColor = (category) => {
+  getColor: (element) => {
     const colors = {
-        'Economy': 'bg-green-900 text-green-200',
-        'Warfare': 'bg-red-900 text-red-200',
-        'Housing': 'bg-purple-900 text-purple-200',
-        'Trophy': 'bg-gray-700 text-gray-200',
-        'Resource': 'bg-emerald-800 text-emerald-200',
-        'Commerce': 'bg-yellow-900 text-yellow-200',
-        'Utility': 'bg-cyan-900 text-cyan-200',
-        'Production': 'bg-orange-900 text-orange-200',
-        'Government': 'bg-rose-900 text-rose-200',
-        'Training': 'bg-indigo-900 text-indigo-200',
+      'BLEED': '#ae5353', 'BROOD MOTHER': '#8a5ab5', 'BURN': '#b56c46', 'CELL': '#4b9265', 'CHARM': '#ae547c',
+      'DARK': '#1f2937', 'EARTHQUAKE': '#9a6a45', 'EGG SAC': '#739247', 'FREEZE': '#448999', 'GHOST': '#475569',
+      'IRON': '#64748b', 'LASER': '#b59a44', 'LASER (HORIZONTAL)': '#b59a44', 'LASER (VERTICAL)': '#b59a44',
+      'LIGHT': '#bda64b', 'LIGHTNING': '#6863b3', 'POISON': '#438b75', 'VAMPIRE': '#9f4c6f', 'WIND': '#427591',
+    };
+    if (window.jsonData && window.jsonData.evolutions) {
+      const evoColorSource = window.jsonData.evolutions.find(e => e.name.toUpperCase().replace(/\s/g, ' ') === element);
+      if (evoColorSource) return colors[evoColorSource.ingredients[0].toUpperCase().replace(/\s/g, ' ')] || '#6b7280';
+    }
+    return colors[element] || '#6b7280';
+  },
+
+  getIconSlug: (name) => {
+    if (!name) return '';
+    return name.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
+  },
+
+  getIconUrls: (name) => {
+    const slug = window.helpers.getIconSlug(name);
+    if (!slug) return [];
+    return [`icons/${slug}.png`];
+  },
+
+  getCategoryColor: (category) => {
+    const colors = {
+      'Economy': 'bg-green-900 text-green-200',
+      'Warfare': 'bg-red-900 text-red-200',
+      'Housing': 'bg-purple-900 text-purple-200',
+      'Trophy': 'bg-gray-700 text-gray-200',
+      'Resource': 'bg-emerald-800 text-emerald-200',
+      'Commerce': 'bg-yellow-900 text-yellow-200',
+      'Utility': 'bg-cyan-900 text-cyan-200',
+      'Production': 'bg-orange-900 text-orange-200',
+      'Government': 'bg-rose-900 text-rose-200',
+      'Training': 'bg-indigo-900 text-indigo-200',
     };
     return colors[category] || 'bg-slate-800 text-gray-200';
+  }
 };

@@ -14,6 +14,10 @@
 <body>
   <div id="root"></div>
 
+  <script src="data/balls.js"></script>
+  <script src="data/passives.js"></script>
+  <script src="data/buildings.js"></script>
+  <script src="utils/helpers.js"></script>
   <script type="text/babel">
     const { useState, useMemo, useEffect, useRef } = React;
 
@@ -31,893 +35,9 @@
       "on-hit": { color: "#fca311" },
     };
 
-    const jsonData = {
-      "evolutions": [
-        {
-          "name": "Vampire Lord",
-          "ingredients": ["Bleed", "Vampire"],
-          "category": "Bleed",
-          "description": "Each hit inflicts 3 stacks of bleed. Heals 1 health and consumes all stacks when hitting an enemy with at least 10 stacks of bleed"
-        },
-        {
-          "name": "Leech",
-          "ingredients": ["Bleed", "Brood Mother"],
-          "category": "Bleed",
-          "description": "Attaches up to 1 leech onto enemies it hits, which adds 2 stacks of bleed per second (max 24 stacks)"
-        },
-        {
-          "name": "Virus",
-          "ingredients": ["Bleed", "Poison"],
-          "category": "Bleed",
-          "description": "Applies 1 stack of disease to units it hits (max 8 stacks). Disease lasts for 6 seconds. Each stack of disease deals 3-6 damage per second and diseased units have a 15% chance of passing a stack to undiseased nearby enemies each second"
-        },
-        {
-          "name": "Berserk",
-          "ingredients": ["Bleed", "Charm"],
-          "category": "Bleed",
-          "description": "Each hit has a 30% chance of causing enemies to go berserk for 6 seconds. Berserk enemies deal 15-24 damage to adjacent enemies every second"
-        },
-        {
-          "name": "Sacrifice",
-          "ingredients": ["Bleed", "Dark"],
-          "category": "Bleed",
-          "description": "Inflicts 4 stacks of bleed (max 15 stacks) and applies curse to hit enemies. Cursed enemies are dealt 50-100 after being hit 5 times"
-        },
-        {
-          "name": "Hemorrhage",
-          "ingredients": ["Bleed", "Iron"],
-          "category": "Bleed",
-          "description": "Inflicts 3 stacks of bleed. When hitting an enemy with 12 stacks of bleed or more, consume all stacks of bleed to deal 20% of their current health"
-        },
-        {
-          "name": "Leech",
-          "ingredients": ["Brood Mother", "Bleed"],
-          "category": "Brood Mother",
-          "description": "Attaches up to 1 leech on to enemies it hits, which adds 2 stacks of bleed per second (max 24 stacks)"
-        },
-        {
-          "name": "Maggot",
-          "ingredients": ["Brood Mother", "Cell"],
-          "category": "Brood Mother",
-          "description": "Infest enemies on hit with maggots. When they die, they explode into 1-2 baby balls"
-        },
-        {
-          "name": "Spider Queen",
-          "ingredients": ["Brood Mother", "Egg Sac"],
-          "category": "Brood Mother",
-          "description": "Has a 25% chance of birthing an Egg Sac each time it hits an enemy"
-        },
-        {
-          "name": "Mosquito King",
-          "ingredients": ["Brood Mother", "Vampire"],
-          "category": "Brood Mother",
-          "description": "Spawns a mosquito each time it hits an enemy. Mosquitos attack a random enemy, dealing 80-120 damage each. If a mosquito kills an enemy, they steal 1 health"
-        },
-        {
-          "name": "Bomb",
-          "ingredients": ["Burn", "Iron"],
-          "category": "Burn",
-          "description": "Explodes when hitting an enemy, dealing 150-300 damage to nearby enemies. Has a 3-second cooldown before it can be shot again"
-        },
-        {
-          "name": "Magma",
-          "ingredients": ["Burn", "Earthquake"],
-          "category": "Burn",
-          "description": "Emits lava blobs over time. Enemies who walk into lava blobs are dealt 15-30 damage and gain 1 stack of burn (max 3 stacks). Burn lasts for 3 seconds, dealing 3-8 damage per stack per second. This ball and its lava blobs also deal 6-12 damage to nearby units"
-        },
-        {
-          "name": "Inferno",
-          "ingredients": ["Burn", "Wind"],
-          "category": "Burn",
-          "description": "Applies 1 stack of burn every second to all enemies within a 2 tile radius. Burn lasts for 6 seconds, dealing 3-7 damage per stack per second"
-        },
-        {
-          "name": "Berserk",
-          "ingredients": ["Burn", "Charm"],
-          "category": "Burn",
-          "description": "Each hit has a 30% chance of causing enemies to go berserk for 6 seconds. Berserk enemies deal 15-24 damage to adjacent enemies every second"
-        },
-        {
-          "name": "Sun",
-          "ingredients": ["Burn", "Light"],
-          "category": "Burn",
-          "description": "Blind all enemies in view and add 1 stack of burn every second (max 5 stacks). Burn lasts for 6 seconds and deals 6-12 damage per stack per second"
-        },
-        {
-          "name": "Frozen Flame",
-          "ingredients": ["Burn", "Freeze"],
-          "category": "Burn",
-          "description": "Add 1 stack of frostburn on hit for 20 seconds (max 4 stacks). Frostburnt units are dealt 8-12 damage per stack per second and receive 25% more damage from other sources"
-        },
-        {
-          "name": "Maggot",
-          "ingredients": ["Cell", "Brood Mother"],
-          "category": "Cell",
-          "description": "Infest enemies on hit with maggots. When they die, they explode into 1-2 baby balls"
-        },
-        {
-          "name": "Overgrowth",
-          "ingredients": ["Cell", "Earthquake"],
-          "category": "Cell",
-          "description": "Applies 1 stack of overgrowth. Upon reaching 3, consume all stacks and deal 0-200 damage to all enemies in a 3x3 tile square"
-        },
-        {
-          "name": "Radiation Beam",
-          "ingredients": ["Cell", "Laser"],
-          "category": "Cell",
-          "description": "Emit a radiation beam on hit that deals 24-48 damage and applies 1 stack of radiation (max 5 stacks). Radiation lasts for 15 seconds and causes enemies to receive 10% more damage from all sources per stack"
-        },
-        {
-          "name": "Virus",
-          "ingredients": ["Cell", "Poison"],
-          "category": "Cell",
-          "description": "Applies 1 stack of disease to units it hits (max 8 stacks). Disease lasts for 6 seconds. Each stack of disease deals 3-6 damage per second and diseased units have a 15% chance of passing a stack to undiseased nearby enemies each second"
-        },
-        {
-          "name": "Succubus",
-          "ingredients": ["Charm", "Vampire"],
-          "category": "Charm",
-          "description": "Each hit has a 4% chance of charming the enemy for 9 seconds. Heals 1 when hitting a charmed enemy"
-        },
-        {
-          "name": "Berserk",
-          "ingredients": ["Charm", "Burn"],
-          "category": "Charm",
-          "description": "Each hit has a 30% chance of causing enemies to go berserk for 6 seconds. Berserk enemies deal 15-24 damage to adjacent enemies every second"
-        },
-        {
-          "name": "Incubus",
-          "ingredients": ["Charm", "Dark"],
-          "category": "Charm",
-          "description": "Each hit has a 4% chance of charming the enemy for 9 seconds. Charmed enemies curse nearby enemies. Cursed enemies are dealt 100-200 after being hit 5 times"
-        },
-        {
-          "name": "Lovestruck",
-          "ingredients": ["Charm", "Light"],
-          "category": "Charm",
-          "description": "Inflicts lovestruck on hit enemies for 20 seconds. Lovestruck units have a 50% chance of healing you for 5 health when they attack"
-        },
-        {
-          "name": "Vampire Lord",
-          "ingredients": ["Dark", "Vampire"],
-          "category": "Dark",
-          "description": "Each hit inflicts 3 stacks of bleed. Heals 1 health and consumes all stacks when hitting an enemy with at least 10 stacks of bleed"
-        },
-        {
-          "name": "Assassin",
-          "ingredients": ["Dark", "Iron"],
-          "category": "Dark",
-          "description": "Passes through the front of enemies, but not the back. Backstabs deal 30% bonus damage"
-        },
-        {
-          "name": "Phantom",
-          "ingredients": ["Dark", "Ghost"],
-          "category": "Dark",
-          "description": "Curse enemies on hit. Cursed enemies are dealt 100-200 damage after being hit 5 times"
-        },
-        {
-          "name": "Sacrifice",
-          "ingredients": ["Dark", "Bleed"],
-          "category": "Dark",
-          "description": "Inflicts 4 stacks of bleed (max 15 stacks) and applies curse on hit to enemies. Cursed enemies are dealt 50-100 after being hit 5 times"
-        },
-        {
-          "name": "Incubus",
-          "ingredients": ["Dark", "Charm"],
-          "category": "Dark",
-          "description": "Each hit has a 4% chance of charming the enemy for 9 seconds. Charmed enemies curse nearby enemies. Cursed enemies are dealt 100-200 after being hit 5 times"
-        },
-        {
-          "name": "Black Hole",
-          "ingredients": ["Dark", "Sun"],
-          "category": "Dark",
-          "description": "Instantly kills the first non-boss enemy that it hits, but destroys itself afterwards. Has a 7-second cooldown before it can be shot again"
-        },
-        {
-          "name": "Noxious",
-          "ingredients": ["Dark", "Wind"],
-          "category": "Dark",
-          "description": "Passes through enemies and applies 3 stacks of poison to nearby enemies within a 2 tile radius. Poison lasts for 4 seconds and each stack deals 1-3 damage per second"
-        },
-        {
-          "name": "Flicker",
-          "ingredients": ["Dark", "Light"],
-          "category": "Dark",
-          "description": "Deals 1-7 damage to every enemy on screen ever 1.4 seconds"
-        },
-        {
-          "name": "Magma",
-          "ingredients": ["Earthquake", "Burn"],
-          "category": "Earthquake",
-          "description": "Emits lava blobs over time. Enemies who walk into lava blobs are dealt 15-30 damage and gain 1 stack of burn (max 3 stacks). Burn lasts for 3 seconds, dealing 3-8 damage per stack per second. This ball and its lava blobs also deal 6-12 damage to nearby units"
-        },
-        {
-          "name": "Swamp",
-          "ingredients": ["Earthquake", "Poison"],
-          "category": "Earthquake",
-          "description": "Leaves behind tar blobs over time. Enemies who walk into tar blobs are dealt 15-30, are slowed by 50% for 7 seconds and gain 1 stack of poison (max 8 stacks). Each stack of poison deals 1-3 damage per second. This ball and its tar blobs also deal 6-12 damage to nearby units"
-        },
-        {
-          "name": "Glacier",
-          "ingredients": ["Earthquake", "Freeze"],
-          "category": "Earthquake",
-          "description": "Releases glacial spikes over time that deal 15-30 damage to enemies that touch them and freeze them for 2.0 seconds. This ball and its glacial spikes also deal 6-12 damage to nearby units"
-        },
-        {
-          "name": "Sandstorm",
-          "ingredients": ["Earthquake", "Wind"],
-          "category": "Earthquake",
-          "description": "Goes through enemies and is surrounded by a raging storm dealing 10-20 damage per second and blinding nearby enemies for 3 seconds"
-        },
-        {
-          "name": "Overgrowth",
-          "ingredients": ["Earthquake", "Cell"],
-          "category": "Earthquake",
-          "description": "Applies 1 stack of overgrowth. Upon reaching 3, consume all stacks and deal 0-200 damage to all enemies in a 3x3 tile square"
-        },
-        {
-          "name": "Spider Queen",
-          "ingredients": ["Egg Sac", "Brood Mother"],
-          "category": "Egg Sac",
-          "description": "Has a 25% chance of birthing an Egg Sac each time it hits an enemy"
-        },
-        {
-          "name": "Mosquito Swarm",
-          "ingredients": ["Egg Sac", "Vampire"],
-          "category": "Egg Sac",
-          "description": "Explodes into 3-6 mosquitoes. Mosquitos attack random enemies, dealing 80-120 damage each. If a mosquito kills an enemy, they steal 1 health"
-        },
-        {
-          "name": "Shotgun",
-          "ingredients": ["Egg Sac", "Iron"],
-          "category": "Egg Sac",
-          "description": "Shoots 3-7 iron baby balls after hitting a wall. Iron baby balls move at 200% speed but are destroyed upon hitting anything"
-        },
-        {
-          "name": "Voluptuous Egg Sac",
-          "ingredients": ["Egg Sac", "Cell"],
-          "category": "Egg Sac",
-          "description": "Explodes into 2-3 egg sacs on hitting an enemy. Has a 3-second cooldown before it can be shot again"
-        },
-        {
-          "name": "Wraith",
-          "ingredients": ["Freeze", "Ghost"],
-          "category": "Freeze",
-          "description": "Freezes any enemy it passes through for 0.8 seconds"
-        },
-        {
-          "name": "Blizzard",
-          "ingredients": ["Freeze", "Lightning"],
-          "category": "Freeze",
-          "description": "Freezes all enemies within a 2 tile radius for 0.8 seconds, dealing 1-50 damage"
-        },
-        {
-          "name": "Freeze Ray",
-          "ingredients": ["Freeze", "Laser"],
-          "category": "Freeze",
-          "description": "Emits a freeze ray when hitting an enemy, dealing 20-50 to all enemies in its path, with a 10% chance of freezing them for 10.0 seconds"
-        },
-        {
-          "name": "Frozen Flame",
-          "ingredients": ["Freeze", "Burn"],
-          "category": "Freeze",
-          "description": "Add 1 stack of frostburn on hit for 20 seconds (max 4 stacks). Frostburnt units are dealt 8-12 damage per stack per second and receive 25% more damage from other sources"
-        },
-        {
-          "name": "Glacier",
-          "ingredients": ["Freeze", "Earthquake"],
-          "category": "Freeze",
-          "description": "Releases glacial spikes over time that deal 15-30 to enemies that touch them and freeze them for 2.0 seconds. This ball and its glacial spikes also deal 6-12 damage to nearby units"
-        },
-        {
-          "name": "Wraith",
-          "ingredients": ["Ghost", "Freeze"],
-          "category": "Ghost",
-          "description": "Freezes any enemy it passes through for 0.8 seconds"
-        },
-        {
-          "name": "Assassin",
-          "ingredients": ["Ghost", "Iron"],
-          "category": "Ghost",
-          "description": "Passes through the front of enemies, but not the back. Backstabs deal 30% bonus damage"
-        },
-        {
-          "name": "Virus",
-          "ingredients": ["Ghost", "Poison"],
-          "category": "Ghost",
-          "description": "Applies 1 stack of disease to units it hits (max 8 stacks). Disease lasts for 6 seconds. Each stack of disease deals 3-6 damage per second and diseased units have a 15% chance of passing a stack to undiseased nearby enemies each second"
-        },
-        {
-          "name": "Phantom",
-          "ingredients": ["Ghost", "Dark"],
-          "category": "Ghost",
-          "description": "Curse enemies on hit. Cursed enemies are dealt 100-200 damage after being hit 5 times"
-        },
-        {
-          "name": "Soul Sucker",
-          "ingredients": ["Ghost", "Vampire"],
-          "category": "Ghost",
-          "description": "Passes through enemies and saps them, with a 30% chance of stealing 1 health and reducing their attack damage by 20%. Lifesteal chance only applies once per enemy"
-        },
-        {
-          "name": "Bomb",
-          "ingredients": ["Iron", "Burn"],
-          "category": "Iron",
-          "description": "Explodes when hitting an enemy, dealing 150-300 damage to nearby enemies. Has a 3-second cooldown before it can be shot again"
-        },
-        {
-          "name": "Assassin",
-          "ingredients": ["Iron", "Ghost"],
-          "category": "Iron",
-          "description": "Passes through the front of enemies, but not the back. Backstabs deal 30% bonus damage"
-        },
-        {
-          "name": "Lightning Rod",
-          "ingredients": ["Iron", "Lightning"],
-          "category": "Iron",
-          "description": "Plants a lightning rod into enemies it hits. These enemies are struck by lightning every 3.0 seconds, dealing 1-30 damage to up to 8 nearby enemies"
-        },
-        {
-          "name": "Shotgun",
-          "ingredients": ["Iron", "Egg Sac"],
-          "category": "Iron",
-          "description": "Shoots 3-7 iron baby balls after hitting a wall. Iron baby balls move at 200% speed but are destroyed upon hitting anything"
-        },
-        {
-          "name": "Hemorrhage",
-          "ingredients": ["Iron", "Bleed"],
-          "category": "Iron",
-          "description": "Inflicts 3 stacks of bleed. When hitting an enemy with 12 stacks of bleed or more, consumes all stacks of bleed to deal 20% of their current health"
-        },
-        {
-          "name": "Holy Laser",
-          "ingredients": ["Laser (Horizontal)", "Laser (Vertical)"],
-          "category": "Laser",
-          "description": "Deals 24-36 damage to all enemies in the same row and column"
-        },
-        {
-          "name": "Freeze Ray",
-          "ingredients": ["Laser", "Freeze"],
-          "category": "Laser",
-          "description": "Emits a freeze ray when hitting an enemy, dealing 20-50 to all enemies in its path, with a 10% chance of freezing them for 10.0 seconds"
-        },
-        {
-          "name": "Laser Beam",
-          "ingredients": ["Laser", "Light"],
-          "category": "Laser",
-          "description": "Emit a laser beam on hit that deals 30-42 damage and blinds enemies for 8 seconds"
-        },
-        {
-          "name": "Radiation Beam",
-          "ingredients": ["Laser", "Cell"],
-          "category": "Laser",
-          "description": "Emit a radiation beam on hit that deals 24-48 damage and applies 1 stack of radiation (max 5 stacks). Radiation lasts for 15 seconds and cause enemies to receive 10% more damage from all sources per stack"
-        },
-        {
-          "name": "Sun",
-          "ingredients": ["Light", "Burn"],
-          "category": "Light",
-          "description": "Blind all enemies in view and add 1 stacks of burn every second (max 5 stacks). Burn lasts for 6 seconds and deals 6-12 damage per stack per second"
-        },
-        {
-          "name": "Laser Beam",
-          "ingredients": ["Light", "Laser"],
-          "category": "Light",
-          "description": "Emit a laser beam on hit that deals 30-42 damage and blinds enemies for 8 seconds"
-        },
-        {
-          "name": "Flash",
-          "ingredients": ["Light", "Lightning"],
-          "category": "Light",
-          "description": "Damage all enemies on screen for 1-3 damage after hitting an enemy and blind them for 2 seconds"
-        },
-        {
-          "name": "Flicker",
-          "ingredients": ["Light", "Dark"],
-          "category": "Light",
-          "description": "Deals 1-7 damage to every enemy on screen every 1.4 seconds"
-        },
-        {
-          "name": "Lovestruck",
-          "ingredients": ["Light", "Charm"],
-          "category": "Light",
-          "description": "Inflict lovestruck on hit to enemies for 20 seconds. Lovestruck units have a 50% chance of healing you for 5 health when they attack"
-        },
-        {
-          "name": "Lightning Rod",
-          "ingredients": ["Lightning", "Iron"],
-          "category": "Lightning",
-          "description": "Plants a lightning rod into enemies it hits. These enemies are struck by lightning every 3.0 seconds, dealing 1-30 damage to up to 8 nearby enemies"
-        },
-        {
-          "name": "Blizzard",
-          "ingredients": ["Lightning", "Freeze"],
-          "category": "Lightning",
-          "description": "Freezes all enemies within a 2 tile radius for 0.8 seconds, dealing 1-50 damage"
-        },
-        {
-          "name": "Flash",
-          "ingredients": ["Lightning", "Light"],
-          "category": "Lightning",
-          "description": "Damage all enemies on screen for 1-3 damage after hitting an enemy and blind them for 2 seconds"
-        },
-        {
-          "name": "Storm",
-          "ingredients": ["Lightning", "Wind"],
-          "category": "Lightning",
-          "description": "Emits lightning to strike nearby enemies every second, dealing 1-40 damage"
-        },
-        {
-          "name": "Lovestruck",
-          "ingredients": ["Lightning", "Charm"],
-          "category": "Lightning",
-          "description": "Inflicts lovestruck on hit enemies for 20 seconds. Lovestruck units have a 50% chance of healing you for 5 health when they attack"
-        },
-        {
-          "name": "Swamp",
-          "ingredients": ["Poison", "Earthquake"],
-          "category": "Poison",
-          "description": "Leaves behind tar blobs over time. Enemies who walk into tar blobs are dealt 15-30, are slowed by 50% for 7 seconds and gain 1 stack of poison (max 8 stacks). Each stack of poison deals 1-3 damage per second. This ball and its tar blobs also deal 6-12 damage to nearby units"
-        },
-        {
-          "name": "Nuclear Bomb",
-          "ingredients": ["Poison", "Bomb"],
-          "category": "Poison",
-          "description": "Explodes when hitting an enemy, dealing 300-500 damage to nearby enemies and applying 1 stack of radiation to everyone present indefinitely (max 5 stacks). Each stack of radiation increases damage received by 10%. Has a 3-second cooldown"
-        },
-        {
-          "name": "Virus",
-          "ingredients": ["Poison", "Ghost"],
-          "category": "Poison",
-          "description": "Applies 1 stack of disease to units it hits (max 8 stacks). Disease lasts for 6 seconds. Each stack of disease deals 3-6 damage per second and diseased units have a 15% chance of passing a stack to undiseased nearby enemies each second"
-        },
-        {
-          "name": "Radiation Beam",
-          "ingredients": ["Poison", "Laser"],
-          "category": "Poison",
-          "description": "Emit a radiation beam on hit that deals 24-48 damage and applies 1 stack of radiation (max 5 stacks). Radiation lasts for 15 seconds and cause enemies to receive 10% more damage from all sources per stack"
-        },
-        {
-          "name": "Noxious",
-          "ingredients": ["Poison", "Wind"],
-          "category": "Poison",
-          "description": "Passes through enemies and applies 3 stacks of poison to nearby enemies within a 2 tile radius. Poison lasts for 4 seconds and each stack deals 1-3 damage per second"
-        },
-        {
-          "name": "Vampire Lord",
-          "ingredients": ["Vampire", "Bleed"],
-          "category": "Vampire",
-          "description": "Each hit inflicts 3 stacks of bleed. Heals 1 health and consumes all stacks when hitting an enemy with at least 10 stacks of bleed"
-        },
-        {
-          "name": "Mosquito Swarm",
-          "ingredients": ["Vampire", "Egg Sac"],
-          "category": "Vampire",
-          "description": "Explode into 3-6 mosquitoes. Mosquitos attack random enemies, dealing 80-120 damage each. If a mosquito kills an enemy, they steal 1 health"
-        },
-        {
-          "name": "Mosquito King",
-          "ingredients": ["Vampire", "Brood Mother"],
-          "category": "Vampire",
-          "description": "Spawns a mosquito each time it hits an enemy. Mosquitos attack a random enemy, dealing 80-120 damage each. If a mosquito kills an enemy, they steal 1 health"
-        },
-        {
-          "name": "Succubus",
-          "ingredients": ["Vampire", "Charm"],
-          "category": "Vampire",
-          "description": "Each hit has a 4% chance of charming the enemy for 9 seconds. Heals 1 when hitting a charmed enemy"
-        },
-        {
-          "name": "Soul Sucker",
-          "ingredients": ["Vampire", "Ghost"],
-          "category": "Vampire",
-          "description": "Passes through enemies and saps them, with a 30% chance of stealing 1 health and reducing their attack, damage by 20%. Lifesteal chance only applies once per enemy"
-        },
-        {
-          "name": "Blizzard",
-          "ingredients": ["Wind", "Freeze"],
-          "category": "Wind",
-          "description": "Freezes all enemies within a 2 tile radius for 0.8 seconds, dealing 1-50 damage"
-        },
-        {
-          "name": "Inferno",
-          "ingredients": ["Wind", "Burn"],
-          "category": "Wind",
-          "description": "Applies 1 stack of burn every second to all enemies within a 2 tile radius. Burn lasts for 6 seconds, dealing 3-7 damage per stack per second"
-        },
-        {
-          "name": "Storm",
-          "ingredients": ["Wind", "Lightning"],
-          "category": "Lightning",
-          "description": "Emits lightning to strike nearby enemies every second, dealing 1-40 damage"
-        },
-        {
-          "name": "Noxious",
-          "ingredients": ["Wind", "Poison"],
-          "category": "Wind",
-          "description": "Passes through enemies and applies 3 stacks of poison to nearby enemies within a 2 tile radius. Poison lasts for 4 seconds and each stack deals 1-3 damage per second"
-        },
-        {
-          "name": "Sandstorm",
-          "ingredients": ["Wind", "Earthquake"],
-          "category": "Wind",
-          "description": "Goes through enemies and is surrounded by a raging storm dealing 10-20 damage per second and blinding nearby enemies for 3 seconds"
-        },
-        {
-          "name": "Satan",
-          "ingredients": ["Succubus", "Incubus"],
-          "category": "Special",
-          "description": "While active, add 1 stack of burn to all active enemies per second (max 5 stacks), dealing 10-20 damage per stack per second and make them go berserk, dealing 15-24 damage to adjacent enemies every second"
-        },
-        {
-          "name": "Nosferatu",
-          "ingredients": ["Vampire Lord", "Spider Queen", "Mosquito King"],
-          "category": "Special",
-          "description": "Spawns a vampire bat each bounce. Vampire bats fly towards a random enemy, dealing 132-176 damage on hit, turning into a Vampire Lord"
-        }
-      ]
-    };
+    
 
-    const passivesData = {
-      "basePassives": [
-        {
-          "name": "Archer's Effigy",
-          "description": "Every 7-12 rows, spawn a stone archer with 160 health on your side. Stone archers are immune to ball damage and shoot arrows at enemies, dealing 10-20 each",
-          "requirement": "N/A",
-          "category": "effigy"
-        },
-        {
-          "name": "Artificial Heart",
-          "description": "Friendly pieces gain 100% more health",
-          "requirement": "The player needs to have at least one other passive that gives them 'friendly pieces' (e.g. Archer's Effigy)",
-          "category": "effigy"
-        },
-        {
-          "name": "Baby Rattle",
-          "description": "Gain 1.5x baby balls, but your aim becomes scattered",
-          "requirement": "N/A",
-          "category": "baby balls"
-        },
-        {
-          "name": "Bandage Roll",
-          "description": "Shoot 1-2 baby balls each time you're healed",
-          "requirement": "N/A",
-          "category": "healing"
-        },
-        {
-          "name": "Bottled Tornado",
-          "description": "When you catch a special ball, automatically shoot 1-3 new baby balls in random directions",
-          "requirement": "N/A",
-          "category": "baby balls"
-        },
-        {
-          "name": "Breastplate",
-          "description": "Decrease damage taken by 10%",
-          "requirement": "N/A",
-          "category": "defense"
-        },
-        {
-          "name": "Crown of Thorns",
-          "description": "Destroy the 2 nearest enemies when you are hit from close range",
-          "requirement": "N/A",
-          "category": "defense"
-        },
-        {
-          "name": "Cursed Elixir",
-          "description": "When a poisoned enemy dies, 10% chance for them to come back as a zombie with 240 health that moves up the board and fights enemies",
-          "requirement": "The player needs to have a ball that applies Poison",
-          "category": "special"
-        },
-        {
-          "name": "Deadeye's Amulet",
-          "description": "Critical hits deal 10-15 bonus damage",
-          "requirement": "N/A",
-          "category": "crit"
-        },
-        {
-          "name": "Diamond Hilted Dagger",
-          "description": "Increase crit chance to 20% when hitting enemies in the front",
-          "requirement": "N/A",
-          "category": "crit"
-        },
-        {
-          "name": "Dynamite",
-          "description": "Every 5-10 rows, spawn an enemy with dynamite attached to them. Destroying them will deal 200-500 damage to nearby enemies",
-          "requirement": "N/A",
-          "category": "damage"
-        },
-        {
-          "name": "Emerald Hilted Dagger",
-          "description": "Increase crit chance to 20% when hitting enemies on their right side",
-          "requirement": "N/A",
-          "category": "crit"
-        },
-        {
-          "name": "Ethereal Cloak",
-          "description": "Balls go through enemies and deal 25% bonus damage until they hit the back of the field",
-          "requirement": "N/A",
-          "category": "pierce"
-        },
-        {
-          "name": "Everflowing Goblet",
-          "description": "You can heal past your max health at 20% efficiency",
-          "requirement": "N/A",
-          "category": "healing"
-        },
-        {
-          "name": "Eye of the Beholder",
-          "description": "10% chance to dodge incoming attacks",
-          "requirement": "N/A",
-          "category": "defense"
-        },
-        {
-          "name": "Fleet Feet",
-          "description": "Increase movement speed by 10% and move at full speed while shooting",
-          "requirement": "N/A",
-          "category": "movement"
-        },
-        {
-          "name": "Frozen Spike",
-          "description": "When an enemy is frozen, they emit a chill to nearby enemies that deals 10-20 damage",
-          "requirement": "The player needs to have a ball that applies Freeze",
-          "category": "special"
-        },
-        {
-          "name": "Gemspring",
-          "description": "Every 7-11 rows, spawn a Gemspring. Dealing damage to them causes them to drop an increasing amount of XP gems",
-          "requirement": "N/A",
-          "category": "utility"
-        },
-        {
-          "name": "Ghostly Corset",
-          "description": "Balls go through enemies and deal 20% bonus damage when hitting them from the side",
-          "requirement": "N/A",
-          "category": "pierce"
-        },
-        {
-          "name": "Ghostly Shield",
-          "description": "Balls go through allies and heal them for 2 health",
-          "requirement": "The player needs to have at least one other passive that gives them 'allies' (e.g. Archer's Effigy)",
-          "category": "effigy"
-        },
-        {
-          "name": "Golden Bull",
-          "description": "Every 7-11 rows, spawn a golden bull with 400 health on your side. Golden bulls accrue 10 gold per minute. They also move up the field, blocking and attacking enemies in the way",
-          "requirement": "N/A",
-          "category": "effigy"
-        },
-        {
-          "name": "Hand Fan",
-          "description": "Slow down enemies in the same column as you by 50%",
-          "requirement": "N/A",
-          "category": "utility"
-        },
-        {
-          "name": "Hand Mirror",
-          "description": "Projectiles have a 50% chance to reflect upon hitting you, dealing 20-40 damage if they hit an enemy",
-          "requirement": "N/A",
-          "category": "defense"
-        },
-        {
-          "name": "Healer's Effigy",
-          "description": "Every 7-12 rows, spawn a stone healer with 100 health on your side, which heals you 10 health per minute while it's on the field. Healers are immune to ball damage and move up the field, blocking and attacking enemies in the way",
-          "requirement": "N/A",
-          "category": "effigy"
-        },
-        {
-          "name": "Hourglass",
-          "description": "Balls deal 150% damage, but damage decays by 30% each time they bounce (minimum 50%)",
-          "requirement": "N/A",
-          "category": "damage"
-        },
-        {
-          "name": "Kiss of Death",
-          "description": "Charmed enemies have a 10% chance of dying after recovering",
-          "requirement": "The player needs to have a ball that applies Charm",
-          "category": "special"
-        },
-        {
-          "name": "Lover's Quiver",
-          "description": "Projectiles have a 40% chance to heal you for 1 health instead of hurting you",
-          "requirement": "N/A",
-          "category": "healing"
-        },
-        {
-          "name": "Magic Staff",
-          "description": "Increase area-of-effect damage (such as earthquake, laser, and lightning) by 20%",
-          "requirement": "N/A",
-          "category": "damage"
-        },
-        {
-          "name": "Magnet",
-          "description": "Increase range at which you pick up items and catch balls by 1.0 tiles",
-          "requirement": "N/A",
-          "category": "utility"
-        },
-        {
-          "name": "Midnight Oil",
-          "description": "Balls that hit flaming enemies light on fire and deal 10-20 bonus fire damage on the next hit",
-          "requirement": "The player needs to have a ball that applies Burn",
-          "category": "damage"
-        },
-        {
-          "name": "Pressure Valve",
-          "description": "Enemies explode on death, dealing 20-30 damage to adjacent enemies",
-          "requirement": "N/A",
-          "category": "damage"
-        },
-        {
-          "name": "Protective Charm",
-          "description": "Gain a shield that blocks the next damage you would receive. Recharges after 60 seconds",
-          "requirement": "N/A",
-          "category": "defense"
-        },
-        {
-          "name": "Radiant Feather",
-          "description": "Increases ball launch speed by 20%, but get knocked back a little each time you shoot a ball",
-          "requirement": "N/A",
-          "category": "movement"
-        },
-        {
-          "name": "Reacher's Spear",
-          "description": "Increase crit chance to 20% when hitting enemies in the same column as you",
-          "requirement": "N/A",
-          "category": "crit"
-        },
-        {
-          "name": "Rubber Headband",
-          "description": "Balls start off at 70% speed but increase by 20% each bounce (max 200%)",
-          "requirement": "N/A",
-          "category": "damage"
-        },
-        {
-          "name": "Ruby Hilted Dagger",
-          "description": "Increase crit chance to 15% when hitting enemies in the back",
-          "requirement": "N/A",
-          "category": "crit"
-        },
-        {
-          "name": "Sapphire Hilted Dagger",
-          "description": "Increase crit chance to 30% when hitting enemies on their left side",
-          "requirement": "N/A",
-          "category": "crit"
-        },
-        {
-          "name": "Shortbow",
-          "description": "Increase fire rate by 15%",
-          "requirement": "N/A",
-          "category": "damage"
-        },
-        {
-          "name": "Silver Blindfold",
-          "description": "Increase crit chance to 20% when hitting blinded enemies",
-          "requirement": "N/A",
-          "category": "crit"
-        },
-        {
-          "name": "Silver Bullet",
-          "description": "Balls deal 20% bonus damage until they hit a wall",
-          "requirement": "N/A",
-          "category": "damage"
-        },
-        {
-          "name": "Slingshot",
-          "description": "25% chance to launch a baby ball when you pick up a gem",
-          "requirement": "N/A",
-          "category": "baby balls"
-        },
-        {
-          "name": "Spiked Collar",
-          "description": "Deal 30-50 to enemies the first time you get into their melee attack range",
-          "requirement": "N/A",
-          "category": "on-hit"
-        },
-        {
-          "name": "Stone Effigy",
-          "description": "Every 7-12 rows, spawn a stone soldier with 200 health on your side. Stone soldiers are immune to ball damage and move up the field, blocking and attacking enemies in the way",
-          "requirement": "N/A",
-          "category": "effigy"
-        },
-        {
-          "name": "Traitor's Cowl",
-          "description": "Stone allies can now be damaged by your balls, but you heal 2 health when a ball hits one",
-          "requirement": "The player needs to have at least one other passive that gives them 'stone allies' (e.g. Archer's Effigy)",
-          "category": "effigy"
-        },
-        {
-          "name": "Turret",
-          "description": "Floats around your character and shoots a baby ball at enemies every 2.0 seconds",
-          "requirement": "N/A",
-          "category": "baby balls"
-        },
-        {
-          "name": "Upturned Hatchet",
-          "description": "Balls deal 80% more damage after hitting the back of the field, otherwise damage is reduced by 20%",
-          "requirement": "N/A",
-          "category": "damage"
-        },
-        {
-          "name": "Vampiric Sword",
-          "description": "Each kill heals you by 5, but each shot you take deals 2 damage to you",
-          "requirement": "N/A",
-          "category": "healing"
-        },
-        {
-          "name": "Voodoo Doll",
-          "description": "Curse has a 10% chance of killing enemies",
-          "requirement": "The player needs to have a ball that applies Curse",
-          "category": "special"
-        },
-        {
-          "name": "Wagon Wheel",
-          "description": "Each time a ball hits a wall, it deals 30% extra damage on the next hit",
-          "requirement": "N/A",
-          "category": "damage"
-        },
-        {
-          "name": "War Horn",
-          "description": "All baby balls deal 20% more damage",
-          "requirement": "N/A",
-          "category": "baby balls"
-        },
-        {
-          "name": "Wretched Onion",
-          "description": "Deal 6-12 per second to enemies within 2 tiles",
-          "requirement": "N/A",
-          "category": "damage"
-        }
-      ],
-      "evolvedPassives": [
-        {
-          "name": "Cornucopia",
-          "ingredients": ["Baby Rattle", "War Horn"],
-          "description": "Each time baby balls are created, spawn 0-1 additional baby balls",
-          "category": "baby balls"
-        },
-        {
-          "name": "Gracious Impaler",
-          "ingredients": ["Reacher's Spear", "Deadeye's Amulet"],
-          "description": "Critical hits have a 5% chance to instantly kill enemies",
-          "category": "crit"
-        },
-        {
-          "name": "Odiferous Shell",
-          "ingredients": ["Wretched Onion", "Breastplate"],
-          "description": "When you touch enemies, they have a 50% chance of instantly dying",
-          "category": "on-hit"
-        },
-        {
-          "name": "Phantom Regalia",
-          "ingredients": ["Ghostly Corset", "Ethereal Cloak"],
-          "description": "Balls go through enemies until they hit the back wall. Balls deal 50% more damage when going through enemies",
-          "category": "pierce"
-        },
-        {
-          "name": "Soul Reaver",
-          "ingredients": ["Vampiric Sword", "Everflowing Goblet"],
-          "description": "Each kill heals you by 1 and you can heal past your max health at 30% efficiency",
-          "category": "healing"
-        },
-        {
-          "name": "Tormenters Mask",
-          "ingredients": ["Spiked Collar", "Crown of Thorns"],
-          "description": "Enemies have a 10% chance of dying immediately the first time they detect you",
-          "category": "on-hit"
-        },
-        {
-          "name": "Wings of the Anointed",
-          "ingredients": ["Fleet Feet", "Radiant Feather"],
-          "description": "Balls move 40% faster and you move 20% faster. You no longer are affected by environmental hazards on the ground",
-          "category": "movement"
-        },
-        {
-          "name": "Deadeye's Cross",
-          "ingredients": ["Diamond Hilted Dagger", "Emerald Hilted Dagger", "Ruby Hilted Dagger", "Sapphire Hilted Dagger"],
-          "description": "Increase critical hit chance to 60%",
-          "category": "crit"
-        }
-      ]
-    };
+    
 
     function PassivesGraph() {
       const [selected, setSelected] = useState(null);
@@ -1017,46 +137,46 @@
 
       const svgWidth = 1200;
       const svgHeight = useMemo(() => {
-        const ys = Object.values(positions).map(p => p.y + p.height);
-        return Math.max(600, (ys.length ? Math.max(...ys) + 80 : 600));
-      }, [positions]);
-
-      const getAncestors = (name) => {
-        const ancestors = new Set();
-        const toProcess = [name];
-        const processed = new Set();
-        while (toProcess.length) {
-          const cur = toProcess.pop();
-          if (processed.has(cur)) continue;
-          processed.add(cur);
-          evolved.forEach(e => {
-            if (e.name === cur) {
-              (e.ingredients || []).forEach(ing => { ancestors.add(ing); toProcess.push(ing); });
-            }
-          });
-        }
-        return ancestors;
-      };
-
-      const getDescendants = (name) => {
-        const descendants = new Set();
-        const toProcess = [name];
-        const processed = new Set();
-        while (toProcess.length) {
-          const cur = toProcess.pop();
-          if (processed.has(cur)) continue;
-          processed.add(cur);
-          evolved.forEach(e => {
-            if ((e.ingredients || []).includes(cur)) {
-              descendants.add(e.name);
-              toProcess.push(e.name);
-            }
-          });
-        }
-        return descendants;
-      };
-
-      const highlightedChain = useMemo(() => {
+              const ys = Object.values(positions).map(p => p.y + p.height);
+              return Math.max(600, (ys.length ? Math.max(...ys) + 80 : 600));
+            }, [positions]);
+      
+            const getAncestors = (name) => {
+              const ancestors = new Set();
+              const toProcess = [name];
+              const processed = new Set();
+              while (toProcess.length) {
+                const cur = toProcess.pop();
+                if (processed.has(cur)) continue;
+                processed.add(cur);
+                evolved.forEach(e => {
+                  if (e.name === cur) {
+                    (e.ingredients || []).forEach(ing => { ancestors.add(ing); toProcess.push(ing); });
+                  }
+                });
+              }
+              return ancestors;
+            };
+      
+            const getDescendants = (name) => {
+              const descendants = new Set();
+              const toProcess = [name];
+              const processed = new Set();
+              while (toProcess.length) {
+                const cur = toProcess.pop();
+                if (processed.has(cur)) continue;
+                processed.add(cur);
+                evolved.forEach(e => {
+                  if ((e.ingredients || []).includes(cur)) {
+                    descendants.add(e.name);
+                    toProcess.push(e.name);
+                  }
+                });
+              }
+              return descendants;
+            };
+      
+            const highlightedChain = useMemo(() => {
         if (!selected) return new Set();
         const a = getAncestors(selected);
         const d = getDescendants(selected);
@@ -1064,16 +184,7 @@
       }, [selected]);
 
       // icon helpers for passives
-      const getPassiveIconSlug = (name) => {
-        if (!name) return '';
-        return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      };
-
-      const getPassiveIconUrl = (name) => {
-        const slug = getPassiveIconSlug(name);
-        if (!slug) return '';
-        return `icons_passives/${slug}.png`;
-      };
+      
 
       // hover handlers (tooltip will be shown in fixed bottom-left panel)
       const onNodeHover = (e, node) => {
@@ -1131,7 +242,7 @@
             />
             {/* icon inside node */}
             {(() => {
-              const url = getPassiveIconUrl(name);
+              const url = window.helpers.getPassiveIconUrl(name);
               const imgSize = 48;
               const imgX = 6;
               const imgY = (pos.height - imgSize) / 2;
@@ -1270,1019 +381,9 @@
       );
     }
 
-    const buildingsData = {
-      "buildings": [
-        {
-          "name": "Farm",
-          "description": "Assign a character to harvest 1 Wheat from each adjacent Wheat field every 6 minutes.",
-          "Drop Location": "Not specified",
-          "category": "Economy",
-          "cost": {
-            "gold": 100,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Gatherer's Hut",
-          "description": "Assign a character to automatically harvest in a preset direction every 10 minutes for 10 seconds.",
-          "Drop Location": "Not specified",
-          "category": "Economy",
-          "cost": {
-            "gold": 50,
-            "wheat": 5,
-            "wood": 2,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Gold Mine",
-          "description": "Assign a worker to mine Gold. When bounced on, they mine 1–2 Gold (up to 100 times per harvest).",
-          "Drop Location": "Not specified",
-          "category": "Economy",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 10,
-            "stone": 12
-          }
-        },
-        {
-          "name": "Lumberyard",
-          "description": "Assign a character to harvest 1 Wood from each adjacent forest every 9 minutes.",
-          "Drop Location": "Not specified",
-          "category": "Economy",
-          "cost": {
-            "gold": 75,
-            "wheat": 5,
-            "wood": 0,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Market",
-          "description": "Unlocks the ability to exchange Gold for other resources.",
-          "Drop Location": "Not specified",
-          "category": "Economy",
-          "cost": {
-            "gold": 500,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Road Keeper",
-          "description": "Increases movement speed during harvests by 10%.",
-          "Drop Location": "Not specified",
-          "category": "Economy",
-          "cost": {
-            "gold": 0,
-            "wheat": 20,
-            "wood": 0,
-            "stone": 5
-          }
-        },
-        {
-          "name": "Spa",
-          "description": "Spend Gold to harvest more than once immediately.",
-          "Drop Location": "Not specified",
-          "category": "Economy",
-          "cost": {
-            "gold": 500,
-            "wheat": 10,
-            "wood": 2,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Stone Mine",
-          "description": "Assign a character to harvest 1 Stone from each adjacent boulder every 10 minutes.",
-          "Drop Location": "Not specified",
-          "category": "Economy",
-          "cost": {
-            "gold": 100,
-            "wheat": 0,
-            "wood": 5,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Watch Tower",
-          "description": "Increases the harvest clock by 2 seconds.",
-          "Drop Location": "Not specified",
-          "category": "Economy",
-          "cost": {
-            "gold": 0,
-            "wheat": 20,
-            "wood": 10,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Worker's Guild",
-          "description": "Lets workers gather up to 24 hours' worth of resources while the game is closed (50% slower).",
-          "Drop Location": "Not specified",
-          "category": "Economy",
-          "cost": {
-            "gold": 5000,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Abbey",
-          "description": "Increase XP gained by 5%.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 300,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 10
-          }
-        },
-        {
-          "name": "Alchemist",
-          "description": "Increase Endurance scaling to D (related stats like HP improve faster).",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 100,
-            "wheat": 0,
-            "wood": 15,
-            "stone": 5
-          }
-        },
-        {
-          "name": "Antique Shop",
-          "description": "Begin each battle with the choice of a passive.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 1000,
-            "wheat": 0,
-            "wood": 40,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Archery Range",
-          "description": "Increase Dexterity scaling to D (stats like Reload Length improve faster).",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 12,
-            "wood": 12,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Bag Maker",
-          "description": "Add 1 ball slot.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 5000,
-            "wheat": 100,
-            "wood": 0,
-            "stone": 30
-          }
-        },
-        {
-          "name": "Bank",
-          "description": "Increase gold found in battles by 5%.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 20,
-            "stone": 20
-          }
-        },
-        {
-          "name": "Barracks",
-          "description": "All characters gain +1 bonus Strength (affects special ball damage).",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 2,
-            "wood": 3,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Boneyard Trophy",
-          "description": "Gain +0.05 Status Effect Power per character completed; each Fast tier adds +0.005 per character.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 100,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 4
-          }
-        },
-        {
-          "name": "Candle Maker",
-          "description": "Fusion reactors contain a minimum of 2 free upgrades.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 1500,
-            "wheat": 200,
-            "wood": 20,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Capitolium",
-          "description": "Gain +1 bonus Leadership. Can be upgraded infinitely.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 80,
-            "wood": 20,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Carpenter",
-          "description": "Add 1 passive slot.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 5000,
-            "wheat": 0,
-            "wood": 100,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Casino",
-          "description": "Reduce level up reroll cost by 20%.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 400,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Clinic",
-          "description": "All characters gain +1 bonus Endurance (affects max health).",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 3,
-            "wood": 2,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Consulate",
-          "description": "All characters gain +1 bonus Leadership (affects baby ball count & damage).",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 10,
-            "wood": 0,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Desert Trophy",
-          "description": "Gain +0.1% Critical Hit Chance per character completed; each Fast tier adds +0.01% per character.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 300,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 12
-          }
-        },
-        {
-          "name": "Diplomacy Hall",
-          "description": "Increase Leadership scaling to D (related stats like Baby Ball Damage improve faster).",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 125,
-            "wheat": 0,
-            "wood": 10,
-            "stone": 4
-          }
-        },
-        {
-          "name": "Evolution Chamber",
-          "description": "New balls all start at level 2.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 4000,
-            "wood": 0,
-            "stone": 1000
-          }
-        },
-        {
-          "name": "Exorcist",
-          "description": "Add the ability to banish upgrades when leveling up, up to 2 times.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 50,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 20
-          }
-        },
-        {
-          "name": "Gambler's Den",
-          "description": "Gain 2 free level up re-rolls per battle.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 50,
-            "wheat": 5,
-            "wood": 0,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Gemsmith",
-          "description": "Begin each battle with a choice of an extra ball.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 1000,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 20
-          }
-        },
-        {
-          "name": "Gory Trophy",
-          "description": "Gain +0.05 Ball Speed per character completed; each Fast tier adds +0.005 per character.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 500,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 20
-          }
-        },
-        {
-          "name": "Grand Museum",
-          "description": "Gain +1 bonus Intelligence. Can be upgraded infinitely.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 500,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 40
-          }
-        },
-        {
-          "name": "Gunsmith",
-          "description": "All characters gain +1 bonus Dexterity (affects fire rate, reload time, crit chance).",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 2,
-            "stone": 2
-          }
-        },
-        {
-          "name": "Heavenly Trophy",
-          "description": "Gain +0.05 Passive Power per character completed; each Fast tier adds +0.005 per character.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 800,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 30
-          }
-        },
-        {
-          "name": "Hospital",
-          "description": "Gain +1 bonus Endurance. Can be upgraded infinitely.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 100,
-            "wood": 40,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Jeweler",
-          "description": "Increase starter ball level to 2.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 200,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 10
-          }
-        },
-        {
-          "name": "Magnet Factory",
-          "description": "Increase pickup range by 0.5 tiles.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 10,
-            "stone": 20
-          }
-        },
-        {
-          "name": "Marksman Guild",
-          "description": "Gain +1 bonus Dexterity. Can be upgraded infinitely.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 60,
-            "wood": 0,
-            "stone": 20
-          }
-        },
-        {
-          "name": "Matchmaker",
-          "description": "Bring two characters into a run, combining their abilities.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 200,
-            "wood": 40,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Meditation Tent",
-          "description": "Increase the number of upgrade choices when leveling, up to 4.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 1000,
-            "wheat": 100,
-            "wood": 0,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Military Academy",
-          "description": "Increase Strength scaling to D (Base Damage improves faster).",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 200,
-            "wheat": 50,
-            "wood": 0,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Necromancer",
-          "description": "Once per battle, on death revive with 25% health and kill all nearby enemies.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 500,
-            "wheat": 0,
-            "wood": 10,
-            "stone": 10
-          }
-        },
-        {
-          "name": "Relic Collector",
-          "description": "New passives all start at level 2.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 1500
-          }
-        },
-        {
-          "name": "Schoolhouse",
-          "description": "All characters gain +1 bonus Intelligence (affects AOE and passive ability damage).",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 5,
-            "wood": 0,
-            "stone": 2
-          }
-        },
-        {
-          "name": "Shoemaker",
-          "description": "All characters gain +1 bonus Speed (affects move speed and ball speed).",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 3,
-            "stone": 1
-          }
-        },
-        {
-          "name": "Shroom Trophy",
-          "description": "Gain +1 HP per character completed; each Fast tier adds +0.1 per character.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 400,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 16
-          }
-        },
-        {
-          "name": "Smoldering Trophy",
-          "description": "Gain +1 Baby Ball Damage per character completed; each Fast tier adds +0.1 per character.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 600,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 24
-          }
-        },
-        {
-          "name": "Snowy Trophy",
-          "description": "Gain +0.05 AOE Power per character completed; each Fast tier adds +0.005 per character.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 200,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 8
-          }
-        },
-        {
-          "name": "University",
-          "description": "Increase Intelligence scaling to D (AOE Power improves faster).",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 200,
-            "wheat": 0,
-            "wood": 20,
-            "stone": 5
-          }
-        },
-        {
-          "name": "Void Trophy",
-          "description": "Gain +1 Base Damage per character completed; each Fast tier adds +0.1 per character.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 800,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 30
-          }
-        },
-        {
-          "name": "Wagon Factory",
-          "description": "Gain +1 bonus Speed. Can be upgraded infinitely.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 50,
-            "stone": 30
-          }
-        },
-        {
-          "name": "War Room",
-          "description": "Send characters to complete levels on their own.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 0,
-            "wheat": 300,
-            "wood": 0,
-            "stone": 50
-          }
-        },
-        {
-          "name": "Warrior's Guild",
-          "description": "Gain +1 bonus Strength. Can be upgraded infinitely.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 300,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 60
-          }
-        },
-        {
-          "name": "Wheelwright",
-          "description": "Increase Speed scaling to D (Move Speed improves faster).",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 150,
-            "wheat": 20,
-            "wood": 0,
-            "stone": 5
-          }
-        },
-        {
-          "name": "Wishing Well",
-          "description": "Add a 4% chance to get an extra upgrade point when leveling up.",
-          "Drop Location": "Not specified",
-          "category": "Warfare",
-          "cost": {
-            "gold": 1000,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 60
-          }
-        },
-        {
-          "name": "Campground",
-          "description": "Unlocks The Radical",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 0,
-            "wheat": 120,
-            "wood": 20,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Cozy Home",
-          "description": "Unlocks The Cohabitants",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 0,
-            "wheat": 20,
-            "wood": 5,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Single Family Home",
-          "description": "Unlocks The Empty Nester",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 50,
-            "wheat": 0,
-            "wood": 30,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Sheriff's Office",
-          "description": "Unlocks The Itchy Finger",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 5,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Haunted House",
-          "description": "Unlocks The Repentant",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 5,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Villa",
-          "description": "Unlocks the Coagitator",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 10
-          }
-        },
-        {
-          "name": "Mausoleum",
-          "description": "Unlocks The Shade",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 30
-          }
-        },
-        {
-          "name": "Iron Fortress",
-          "description": "Unlocks The Shieldbearer",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 70
-          }
-        },
-        {
-          "name": "Captain's Quarters",
-          "description": "Unlocks The Tactician",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 50,
-            "stone": 40
-          }
-        },
-        {
-          "name": "Rocky Hill",
-          "description": "Unlocks The Makeshift Sisyphus",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 50
-          }
-        },
-        {
-          "name": "Monastery",
-          "description": "Unlocks The Flagellant",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 0,
-            "wheat": 80,
-            "wood": 20,
-            "stone": 15
-          }
-        },
-        {
-          "name": "Laboratory",
-          "description": "Unlocks The Physicist",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 300,
-            "wheat": 0,
-            "wood": 50,
-            "stone": 20
-          }
-        },
-        {
-          "name": "Veteran's Hut",
-          "description": "Unlocks The Embedded",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 0,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 5
-          }
-        },
-        {
-          "name": "Mansion",
-          "description": "Unlocks The Spendthrift",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 500,
-            "wheat": 0,
-            "wood": 30,
-            "stone": 10
-          }
-        },
-        {
-          "name": "Theater",
-          "description": "Unlocks The Juggler",
-          "Drop Location": "Not specified",
-          "category": "Housing",
-          "cost": {
-            "gold": 300,
-            "wheat": 0,
-            "wood": 30,
-            "stone": 0
-          }
-        }
-      ],
-      "resource_tiles": [
-        {
-          "name": "Wheat Field",
-          "description": "Initial 2x2 Wheat resource tile. Capacity: 1. Does NOT bounce characters.",
-          "Drop Location": "Not specified",
-          "category": "Resource",
-          "cost": {
-            "gold": 30,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Forest",
-          "description": "Initial 2x2 Wood resource tile. Capacity: 1. Bounces characters.",
-          "Drop Location": "Not specified",
-          "category": "Resource",
-          "cost": {
-            "gold": 50,
-            "wheat": 2,
-            "wood": 0,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Boulder",
-          "description": "Initial 1x1 Stone resource tile. Capacity: 1. Bounces characters.",
-          "Drop Location": "Not specified",
-          "category": "Resource",
-          "cost": {
-            "gold": 80,
-            "wheat": 0,
-            "wood": 2,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Dense Wheat",
-          "description": "Advanced 1x1 Wheat variant with superior regrowth and capacity. Capacity: 4.",
-          "Drop Location": "Not specified",
-          "category": "Resource",
-          "cost": {
-            "gold": 100,
-            "wheat": 1,
-            "wood": 0,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Grand Tree",
-          "description": "Advanced 1x1 Wood variant with superior regrowth and capacity. Capacity: 3. Bounces characters.",
-          "Drop Location": "Not specified",
-          "category": "Resource",
-          "cost": {
-            "gold": 150,
-            "wheat": 0,
-            "wood": 1,
-            "stone": 0
-          }
-        },
-        {
-          "name": "Granite Slab",
-          "description": "Advanced 1x1 Stone variant with superior regrowth and capacity. Capacity: 3. Bounces characters.",
-          "Drop Location": "Not specified",
-          "category": "Resource",
-          "cost": {
-            "gold": 250,
-            "wheat": 0,
-            "wood": 0,
-            "stone": 1
-          }
-        }
-      ]
-    };
+    
 
-    const baseballsData = {
-      "baseBalls": [
-        {
-          "name": "Bleed",
-          "description": "Inflicts 2 stacks of bleed. Bleeding enemies receive 1 damage per stack when hit by a ball (max 8 stacks)",
-          "startCharacter": "The Warrior"
-        },
-        {
-          "name": "Brood Mother",
-          "description": "Has a 25% chance of birthing a baby ball each time it hits an enemy",
-          "startCharacter": "The Cohabitants"
-        },
-        {
-          "name": "Burn",
-          "description": "Add 1 stack of burn on hit for 3 seconds (max 3 stacks). Burnt units are dealt 4-8 damage per stack per second",
-          "startCharacter": "The Itchy Finger"
-        },
-        {
-          "name": "Cell",
-          "description": "Splits into a clone on hit 2 times",
-          "startCharacter": "N/A"
-        },
-        {
-          "name": "Charm",
-          "description": "Each hit has a 4% chance of charming the enemy for 5 seconds. Charmed units walk up the board and attack enemies",
-          "startCharacter": "N/A"
-        },
-        {
-          "name": "Dark",
-          "description": "Deals 3.0x damage but destroys itself after hitting an enemy. Has a 3 second cooldown before it can be shot again",
-          "startCharacter": "The Shade"
-        },
-        {
-          "name": "Earthquake",
-          "description": "Deals 5-13 damage to nearby units in a 3x3 tile square",
-          "startCharacter": "The Makeshift Sisyphus"
-        },
-        {
-          "name": "Egg Sac",
-          "description": "Explodes into 2-4 baby balls on hitting an enemy. Has a 3 second cooldown before it can be shot again",
-          "startCharacter": "The Flagellant"
-        },
-        {
-          "name": "Freeze",
-          "description": "Has a 4% chance to freeze enemies for 5.0 seconds. Frozen enemies receive 25% more damage",
-          "startCharacter": "The Repentant"
-        },
-        {
-          "name": "Ghost",
-          "description": "Passes through enemies",
-          "startCharacter": "The Empty Nester"
-        },
-        {
-          "name": "Iron",
-          "description": "Deals double damage but moves 40% slower",
-          "startCharacter": "The Shieldbearer, The Tactician"
-        },
-        {
-          "name": "Laser (Horizontal)",
-          "description": "Deals 9-18 damage to all enemies in the same row",
-          "startCharacter": "N/A"
-        },
-        {
-          "name": "Laser (Vertical)",
-          "description": "Deals 9-18 damage to all enemies in the same column",
-          "startCharacter": "The Cogitator"
-        },
-        {
-          "name": "Light",
-          "description": "Blinds enemies on hit for 3 seconds. Blinded units have a hard time detecting you and have a 50% chance of missing when they attack",
-          "startCharacter": "The Physicist"
-        },
-        {
-          "name": "Lightning",
-          "description": "Deals 1-20 damage to up to 3 nearby enemies",
-          "startCharacter": "The Juggler"
-        },
-        {
-          "name": "Poison",
-          "description": "Applies 1 stack of poison on hit (max 5 stacks). Poison lasts for 6 seconds and each stack deals 1-4 damage per second",
-          "startCharacter": "The Embedded"
-        },
-        {
-          "name": "Vampire",
-          "description": "Each hit has a 4.5% chance of healing 1 health",
-          "startCharacter": "The Spendthrift"
-        },
-        {
-          "name": "Wind",
-          "description": "Passes through enemies and slows them down by 30% for 5 seconds, but deals 25% less damage",
-          "startCharacter": "The Radical"
-        }
-      ]
-    };
+    
 
     function BuildingsViewer() {
       const [selectedBuilding, setSelectedBuilding] = useState(null);
@@ -2300,6 +401,40 @@
       const [wasDraggedFromGrid, setWasDraggedFromGrid] = useState(false);
       const [draggedInstanceId, setDraggedInstanceId] = useState(null);
       const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+      const getTooltipPosition = () => {
+        if (typeof window === 'undefined') return { x: 0, y: 0 };
+
+        const offsetX = 15;
+        const offsetY = 15;
+        const tooltipWidth = 320; // Approximate width of tooltip
+        const tooltipHeight = 200; // Approximate height of tooltip
+
+        let x = mousePosition.x + offsetX;
+        let y = mousePosition.y + offsetY;
+
+        // Prevent tooltip from going off-right of screen
+        if (x + tooltipWidth > window.innerWidth) {
+          x = mousePosition.x - tooltipWidth - 5;
+        }
+
+        // Prevent tooltip from going off-bottom of screen
+        if (y + tooltipHeight > window.innerHeight) {
+          y = mousePosition.y - tooltipHeight - 5;
+        }
+
+        // Prevent tooltip from going off-left of screen
+        if (x < 0) {
+          x = 5;
+        }
+
+        // Prevent tooltip from going off-top of screen
+        if (y < 0) {
+          y = 5;
+        }
+
+        return { x, y };
+      };
 
       const allItems = useMemo(() => {
         const buildings = buildingsData.buildings || [];
@@ -2355,29 +490,9 @@
         return filtered;
       }, [searchTerm, buildingsByCategory]);
 
-      const getBuildingIconSlug = (name) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      const getBuildingIconUrl = (name) => {
-        const slug = getBuildingIconSlug(name);
-        if (!slug) return '';
-        // Assume resource tiles don't have icons for now, or handle separately if they do
-        return `icons_build/${slug}.jpg`;
-      };
+      
 
-      const getCategoryColor = (category) => {
-        const colors = {
-          'Economy': 'bg-green-900 text-green-200',
-          'Warfare': 'bg-red-900 text-red-200',
-          'Housing': 'bg-purple-900 text-purple-200',
-          'Trophy': 'bg-gray-700 text-gray-200',
-          'Resource': 'bg-emerald-800 text-emerald-200',
-          'Commerce': 'bg-yellow-900 text-yellow-200',
-          'Utility': 'bg-cyan-900 text-cyan-200',
-          'Production': 'bg-orange-900 text-orange-200',
-          'Government': 'bg-rose-900 text-rose-200',
-          'Training': 'bg-indigo-900 text-indigo-200',
-        };
-        return colors[category] || 'bg-slate-800 text-gray-200';
-      };
+      
 
       const selectedBuildingData = useMemo(() => {
         if (!selectedBuilding) return null;
@@ -2510,6 +625,18 @@
         });
       };
 
+      // Find all occupied positions for a building at a given top-left position
+      
+
+      // Check if a 2x2 building can be placed at a given position
+      
+
+      // Place a building at a given position
+      
+
+      // Remove a building from the grid by instance ID
+      
+
       // Drag and drop functions
       const handleDragStart = (e, building, fromGrid = false, instanceId = null) => {
         setDraggedBuilding(building);
@@ -2585,39 +712,7 @@
       }, []);
 
       // Calculate tooltip position to keep it within viewport
-      const getTooltipPosition = () => {
-        if (typeof window === 'undefined') return { x: 0, y: 0 };
-
-        const offsetX = 15;
-        const offsetY = 15;
-        const tooltipWidth = 320; // Approximate width of tooltip
-        const tooltipHeight = 200; // Approximate height of tooltip
-
-        let x = mousePosition.x + offsetX;
-        let y = mousePosition.y + offsetY;
-
-        // Prevent tooltip from going off-right of screen
-        if (x + tooltipWidth > window.innerWidth) {
-          x = mousePosition.x - tooltipWidth - 5;
-        }
-
-        // Prevent tooltip from going off-bottom of screen
-        if (y + tooltipHeight > window.innerHeight) {
-          y = mousePosition.y - tooltipHeight - 5;
-        }
-
-        // Prevent tooltip from going off-left of screen
-        if (x < 0) {
-          x = 5;
-        }
-
-        // Prevent tooltip from going off-top of screen
-        if (y < 0) {
-          y = 5;
-        }
-
-        return { x, y };
-      };
+      
 
       // Global drop handler for dropping anywhere outside the grid
       const handleGlobalDrop = (e) => {
@@ -2669,7 +764,7 @@
                         setSearchTerm(category);
                         setSelectedBuilding(null);
                       }}
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(category)} cursor-pointer hover:opacity-80 transition-opacity`}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${window.helpers.getCategoryColor(category)} cursor-pointer hover:opacity-80 transition-opacity`}
                     >
                       {category}
                     </button>
@@ -2706,7 +801,7 @@
                               <div className="font-bold text-white text-sm">{item.name}</div>
                               <div className="text-xs text-slate-300 line-clamp-2">{item.description}</div>
                             </div>
-                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getCategoryColor(item.category)}`}>
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${window.helpers.getCategoryColor(item.category)}`}>
                               {item.category}
                             </span>
                           </div>
@@ -2845,7 +940,7 @@
                       }}
                     >
                       <img
-                        src={getBuildingIconUrl(building.name)}
+                        src={window.helpers.getBuildingIconUrl(building.name)}
                         alt={building.name}
                         className="w-full h-full"
                         draggable="true"
@@ -2879,7 +974,7 @@
                   <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0">
                       <img
-                        src={getBuildingIconUrl(selectedBuildingData.name)}
+                        src={window.helpers.getBuildingIconUrl(selectedBuildingData.name)}
                         alt={selectedBuildingData.name}
                         className="w-16 h-16 rounded object-cover border border-slate-600"
                         onError={(e) => {
@@ -2891,7 +986,7 @@
                       <h2 className="text-xl font-bold text-white mb-1">{selectedBuildingData.name}</h2>
                       <p className="text-slate-300 text-sm mb-2">{selectedBuildingData.description}</p>
                       <div className="flex flex-wrap gap-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(selectedBuildingData.category)}`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${window.helpers.getCategoryColor(selectedBuildingData.category)}`}>
                           {selectedBuildingData.category}
                         </span>
                         {selectedBuildingData.cost.gold > 0 && (
@@ -3021,30 +1116,7 @@
         return { evolutions: evos, baseElements: base.sort(), nameMap: newNameMap, uniqueEvos, recipesByEvo, altNodes, baseInfoMap };
       }, []);
 
-      const getColor = (element) => {
-        const colors = {
-          'BLEED': '#ae5353', 'BROOD MOTHER': '#8a5ab5', 'BURN': '#b56c46', 'CELL': '#4b9265', 'CHARM': '#ae547c',
-          'DARK': '#1f2937', 'EARTHQUAKE': '#9a6a45', 'EGG SAC': '#739247', 'FREEZE': '#448999', 'GHOST': '#475569',
-          'IRON': '#64748b', 'LASER': '#b59a44', 'LASER (HORIZONTAL)': '#b59a44', 'LASER (VERTICAL)': '#b59a44',
-          'LIGHT': '#bda64b', 'LIGHTNING': '#6863b3', 'POISON': '#438b75', 'VAMPIRE': '#9f4c6f', 'WIND': '#427591',
-        };
-        if (evolutions) {
-          const evoColorSource = evolutions.find(e => e.name === element);
-          if (evoColorSource) return colors[evoColorSource.ingredients[0]] || '#6b7280';
-        }
-        return colors[element] || '#6b7280';
-      };
-
-      const getIconSlug = (name) => {
-        if (!name) return '';
-        return name.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
-      };
-
-      const getIconUrls = (name) => {
-        const slug = getIconSlug(name);
-        if (!slug) return [];
-        return [`icons/${slug}.png`];
-      };
+      
 
       const baseWidth = 140;
       const baseHeight = 45;
@@ -3216,7 +1288,7 @@
 
       const NodeContent = ({ name, pos, nameMap }) => {
         const displayName = nameMap[name] || name;
-        const urls = getIconUrls(displayName);
+        const urls = window.helpers.getIconUrls(displayName);
         const imgSize = 36;
         const padding = 5;
         const imgX = pos.x + padding;
@@ -3491,7 +1563,7 @@
                       <g key={`base-${element}`}>
                         <rect
                           x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
-                          fill={getColor(element)}
+                          fill={window.helpers.getColor(element)}
                           stroke={isSelected ? '#fff' : (isAltNode ? '#f59e0b' : (isInChain ? '#3b82f6' : 'none'))}
                           strokeWidth={isSelected ? 2 : (isAltNode ? 1.5 : (isInChain ? 1.5 : 0))}
                           opacity={!selectedBall || isInChain ? 1 : 0.3}
@@ -3519,7 +1591,7 @@
                       <g key={`evo-${evo.name}-${idx}`}>
                         <rect
                           x={pos.x} y={pos.y} width={baseWidth} height={baseHeight} rx="4"
-                          fill={getColor(evo.name)}
+                          fill={window.helpers.getColor(evo.name)}
                           stroke={isSelected ? '#fff' : (isAltNode ? '#f59e0b' : (isUltimate ? 'gold' : (isInChain ? '#3b82f6' : 'none')))}
                           strokeWidth={isSelected ? 2 : (isAltNode ? 1.5 : (isUltimate ? 2.5 : (isInChain ? 1.5 : 0)))}
                           opacity={!selectedBall || isInChain ? 1 : 0.3}
