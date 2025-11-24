@@ -9,7 +9,7 @@ function PassiveTooltip({ selected, hovered, tooltipRef }) {
     'div',
     {
       ref: tooltipRef,
-      className: "w-full h-full backdrop-blur-sm rounded-lg p-4 max-w-md"
+      className: "w-full h-full rounded-lg p-4 max-w-md"
     },
     React.createElement('div', { className: "text-white mb-2" },
       React.createElement('div', { className: "font-semibold" }, name),
