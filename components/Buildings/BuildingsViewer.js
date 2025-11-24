@@ -1,5 +1,58 @@
 function BuildingsViewer() {
   const [selectedBuilding, setSelectedBuilding] = React.useState(null);
+
+  // Function to serialize placed buildings to URL hash
+  const serializeBuildingsToHash = React.useCallback((buildings) => {
+    if (!buildings || buildings.length === 0) {
+      return '';
+    }
+
+    // Create a simplified representation of the placed buildings
+    const serializedData = buildings.map(b => ({
+      name: b.building.name,
+      row: b.row,
+      col: b.col
+    }));
+
+    // Convert to JSON string then base64 encode to make it URL-safe
+    const jsonString = JSON.stringify(serializedData);
+    const encoded = btoa(encodeURIComponent(jsonString));
+
+    // Create a short identifier for the hash
+    return `buildings-${encoded}`;
+  }, []);
+
+  // Function to deserialize buildings from URL hash
+  const deserializeBuildingsFromHash = React.useCallback((hash) => {
+    if (!hash || !hash.startsWith('buildings-')) {
+      return null;
+    }
+
+    try {
+      const encoded = hash.substring(10); // Remove 'buildings-' prefix
+      const jsonString = decodeURIComponent(atob(encoded));
+      const parsedData = JSON.parse(jsonString);
+
+      // Reconstruct the placed buildings with proper structure
+      return parsedData.map((b, index) => {
+        // Find the actual building data from allItems
+        const buildingData = window.buildingsData?.buildings?.find(building => building.name === b.name) ||
+                            window.buildingsData?.resource_tiles?.find(tile => tile.name === b.name);
+
+        return {
+          instanceId: `${b.name}_${Date.now()}_${index}`, // Generate new instance ID on load
+          building: buildingData || { name: b.name }, // Use original data or fallback
+          topLeftIndex: b.row * 40 + b.col,
+          row: b.row,
+          col: b.col
+        };
+      });
+    } catch (error) {
+      console.error('Error deserializing buildings from hash:', error);
+      return null;
+    }
+  }, []);
+
   const [searchTerm, setSearchTerm] = React.useState('');
   const [draggedBuilding, setDraggedBuilding] = React.useState(null);
   const [previewPosition, setPreviewPosition] = React.useState(null);
@@ -78,6 +131,40 @@ function BuildingsViewer() {
       return () => clearTimeout(timer);
     }
   }, [placementError]);
+
+  // State to track if we've loaded from URL on this session
+  const [hasLoadedFromUrl, setHasLoadedFromUrl] = React.useState(false);
+
+  // Load state from URL hash on first component mount only
+  React.useEffect(() => {
+    if (!hasLoadedFromUrl) {
+      const hash = window.location.hash.slice(1); // Remove the '#' character
+      if (hash) {
+        const loadedBuildings = deserializeBuildingsFromHash(hash);
+        if (loadedBuildings && loadedBuildings.length > 0) {
+          // Set the placed buildings to the loaded state
+          setPlacedBuildings(loadedBuildings);
+
+          // Recalculate occupied cells based on loaded buildings
+          const newOccupiedCells = Array(30 * 40).fill(false);
+          loadedBuildings.forEach(building => {
+            const { w = 2, h = 2 } = building.building.size || {};
+            const positions = getOccupiedPos(building.row, building.col, w, h);
+            positions.forEach(pos => {
+              if (pos >= 0 && pos < newOccupiedCells.length) {
+                newOccupiedCells[pos] = true;
+              }
+            });
+          });
+          setOccupiedCells(newOccupiedCells);
+        }
+      }
+      // Mark that we've loaded from URL so this doesn't run again during this session
+      setHasLoadedFromUrl(true);
+    }
+  }, [hasLoadedFromUrl, setPlacedBuildings, setOccupiedCells, deserializeBuildingsFromHash, getOccupiedPos]);
+
+  // No automatic saving to URL anymore - only manual saving
 
   const allItems = React.useMemo(() => {
     const buildings = window.buildingsData.buildings || [];
@@ -232,6 +319,31 @@ function BuildingsViewer() {
     return allItems.find(item => item.name === hoveredBuilding);
   }, [hoveredBuilding, allItems]);
 
+  // Function to save current layout to URL
+  const saveLayoutToUrl = React.useCallback(() => {
+    const layoutHash = serializeBuildingsToHash(placedBuildings);
+    if (layoutHash) {
+      const newUrl = `${window.location.pathname}#${layoutHash}`;
+      window.history.replaceState(null, '', newUrl);
+      // Show feedback to user
+      alert('Layout saved to URL! You can now share this URL to preserve your layout.');
+    } else {
+      alert('No buildings placed to save.');
+    }
+  }, [placedBuildings, serializeBuildingsToHash]);
+
+  // Function to clear current layout
+  const clearLayout = React.useCallback(() => {
+    if (confirm('Are you sure you want to clear your layout?')) {
+      setPlacedBuildings([]);
+      setOccupiedCells(Array(30 * 40).fill(false));
+      // Update URL to just #buildings
+      if (window.location.hash.startsWith('#buildings')) {
+        window.history.replaceState(null, '', `${window.location.pathname}#buildings`);
+      }
+    }
+  }, [setPlacedBuildings, setOccupiedCells]);
+
   return React.createElement(
     'div',
     {
@@ -239,10 +351,36 @@ function BuildingsViewer() {
       onDrop: handleGlobalDrop,
       onDragOver: handleGlobalDragOver
     },
+    // Controls for saving and clearing layout
+    React.createElement(
+      'div',
+      { className: "flex gap-2 p-2 bg-slate-800" },
+      React.createElement(
+        'button',
+        {
+          onClick: saveLayoutToUrl,
+          className: "px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
+        },
+        "Save Layout to URL"
+      ),
+      React.createElement(
+        'button',
+        {
+          onClick: clearLayout,
+          className: "px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm"
+        },
+        "Clear Layout"
+      ),
+      placedBuildings.length > 0 && React.createElement(
+        'div',
+        { className: "text-sm text-slate-400 flex items-center ml-auto" },
+        `${placedBuildings.length} building${placedBuildings.length !== 1 ? 's' : ''} placed`
+      )
+    ),
     // Main content area with resizable columns
     React.createElement(
       'div',
-      { className: "flex flex-1 gap-0", style: { maxHeight: '84vh' } }, // Main area that contains the resizable columns with max height
+      { className: "flex flex-1 gap-0", style: { maxHeight: '80vh' } }, // Main area that contains the resizable columns with max height
       // Left Column - Scrollable Building List with dynamic width
       React.createElement('div', {
         className: "bg-slate-800 border-r border-slate-700 flex flex-col",
@@ -260,7 +398,7 @@ function BuildingsViewer() {
           currentHovered: hoveredBuilding,
           onDragStartFromList: handleDragStart
         })
-      ),
+      ), // Close left column div
 
       // Resize Handle
       React.createElement(
@@ -292,13 +430,13 @@ function BuildingsViewer() {
           onPlace: placeBuilding,
           onRemove: removeBuilding
         })
-      ),
+      ), // Close right column div
 
       // Hover tooltip (only show when there's a hovered building and not dragging)
       hoveredBuildingData && !draggedBuilding && React.createElement(BuildingTooltip, {
         selectedBuildingData: hoveredBuildingData,
         mousePosition
       })
-    )
-  );
+    ) // Close main flex div
+  ); // Close function return
 }

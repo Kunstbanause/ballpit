@@ -4,9 +4,10 @@
 function App() {
   const [tab, setTab] = React.useState(() => {
     const hash = window.location.hash.slice(1);
-    return ['balls', 'passives', 'buildings'].includes(hash) ?
-      (hash === 'balls' ? 'Evolutions' : hash === 'passives' ? 'Passives' : 'Buildings') :
-      'Evolutions';
+    if (hash === 'balls') return 'Evolutions';
+    if (hash === 'passives') return 'Passives';
+    if (hash === 'buildings' || hash.startsWith('buildings-')) return 'Buildings';
+    return 'Evolutions';
   });
   const [ballSearchTerm, setBallSearchTerm] = React.useState('');
 
@@ -15,7 +16,7 @@ function App() {
       const hash = window.location.hash.slice(1);
       if (hash === 'balls') setTab('Evolutions');
       else if (hash === 'passives') setTab('Passives');
-      else if (hash === 'buildings') setTab('Buildings');
+      else if (hash === 'buildings' || hash.startsWith('buildings-')) setTab('Buildings');
       else setTab('Evolutions');
     };
     window.addEventListener('hashchange', handleHashChange);
