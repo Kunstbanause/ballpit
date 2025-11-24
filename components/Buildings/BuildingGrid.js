@@ -47,6 +47,18 @@ function BuildingGrid({
             gridTemplateColumns: 'repeat(40, 30px)'
           }
         },
+        // Building count display - placed in top-left corner
+        React.createElement(
+          'div',
+          {
+            className: "absolute top-2 left-2 bg-black/50 text-white text-sm px-2 py-1 rounded pointer-events-none z-30",
+            style: {
+              fontSize: '12px',
+              fontWeight: 'bold',
+            }
+          },
+          `${placedBuildings.length} building${placedBuildings.length !== 1 ? 's' : ''} placed`
+        ),
         // Chunk borders - 8x6 blocks
         React.createElement(
           'div',
