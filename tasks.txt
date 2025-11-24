@@ -1,6 +1,9 @@
 move build limit to the list
 
-image in list of buildings
-
 save build layout in url code
+
+x In the building graph, allow the user to change the width of the left column with a little handle. 
+image in list of buildings
+Add threseholds where elements are hidden to save space.
+
 
