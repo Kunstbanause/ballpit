@@ -95,17 +95,41 @@ function BuildingList({
                   },
                   React.createElement(
                     'div',
-                    { className: "flex items-start justify-between" },
+                    { className: "flex items-start gap-3" },
+                    // Building Image
                     React.createElement(
                       'div',
-                      null,
-                      React.createElement('div', { className: "font-bold text-white text-sm" }, item.name),
-                      React.createElement('div', { className: "text-xs text-slate-300 line-clamp-2" }, item.description)
+                      { className: "flex-shrink-0 w-10 h-10 rounded overflow-hidden" },
+                      React.createElement('img', {
+                        src: window.helpers.getBuildingIconUrl(item.name) || window.helpers.getIconUrls(item.name)[0] || '',
+                        alt: item.name,
+                        className: "w-full h-full object-cover",
+                        onError: (e) => {
+                          e.target.style.display = 'none';
+                          // If there's no image, we'll just hide the image container and show the text
+                          e.target.parentNode.style.display = 'none';
+                        }
+                      })
                     ),
+                    // Building Info and Category
                     React.createElement(
-                      'span',
-                      { className: `px-2 py-1 rounded-full text-xs font-semibold ${window.helpers.getCategoryColor(item.category)}` },
-                      item.category
+                      'div',
+                      { className: "flex-1 min-w-0" },
+                      React.createElement(
+                        'div',
+                        { className: "flex items-start justify-between" },
+                        React.createElement(
+                          'div',
+                          { className: "flex-1 min-w-0" },
+                          React.createElement('div', { className: "font-bold text-white text-sm truncate" }, item.name),
+                          React.createElement('div', { className: "text-xs text-slate-300 line-clamp-2" }, item.description)
+                        ),
+                        React.createElement(
+                          'span',
+                          { className: `px-2 py-1 rounded-full text-xs font-semibold ${window.helpers.getCategoryColor(item.category)}` },
+                          item.category
+                        )
+                      )
                     )
                   )
                 )

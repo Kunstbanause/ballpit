@@ -4,7 +4,6 @@
 
 ## buildings graph
 * Drag and drop with "paint" like behavior
-* save build layout in url code
 * move build limit to the list
 * when a building is already placed and has a build limit, it is not allowed to move, even though it should
 * image in list of buildings
