@@ -221,6 +221,8 @@ function BuildingsViewer() {
     };
   }, []);
 
+  const [hoveredBuilding, setHoveredBuilding] = React.useState(null);
+
   const selectedBuildingData = React.useMemo(() => {
     if (!selectedBuilding) return null;
     return allItems.find(item => item.name === selectedBuilding);
@@ -230,8 +232,6 @@ function BuildingsViewer() {
     if (!hoveredBuilding || selectedBuilding) return null; // Only show hover tooltip if no building is selected
     return allItems.find(item => item.name === hoveredBuilding);
   }, [hoveredBuilding, selectedBuilding, allItems]);
-
-  const [hoveredBuilding, setHoveredBuilding] = React.useState(null);
 
   return React.createElement(
     'div',
