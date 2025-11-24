@@ -319,30 +319,38 @@ function BuildingsViewer() {
     return allItems.find(item => item.name === hoveredBuilding);
   }, [hoveredBuilding, allItems]);
 
-  // Function to save current layout to URL
-  const saveLayoutToUrl = React.useCallback(() => {
-    const layoutHash = serializeBuildingsToHash(placedBuildings);
-    if (layoutHash) {
-      const newUrl = `${window.location.pathname}#${layoutHash}`;
-      window.history.replaceState(null, '', newUrl);
-      // Show feedback to user
-      alert('Layout saved to URL! You can now share this URL to preserve your layout.');
-    } else {
-      alert('No buildings placed to save.');
+  // Effect to update URL hash when placedBuildings change with aggressive debouncing
+  React.useEffect(() => {
+    // Create a more sophisticated debounce mechanism that avoids excessive updates
+    if (window.urlUpdateTimeout) {
+      clearTimeout(window.urlUpdateTimeout);
     }
-  }, [placedBuildings, serializeBuildingsToHash]);
 
-  // Function to clear current layout
-  const clearLayout = React.useCallback(() => {
-    if (confirm('Are you sure you want to clear your layout?')) {
-      setPlacedBuildings([]);
-      setOccupiedCells(Array(30 * 40).fill(false));
-      // Update URL to just #buildings
-      if (window.location.hash.startsWith('#buildings')) {
-        window.history.replaceState(null, '', `${window.location.pathname}#buildings`);
+    // Only proceed after a delay to ensure we're not in the middle of multiple rapid changes
+    window.urlUpdateTimeout = setTimeout(() => {
+      // Only update if we're on the buildings page
+      const currentHash = window.location.hash.slice(1);
+      if (currentHash === 'buildings' || currentHash.startsWith('buildings-')) {
+        const layoutHash = serializeBuildingsToHash(placedBuildings);
+        if (layoutHash) {
+          const newUrl = `${window.location.pathname}#${layoutHash}`;
+          window.history.replaceState(null, '', newUrl);
+        } else {
+          // If no buildings, set back to just #buildings
+          if (window.location.hash !== '#buildings') {
+            window.history.replaceState(null, '', `${window.location.pathname}#buildings`);
+          }
+        }
       }
-    }
-  }, [setPlacedBuildings, setOccupiedCells]);
+    }, 500); // 500ms delay to ensure user has finished the action
+
+    // Cleanup function
+    return () => {
+      if (window.urlUpdateTimeout) {
+        clearTimeout(window.urlUpdateTimeout);
+      }
+    };
+  }, [placedBuildings, serializeBuildingsToHash]);
 
   return React.createElement(
     'div',
@@ -351,32 +359,6 @@ function BuildingsViewer() {
       onDrop: handleGlobalDrop,
       onDragOver: handleGlobalDragOver
     },
-    // Controls for saving and clearing layout
-    React.createElement(
-      'div',
-      { className: "flex gap-2 p-2 bg-slate-800" },
-      React.createElement(
-        'button',
-        {
-          onClick: saveLayoutToUrl,
-          className: "px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
-        },
-        "Save Layout to URL"
-      ),
-      React.createElement(
-        'button',
-        {
-          onClick: clearLayout,
-          className: "px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm"
-        },
-        "Clear Layout"
-      ),
-      placedBuildings.length > 0 && React.createElement(
-        'div',
-        { className: "text-sm text-slate-400 flex items-center ml-auto" },
-        `${placedBuildings.length} building${placedBuildings.length !== 1 ? 's' : ''} placed`
-      )
-    ),
     // Main content area with resizable columns
     React.createElement(
       'div',
