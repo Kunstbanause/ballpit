@@ -17,11 +17,11 @@ function BuildingGrid({
 }) {
   return React.createElement(
     'div',
-    { className: "bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 flex-1 flex flex-col min-h-0" },
+    { className: "flex flex-col flex-1 bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 overflow-hidden" },
     // Placement Error Message
     error && React.createElement(
       'div',
-      { className: "bg-red-500 text-white text-center p-2 rounded-md mb-2" },
+      { className: "bg-red-500 text-white text-center p-2 rounded-md mb-2 flex-shrink-0" },
       error
     ),
 
@@ -29,8 +29,7 @@ function BuildingGrid({
     React.createElement(
       'div',
       {
-        className: "bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 overflow-auto flex-1",
-        style: { height: '100%' },
+        className: "bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 overflow-auto flex-1 min-h-0",
         onDragOver: handleDragOver,
         onDragLeave: handleDragLeave,
         onDrop: handleDrop

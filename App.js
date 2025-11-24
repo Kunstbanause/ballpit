@@ -29,10 +29,10 @@ function App() {
 
   return React.createElement(
     'div',
-    { className: "w-full h-full bg-gradient-to-br from-slate-900 to-slate-950 p-6 overflow-hidden" },
+    { className: "w-full h-screen bg-gradient-to-br from-slate-900 to-slate-950 p-6 overflow-y-auto" },
     React.createElement(
       'div',
-      { className: "max-w-full h-full" },
+      { className: "max-w-full" },
       React.createElement(
         'div',
         { className: "flex items-center gap-3 mb-4" },

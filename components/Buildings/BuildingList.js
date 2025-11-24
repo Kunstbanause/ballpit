@@ -12,11 +12,11 @@ function BuildingList({
 }) {
   return React.createElement(
     'div',
-    { className: "flex flex-col bg-slate-800 border-r border-slate-700 flex-shrink-0", style: { minWidth: 0 } },
+    { className: "flex flex-col h-full bg-slate-800 border-r border-slate-700 overflow-hidden" },
     // Search Bar
     React.createElement(
       'div',
-      { className: "p-4 border-b border-slate-700" },
+      { className: "p-4 border-b border-slate-700 flex-shrink-0" },
       React.createElement('input', {
         type: "text",
         placeholder: "Search buildings & tiles...",
@@ -27,7 +27,7 @@ function BuildingList({
       // Category Badge Buttons
       React.createElement(
         'div',
-        { className: "mt-3" },
+        { className: "mt-3 flex-shrink-0" },
         React.createElement(
           'div',
           { className: "flex flex-wrap gap-2" },
@@ -40,7 +40,7 @@ function BuildingList({
                   setSearchTerm(category);
                   onSelect(null);
                 },
-                className: `px-3 py-1 rounded-full text-xs font-semibold ${window.helpers.getCategoryColor(category)} cursor-pointer hover:opacity-80 transition-opacity`
+                className: `px-3 py-1 rounded-full text-xs font-semibold ${window.helpers.getCategoryColor(category)} cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0`
               },
               category
             )
@@ -49,7 +49,7 @@ function BuildingList({
       ),
       React.createElement(
         'div',
-        { className: "text-xs text-slate-400 mt-2" },
+        { className: "text-xs text-slate-400 mt-2 flex-shrink-0" },
         "Showing ",
         Object.values(filteredCategories).reduce((acc, val) => acc + val.length, 0),
         " of ",

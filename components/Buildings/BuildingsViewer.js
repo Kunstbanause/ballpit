@@ -244,17 +244,17 @@ function BuildingsViewer() {
   return React.createElement(
     'div',
     {
-      className: "flex flex-col flex-1 min-h-0 bg-slate-900", // Use flex-col for proper layout in parent
+      className: "flex flex-col bg-slate-900",
       onDrop: handleGlobalDrop,
       onDragOver: handleGlobalDragOver
     },
     // Main content area with resizable columns
     React.createElement(
       'div',
-      { className: "flex flex-1 min-h-0" }, // Main area that contains the resizable columns
+      { className: "flex flex-1 gap-0", style: { maxHeight: '72vh' } }, // Main area that contains the resizable columns with max height
       // Left Column - Scrollable Building List with dynamic width
       React.createElement('div', {
-        className: "bg-slate-800 border-r border-slate-700 flex-shrink-0",
+        className: "bg-slate-800 border-r border-slate-700 flex flex-col",
         style: { width: leftColWidth }
       },
         React.createElement(BuildingList, {
@@ -283,7 +283,7 @@ function BuildingsViewer() {
       // Right Column - Building Grid (with remaining space)
       React.createElement(
         'div',
-        { className: "flex-1 bg-slate-900 p-2 flex flex-col h-full min-h-0 overflow-hidden", style: { minWidth: 0 } },
+        { className: "flex flex-col flex-1 bg-slate-900", style: { minWidth: 0 } },
         React.createElement(BuildingGrid, {
           placedBuildings,
           previewPosition,

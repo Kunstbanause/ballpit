@@ -2,7 +2,8 @@
 * search has different behavior compared to the passives tab.
 
 ## passives graph
+* Wrong tooltip style (double background)
 
 ## buildings graph
-* drag and drop to place buildings does not work!
+* Drag and drop with "paint" like behabiour
 * click can now select, but tooltip should be for the hovered over entry!
