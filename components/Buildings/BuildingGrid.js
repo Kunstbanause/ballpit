@@ -159,7 +159,7 @@ function BuildingGrid({
               onMouseEnter: (e) => {
                 // Call a hover handler if provided to show tooltip for this building
                 if (typeof onBuildingHover === 'function') {
-                  onBuildingHover(building.building);
+                  onBuildingHover(building.building.name);
                 }
               },
               onMouseLeave: (e) => {

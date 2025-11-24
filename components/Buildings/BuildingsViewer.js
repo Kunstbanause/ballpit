@@ -227,15 +227,10 @@ function BuildingsViewer() {
 
   const [hoveredBuilding, setHoveredBuilding] = React.useState(null);
 
-  const selectedBuildingData = React.useMemo(() => {
-    if (!selectedBuilding) return null;
-    return allItems.find(item => item.name === selectedBuilding);
-  }, [selectedBuilding, allItems]);
-
   const hoveredBuildingData = React.useMemo(() => {
-    if (!hoveredBuilding || selectedBuilding) return null; // Only show hover tooltip if no building is selected
+    if (!hoveredBuilding) return null;
     return allItems.find(item => item.name === hoveredBuilding);
-  }, [hoveredBuilding, selectedBuilding, allItems]);
+  }, [hoveredBuilding, allItems]);
 
   return React.createElement(
     'div',
@@ -299,13 +294,8 @@ function BuildingsViewer() {
         })
       ),
 
-      // Mouse Position Tooltip Overlay
-      selectedBuildingData && !draggedBuilding && React.createElement(BuildingTooltip, {
-        selectedBuildingData,
-        mousePosition
-      }),
-      // Hover tooltip (when no building is selected, but there's a hovered building)
-      hoveredBuildingData && !selectedBuilding && !draggedBuilding && React.createElement(BuildingTooltip, {
+      // Hover tooltip (only show when there's a hovered building and not dragging)
+      hoveredBuildingData && !draggedBuilding && React.createElement(BuildingTooltip, {
         selectedBuildingData: hoveredBuildingData,
         mousePosition
       })

@@ -6,5 +6,3 @@
 
 ## buildings graph
 * Drag and drop with "paint" like behavior
-* Click can now select, but tooltip should be for the hovered over entry!
-* Right click does not remove building

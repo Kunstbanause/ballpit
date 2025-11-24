@@ -38,7 +38,6 @@ function BuildingList({
                 key: category,
                 onClick: () => {
                   setSearchTerm(category);
-                  onSelect(null);
                 },
                 className: `px-3 py-1 rounded-full text-xs font-semibold ${window.helpers.getCategoryColor(category)} cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0`
               },
@@ -80,7 +79,6 @@ function BuildingList({
                   'div',
                   {
                     key: item.name,
-                    onClick: () => onSelect(item.name),
                     onMouseEnter: () => onHover && onHover(item.name),
                     onMouseLeave: () => onHover && onHover(null),
                     draggable: true,
@@ -90,7 +88,7 @@ function BuildingList({
                         onDragStartFromList(e, item, false, null); // not from grid, no instance ID
                       }
                     },
-                    className: `p-3 cursor-pointer transition-colors rounded-md mb-2 ${selectedBuilding === item.name || currentHovered === item.name
+                    className: `p-3 cursor-pointer transition-colors rounded-md mb-2 ${currentHovered === item.name
                       ? 'bg-blue-900 bg-opacity-50 border-l-4 border-blue-500'
                       : 'bg-slate-800 hover:bg-slate-700 border-l-4 border-transparent'
                       }`
