@@ -33,10 +33,25 @@
   <script src="components/buildings/BuildingsViewer.js"></script>
   <script type="text/babel" src="App.js"></script>
   <script type="text/babel">
-    // Render the app
-    const rootElement = document.getElementById('root');
-    const root = ReactDOM.createRoot(rootElement);
-    root.render(React.createElement(App));
+    // Render the app only after ensuring all components are defined
+    function attemptRender() {
+      // Check if all required components are defined
+      if (typeof BallEvolutionGraph !== 'undefined' &&
+          typeof PassivesGraph !== 'undefined' &&
+          typeof BuildingsViewer !== 'undefined' &&
+          typeof App !== 'undefined') {
+        // All required components are defined, render the app
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(React.createElement(App));
+      } else {
+        // Components not yet defined, check again after a delay
+        setTimeout(attemptRender, 100);
+      }
+    }
+
+    // Start the rendering attempt
+    attemptRender();
   </script>
 </body>
 
