@@ -7,7 +7,8 @@ function BuildingList({
   setSearchTerm,
   allItems,
   onHover,
-  currentHovered
+  currentHovered,
+  onDragStartFromList
 }) {
   return React.createElement(
     'div',
@@ -82,6 +83,13 @@ function BuildingList({
                     onClick: () => onSelect(item.name),
                     onMouseEnter: () => onHover && onHover(item.name),
                     onMouseLeave: () => onHover && onHover(null),
+                    draggable: true,
+                    onDragStart: (e) => {
+                      // Call the parent's drag start handler through a prop
+                      if (typeof onDragStartFromList === 'function') {
+                        onDragStartFromList(e, item, false, null); // not from grid, no instance ID
+                      }
+                    },
                     className: `p-3 cursor-pointer transition-colors rounded-md mb-2 ${selectedBuilding === item.name || currentHovered === item.name
                       ? 'bg-blue-900 bg-opacity-50 border-l-4 border-blue-500'
                       : 'bg-slate-800 hover:bg-slate-700 border-l-4 border-transparent'

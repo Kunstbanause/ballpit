@@ -149,16 +149,20 @@ function BuildingsViewer() {
     if (!gridElement || !draggedBuilding) return;
 
     const rect = gridElement.getBoundingClientRect();
-    const x = e.clientX - rect.left + gridElement.scrollLeft;
-    const y = e.clientY - rect.top + gridElement.scrollTop;
+    // Calculate mouse position relative to the grid element
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    // Adjust for scrolling within the grid container
+    const scrollAdjustedX = x + gridElement.scrollLeft;
+    const scrollAdjustedY = y + gridElement.scrollTop;
 
     const cellWidth = 30;
     const cellHeight = 30;
     const buildingWidth = draggedBuilding.size?.w ?? 2;
     const buildingHeight = draggedBuilding.size?.h ?? 2;
 
-    let col = Math.floor(x / cellWidth);
-    let row = Math.floor(y / cellHeight);
+    let col = Math.floor(scrollAdjustedX / cellWidth);
+    let row = Math.floor(scrollAdjustedY / cellHeight);
 
     col = Math.max(0, Math.min(40 - buildingWidth, col));
     row = Math.max(0, Math.min(30 - buildingHeight, row));
@@ -250,7 +254,8 @@ function BuildingsViewer() {
       setSearchTerm,
       allItems,
       onHover: setHoveredBuilding,
-      currentHovered: hoveredBuilding
+      currentHovered: hoveredBuilding,
+      onDragStartFromList: handleDragStart
     }),
 
     // Resize Handle
@@ -274,6 +279,8 @@ function BuildingsViewer() {
         handleDragLeave,
         handleDrop,
         handleDragStart,
+        onBuildingHover: setHoveredBuilding, // Set hovered building when mouse enters a placed building
+        onBuildingLeave: () => setHoveredBuilding(null), // Clear hovered building when mouse leaves
         getOccupiedPositions: getOccupiedPos,
         draggedBuilding,
         wasDraggedFromGrid,
@@ -288,7 +295,7 @@ function BuildingsViewer() {
       selectedBuildingData,
       mousePosition
     }),
-    // Hover tooltip (when no building is selected)
+    // Hover tooltip (when no building is selected, but there's a hovered building)
     hoveredBuildingData && !selectedBuilding && !draggedBuilding && React.createElement(BuildingTooltip, {
       selectedBuildingData: hoveredBuildingData,
       mousePosition

@@ -1,5 +1,7 @@
 move build limit to the list
 
+when a buidling is already placed and has a build limit, it is not allowed to move, even tohuhg iut should
+
 save build layout in url code
 
 x In the building graph, allow the user to change the width of the left column with a little handle. 

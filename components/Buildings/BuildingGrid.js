@@ -8,6 +8,8 @@ function BuildingGrid({
   handleDragLeave,
   handleDrop,
   handleDragStart,
+  onBuildingHover,
+  onBuildingLeave,
   getOccupiedPositions,
   draggedBuilding,
   wasDraggedFromGrid,
@@ -146,6 +148,17 @@ function BuildingGrid({
                 // Call parent drag handler with building data
                 if (typeof handleDragStart === 'function') {
                   handleDragStart(e, building.building, true, building.instanceId);
+                }
+              },
+              onMouseEnter: (e) => {
+                // Call a hover handler if provided to show tooltip for this building
+                if (typeof onBuildingHover === 'function') {
+                  onBuildingHover(building.building);
+                }
+              },
+              onMouseLeave: (e) => {
+                if (typeof onBuildingLeave === 'function') {
+                  onBuildingLeave();
                 }
               }
             },
