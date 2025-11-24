@@ -1,4 +1,4 @@
-function BallNode({ name, position, isHighlighted, onClick, nameMap, baseHeight = 45 }) {
+function BallNode({ name, position, isHighlighted, onClick, onHover, onLeave, nameMap, baseHeight = 45, searchTerm = '' }) {
   const displayName = nameMap[name] || name;
   const urls = window.helpers.getIconUrls(displayName);
   const imgSize = 36;
@@ -9,6 +9,11 @@ function BallNode({ name, position, isHighlighted, onClick, nameMap, baseHeight 
 
   const textX = position.x + padding + imgSize + padding;
   const textY = position.y + baseHeight / 2;
+
+  // Check if this node matches the search term
+  const matchesSearch = searchTerm && displayName.toLowerCase().includes(searchTerm);
+  // The final highlight state considers both selection and search matches
+  const finalHighlight = isHighlighted || matchesSearch;
 
   const wrapText = (text) => {
     const maxCharsPerLine = 15;
@@ -39,11 +44,13 @@ function BallNode({ name, position, isHighlighted, onClick, nameMap, baseHeight 
       height: baseHeight,
       rx: "4",
       fill: window.helpers.getColor(name),
-      stroke: isHighlighted ? '#fff' : 'none',
-      strokeWidth: isHighlighted ? 2 : 0,
-      opacity: isHighlighted ? 1 : 0.7,
+      stroke: finalHighlight ? '#fff' : 'none',
+      strokeWidth: finalHighlight ? 2 : 0,
+      opacity: finalHighlight ? 1 : 0.7,
       className: "cursor-pointer transition-all hover:opacity-100",
-      onClick: onClick
+      onClick: onClick,
+      onMouseEnter: onHover,
+      onMouseLeave: onLeave
     }),
     primary && React.createElement('image', {
       href: primary,
@@ -53,7 +60,9 @@ function BallNode({ name, position, isHighlighted, onClick, nameMap, baseHeight 
       height: imgSize,
       preserveAspectRatio: "xMidYMid slice",
       onError: (e) => { e.target.style.display = 'none'; },
-      className: "pointer-events-none select-none"
+      className: "pointer-events-none select-none",
+      onMouseEnter: onHover,
+      onMouseLeave: onLeave
     }),
     React.createElement('text', {
       x: textX,
@@ -63,7 +72,9 @@ function BallNode({ name, position, isHighlighted, onClick, nameMap, baseHeight 
       fontSize: displayName.length > 15 ? "10" : "11",
       fontWeight: "bold",
       fill: "white",
-      className: "pointer-events-none select-none"
+      className: "pointer-events-none select-none",
+      onMouseEnter: onHover,
+      onMouseLeave: onLeave
     },
       lines.map((line, i) =>
         React.createElement('tspan', { key: i, x: textX, dy: i === 0 ? 0 : '1.2em' }, line)

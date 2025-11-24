@@ -1,7 +1,6 @@
-function BallEvolutionGraph() {
+function BallEvolutionGraph({ searchTerm = '' }) {
   const [selectedBall, setSelectedBall] = React.useState(null);
   const [hoveredNode, setHoveredNode] = React.useState(null);
-  const [searchTerm, setSearchTerm] = React.useState('');
 
   const {
     evolutions,
@@ -150,14 +149,7 @@ function BallEvolutionGraph() {
     return Array.from(allNames).sort();
   }, [evolutions, baseElements]);
 
-  const searchResults = React.useMemo(() => {
-    if (!searchTerm || !allNodeNames) return [];
-    return allNodeNames
-      .filter(name => (nameMap[name] || name).toLowerCase().includes(searchTerm.toLowerCase()))
-      .slice(0, 10);
-  }, [searchTerm, allNodeNames, nameMap]);
-
-
+  // Use the searchTerm prop instead of local state
   const activeNode = selectedBall || hoveredNode;
   const recipesForActiveNode = React.useMemo(() => {
     if (!activeNode || !evolutions) return [];
@@ -342,7 +334,10 @@ function BallEvolutionGraph() {
             name: element,
             position: positions[element],
             isHighlighted: selectedBall === element,
+            searchTerm: searchTerm.toLowerCase(),
             onClick: () => setSelectedBall(selectedBall === element ? null : element),
+            onHover: () => setHoveredNode(element),
+            onLeave: () => setHoveredNode(null),
             nameMap,
             baseHeight
           })
@@ -363,7 +358,10 @@ function BallEvolutionGraph() {
             name: evo.name,
             position: pos,
             isHighlighted: isSelected,
+            searchTerm: searchTerm.toLowerCase(),
             onClick: () => setSelectedBall(selectedBall === evo.name ? null : evo.name),
+            onHover: () => setHoveredNode(evo.name),
+            onLeave: () => setHoveredNode(null),
             nameMap,
             baseHeight
           });

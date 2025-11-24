@@ -226,6 +226,13 @@ function BuildingsViewer() {
     return allItems.find(item => item.name === selectedBuilding);
   }, [selectedBuilding, allItems]);
 
+  const hoveredBuildingData = React.useMemo(() => {
+    if (!hoveredBuilding || selectedBuilding) return null; // Only show hover tooltip if no building is selected
+    return allItems.find(item => item.name === hoveredBuilding);
+  }, [hoveredBuilding, selectedBuilding, allItems]);
+
+  const [hoveredBuilding, setHoveredBuilding] = React.useState(null);
+
   return React.createElement(
     'div',
     {
@@ -241,7 +248,9 @@ function BuildingsViewer() {
       onSelect: setSelectedBuilding,
       searchTerm,
       setSearchTerm,
-      allItems
+      allItems,
+      onHover: setHoveredBuilding,
+      currentHovered: hoveredBuilding
     }),
 
     // Resize Handle
@@ -277,6 +286,11 @@ function BuildingsViewer() {
     // Mouse Position Tooltip Overlay
     selectedBuildingData && !draggedBuilding && React.createElement(BuildingTooltip, {
       selectedBuildingData,
+      mousePosition
+    }),
+    // Hover tooltip (when no building is selected)
+    hoveredBuildingData && !selectedBuilding && !draggedBuilding && React.createElement(BuildingTooltip, {
+      selectedBuildingData: hoveredBuildingData,
       mousePosition
     })
   );

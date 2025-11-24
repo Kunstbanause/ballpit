@@ -23,11 +23,12 @@ function BuildingGrid({
       error
     ),
 
-    // Building Placement Grid
+    // Building Placement Grid - Fixed size container with scrollbars
     React.createElement(
       'div',
       {
-        className: "bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 flex-1 flex-col min-h-0",
+        className: "bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 overflow-auto flex-1",
+        style: { height: '100%' },
         onDragOver: handleDragOver,
         onDragLeave: handleDragLeave,
         onDrop: handleDrop
@@ -36,10 +37,10 @@ function BuildingGrid({
         'div',
         {
           id: "buildingGrid",
-          className: "grid grid-cols-40 grid-rows-30 gap-0 bg-slate-800 rounded flex-1 overflow-auto relative",
+          className: "grid grid-cols-40 grid-rows-30 gap-0 bg-slate-800 rounded relative",
           style: {
-            maxHeight: '100%',
-            width: '100%',
+            width: '1200px', // Fixed width: 40 columns * 30px
+            height: '900px', // Fixed height: 30 rows * 30px
             display: 'grid',
             gridTemplateRows: 'repeat(30, 30px)',
             gridTemplateColumns: 'repeat(40, 30px)'

@@ -1,4 +1,4 @@
-function PassiveTooltip({ selected, hovered, tooltipTop, containerRef }) {
+function PassiveTooltip({ selected, hovered, tooltipRef }) {
   const name = selected || (hovered && hovered.name);
   if (!name) return null;
 
@@ -8,9 +8,8 @@ function PassiveTooltip({ selected, hovered, tooltipTop, containerRef }) {
   return React.createElement(
     'div',
     {
-      ref: containerRef,
-      style: { position: 'absolute', left: 8, top: tooltipTop, zIndex: 10, background: 'rgba(15,23,42,0.75)' },
-      className: "backdrop-blur-sm rounded-lg p-4 max-w-md"
+      ref: tooltipRef,
+      className: "w-full h-full backdrop-blur-sm rounded-lg p-4 max-w-md"
     },
     React.createElement('div', { className: "text-white mb-2" },
       React.createElement('div', { className: "font-semibold" }, name),

@@ -8,6 +8,7 @@ function App() {
       (hash === 'balls' ? 'Evolutions' : hash === 'passives' ? 'Passives' : 'Buildings') :
       'Evolutions';
   });
+  const [ballSearchTerm, setBallSearchTerm] = React.useState('');
 
   React.useEffect(() => {
     const handleHashChange = () => {
@@ -72,11 +73,13 @@ function App() {
         React.createElement('input', {
           type: "text",
           placeholder: "Search for a ball...",
+          value: ballSearchTerm,
+          onChange: (e) => setBallSearchTerm(e.target.value),
           className: "w-full bg-slate-700 text-white placeholder-slate-400 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
         })
       ),
 
-      tab === 'Evolutions' && React.createElement(BallEvolutionGraph),
+      tab === 'Evolutions' && React.createElement(BallEvolutionGraph, { searchTerm: ballSearchTerm }),
       tab === 'Passives' && React.createElement(PassivesGraph),
       tab === 'Buildings' && React.createElement(BuildingsViewer),
 

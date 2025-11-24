@@ -5,7 +5,6 @@ function PassivesGraph() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const containerRef = React.useRef(null);
   const tooltipRef = React.useRef(null);
-  const [tooltipTop, setTooltipTop] = React.useState(0);
 
   const categoryOrder = [
     'effigy', 'baby balls', 'healing', 'crit', 'damage',
@@ -121,27 +120,6 @@ function PassivesGraph() {
   };
   const onNodeLeave = () => { setHovered(null); };
 
-  // update tooltip position so it sits at the bottom-left of the visible scroll area
-  React.useEffect(() => {
-    const update = () => {
-      const c = containerRef.current;
-      const t = tooltipRef.current;
-      if (!c || !t) return;
-      const scrollTop = c.scrollTop;
-      const clientH = c.clientHeight;
-      const tipH = t.offsetHeight || 80;
-      const top = scrollTop + clientH - tipH - 8; // 8px margin from bottom
-      setTooltipTop(top);
-    };
-    update();
-    const c = containerRef.current;
-    if (c) c.addEventListener('scroll', update);
-    window.addEventListener('resize', update);
-    const mo = new MutationObserver(update);
-    if (c) mo.observe(c, { childList: true, subtree: true, attributes: true });
-    return () => { if (c) c.removeEventListener('scroll', update); window.removeEventListener('resize', update); if (mo) mo.disconnect(); };
-  }, [containerRef, hovered, selected]);
-
   // build connector lines from ingredients to evolved nodes (include src/tgt names)
   const connectors = React.useMemo(() => {
     const out = [];
@@ -159,7 +137,7 @@ function PassivesGraph() {
 
   return React.createElement(
     'div',
-    { className: "p-4" },
+    { className: "p-4 relative" },
     React.createElement(
       'div',
       { className: "relative mb-3" },
@@ -280,14 +258,19 @@ function PassivesGraph() {
             selected
           })
         )
-      ),
+      )
+    ),
 
-      // bottom-left tooltip panel (fixed inside graph container)
-      (selected || hovered) && React.createElement(PassiveTooltip, {
+    // bottom-left tooltip panel (positioned relative to the graph container, not inside it)
+    (selected || hovered) && React.createElement('div',
+      {
+        className: "absolute bottom-2 left-2 z-10 bg-slate-900/75 backdrop-blur-sm rounded-lg p-4 max-w-md",
+        style: { minWidth: '300px' }
+      },
+      React.createElement(PassiveTooltip, {
         selected,
         hovered,
-        tooltipTop,
-        containerRef
+        tooltipRef
       })
     )
   );

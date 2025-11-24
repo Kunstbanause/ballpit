@@ -5,7 +5,9 @@ function BuildingList({
   onSelect,
   searchTerm,
   setSearchTerm,
-  allItems
+  allItems,
+  onHover,
+  currentHovered
 }) {
   return React.createElement(
     'div',
@@ -78,7 +80,9 @@ function BuildingList({
                   {
                     key: item.name,
                     onClick: () => onSelect(item.name),
-                    className: `p-3 cursor-pointer transition-colors rounded-md mb-2 ${selectedBuilding === item.name
+                    onMouseEnter: () => onHover && onHover(item.name),
+                    onMouseLeave: () => onHover && onHover(null),
+                    className: `p-3 cursor-pointer transition-colors rounded-md mb-2 ${selectedBuilding === item.name || currentHovered === item.name
                       ? 'bg-blue-900 bg-opacity-50 border-l-4 border-blue-500'
                       : 'bg-slate-800 hover:bg-slate-700 border-l-4 border-transparent'
                       }`
