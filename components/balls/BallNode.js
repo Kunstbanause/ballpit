@@ -1,4 +1,4 @@
-function BallNode({ name, position, isHighlighted, onClick, onHover, onLeave, nameMap, baseHeight = 45, searchTerm = '' }) {
+function BallNode({ name, position, isHighlighted, onClick, onHover, onLeave, nameMap, baseHeight = 45, searchTerm = '', opacity = 1 }) {
   const displayName = nameMap[name] || name;
   const urls = window.helpers.getIconUrls(displayName);
   const imgSize = 36;
@@ -46,7 +46,7 @@ function BallNode({ name, position, isHighlighted, onClick, onHover, onLeave, na
       fill: window.helpers.getColor(name),
       stroke: finalHighlight ? '#fff' : 'none',
       strokeWidth: finalHighlight ? 2 : 0,
-      opacity: finalHighlight ? 1 : 0.7,
+      opacity: opacity * (finalHighlight ? 1 : 0.7),
       className: "cursor-pointer transition-all hover:opacity-100",
       onClick: onClick,
       onMouseEnter: onHover,

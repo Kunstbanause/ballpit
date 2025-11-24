@@ -67,19 +67,7 @@ function App() {
         )
       ),
 
-      React.createElement(
-        'div',
-        { className: "relative mb-4 max-w-md", style: { display: tab === 'Evolutions' ? 'block' : 'none' } },
-        React.createElement('input', {
-          type: "text",
-          placeholder: "Search for a ball...",
-          value: ballSearchTerm,
-          onChange: (e) => setBallSearchTerm(e.target.value),
-          className: "w-full bg-slate-700 text-white placeholder-slate-400 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        })
-      ),
-
-      tab === 'Evolutions' && React.createElement(BallEvolutionGraph, { searchTerm: ballSearchTerm }),
+      tab === 'Evolutions' && React.createElement(BallEvolutionGraph),
       tab === 'Passives' && React.createElement(PassivesGraph),
       tab === 'Buildings' && React.createElement(BuildingsViewer),
 

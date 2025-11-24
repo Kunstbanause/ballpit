@@ -1,6 +1,7 @@
-function BallEvolutionGraph({ searchTerm = '' }) {
+function BallEvolutionGraph() {
   const [selectedBall, setSelectedBall] = React.useState(null);
   const [hoveredNode, setHoveredNode] = React.useState(null);
+  const [searchTerm, setSearchTerm] = React.useState('');
 
   const {
     evolutions,
@@ -149,7 +150,13 @@ function BallEvolutionGraph({ searchTerm = '' }) {
     return Array.from(allNames).sort();
   }, [evolutions, baseElements]);
 
-  // Use the searchTerm prop instead of local state
+  const searchResults = React.useMemo(() => {
+    if (!searchTerm || !allNodeNames) return [];
+    return allNodeNames
+      .filter(name => (nameMap[name] || name).toLowerCase().includes(searchTerm.toLowerCase()))
+      .slice(0, 10);
+  }, [searchTerm, allNodeNames, nameMap]);
+
   const activeNode = selectedBall || hoveredNode;
   const recipesForActiveNode = React.useMemo(() => {
     if (!activeNode || !evolutions) return [];
@@ -197,10 +204,39 @@ function BallEvolutionGraph({ searchTerm = '' }) {
 
   return React.createElement(
     'div',
-    { className: "relative", style: { display: 'block' } },
+    { className: "p-4 relative" },
     React.createElement(
       'div',
-      { className: "bg-slate-800 rounded-lg overflow-y-auto overflow-x-auto", style: { maxHeight: '79vh' } },
+      { className: "relative mb-3" },
+      React.createElement('input', {
+        type: "text",
+        placeholder: "Search for a ball...",
+        value: searchTerm,
+        onChange: (e) => setSearchTerm(e.target.value),
+        className: "w-full bg-slate-700 text-white placeholder-slate-400 rounded-md py-2 px-4"
+      }),
+      searchResults.length > 0 && React.createElement(
+        'div',
+        { className: "absolute z-10 w-full mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto" },
+        searchResults.map(name =>
+          React.createElement(
+            'div',
+            {
+              key: name,
+              onClick: () => {
+                setSelectedBall(name); // Select the ball when clicked
+                setSearchTerm(''); // Clear the search term after selection
+              },
+              className: "px-4 py-2 text-white hover:bg-slate-700 cursor-pointer"
+            },
+            nameMap[name] || name
+          )
+        )
+      )
+    ),
+    React.createElement(
+      'div',
+      { className: "bg-slate-800 rounded-lg overflow-y-auto overflow-x-auto", style: { maxHeight: '78vh' } },
       React.createElement(
         'svg',
         {
@@ -300,7 +336,22 @@ function BallEvolutionGraph({ searchTerm = '' }) {
               const startPos = positions[ing];
               if (!startPos) return null;
 
+              const isNodeInChain = selectedBall ? highlightedChain.has(ing) : true;
+              const isEvoInChain = selectedBall ? highlightedChain.has(evoName) : true;
               const isHighlighted = highlightedChain.has(evoName) && highlightedChain.has(ing);
+
+              // Determine line opacity based on connection to selected chain
+              let lineOpacity;
+              if (selectedBall) {
+                if (isHighlighted) {
+                  lineOpacity = 1; // Highlighted connections stay fully opaque
+                } else {
+                  lineOpacity = 0.1; // Unconnected lines become very transparent
+                }
+              } else {
+                lineOpacity = 0.4; // Default opacity when no ball is selected
+              }
+
               const isAlt = recipeIndex > 0;
               // Keep alternative (non-primary) recipes gold even when highlighted;
               // highlight should affect width/opacity but not change alt color.
@@ -319,7 +370,7 @@ function BallEvolutionGraph({ searchTerm = '' }) {
                   strokeWidth: isHighlighted ? 2 : 1,
                   strokeDasharray: lineStyle,
                   markerEnd: `url(#${markerId})`,
-                  opacity: !selectedBall ? 0.4 : (isHighlighted ? 1 : 0.3),
+                  opacity: lineOpacity,
                   className: "transition-all"
                 }
               );
@@ -328,20 +379,25 @@ function BallEvolutionGraph({ searchTerm = '' }) {
         }),
 
         // Nodes
-        baseElements.map((element) =>
-          React.createElement(BallNode, {
+        baseElements.map((element) => {
+          const isHighlightedNode = selectedBall === element;
+          const isInChain = selectedBall ? highlightedChain.has(element) : true;
+          const opacity = selectedBall && !isInChain ? 0.2 : 1; // Fade unconnected nodes to low transparency
+
+          return React.createElement(BallNode, {
             key: `base-${element}`,
             name: element,
             position: positions[element],
-            isHighlighted: selectedBall === element,
+            isHighlighted: isHighlightedNode,
             searchTerm: searchTerm.toLowerCase(),
             onClick: () => setSelectedBall(selectedBall === element ? null : element),
             onHover: () => setHoveredNode(element),
             onLeave: () => setHoveredNode(null),
             nameMap,
-            baseHeight
-          })
-        ),
+            baseHeight,
+            opacity: opacity
+          });
+        }),
 
         uniqueEvos.map((evo, idx) => {
           const pos = positions[evo.name];
@@ -350,8 +406,9 @@ function BallEvolutionGraph({ searchTerm = '' }) {
           const level = levels[evo.name];
           const isUltimate = level >= 2;
           const isSelected = selectedBall === evo.name;
-          const isInChain = highlightedChain.has(evo.name);
+          const isInChain = selectedBall ? highlightedChain.has(evo.name) : true;
           const isAltNode = altNodes && altNodes.has && altNodes.has(evo.name);
+          const opacity = selectedBall && !isInChain ? 0.2 : 1; // Fade unconnected nodes to low transparency
 
           return React.createElement(BallNode, {
             key: `evo-${evo.name}-${idx}`,
@@ -363,7 +420,8 @@ function BallEvolutionGraph({ searchTerm = '' }) {
             onHover: () => setHoveredNode(evo.name),
             onLeave: () => setHoveredNode(null),
             nameMap,
-            baseHeight
+            baseHeight,
+            opacity: opacity
           });
         })
       )
