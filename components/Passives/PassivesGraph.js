@@ -1,29 +1,24 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import usePassives from './usePassives';
-import PassiveNode from './PassiveNode';
-import PassiveTooltip from './PassiveTooltip';
-
 function PassivesGraph() {
   const { passiveCategories, base, evolved, ingredientSet, noUpgrade, hasUpgrade, col1, col2, col3, col4, allNodeNames } = usePassives();
-  const [selected, setSelected] = useState(null);
-  const [hovered, setHovered] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const containerRef = useRef(null);
-  const tooltipRef = useRef(null);
-  const [tooltipTop, setTooltipTop] = useState(0);
+  const [selected, setSelected] = React.useState(null);
+  const [hovered, setHovered] = React.useState(null);
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const containerRef = React.useRef(null);
+  const tooltipRef = React.useRef(null);
+  const [tooltipTop, setTooltipTop] = React.useState(0);
 
   const categoryOrder = [
     'effigy', 'baby balls', 'healing', 'crit', 'damage',
     'defense', 'pierce', 'movement', 'on-hit', 'special', 'utility'
   ];
 
-  const searchResults = useMemo(() => {
+  const searchResults = React.useMemo(() => {
     if (!searchTerm) return [];
     return allNodeNames.filter(n => n.toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 10);
   }, [searchTerm, allNodeNames]);
 
   // layout positions for 4 columns
-  const positions = useMemo(() => {
+  const positions = React.useMemo(() => {
     const map = {};
     const paddingTop = 40;
     const rowSpacing = 72;
@@ -73,7 +68,7 @@ function PassivesGraph() {
   }, [col1, col2, col3, col4]);
 
   const svgWidth = 1200;
-  const svgHeight = useMemo(() => {
+  const svgHeight = React.useMemo(() => {
     const ys = Object.values(positions).map(p => p.y + p.height);
     return Math.max(600, (ys.length ? Math.max(...ys) + 80 : 600));
   }, [positions]);
@@ -113,7 +108,7 @@ function PassivesGraph() {
     return descendants;
   };
 
-  const highlightedChain = useMemo(() => {
+  const highlightedChain = React.useMemo(() => {
     if (!selected) return new Set();
     const a = getAncestors(selected);
     const d = getDescendants(selected);
@@ -127,7 +122,7 @@ function PassivesGraph() {
   const onNodeLeave = () => { setHovered(null); };
 
   // update tooltip position so it sits at the bottom-left of the visible scroll area
-  useEffect(() => {
+  React.useEffect(() => {
     const update = () => {
       const c = containerRef.current;
       const t = tooltipRef.current;
@@ -148,7 +143,7 @@ function PassivesGraph() {
   }, [containerRef, hovered, selected]);
 
   // build connector lines from ingredients to evolved nodes (include src/tgt names)
-  const connectors = useMemo(() => {
+  const connectors = React.useMemo(() => {
     const out = [];
     col4.forEach(e => {
       const target = positions[e.name];
@@ -162,115 +157,138 @@ function PassivesGraph() {
     return out;
   }, [col4, positions]);
 
-  return (
-    <div className="p-4">
-      <div className="relative mb-3">
-        <input
-          type="text"
-          placeholder="Search passives..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-slate-700 text-white placeholder-slate-400 rounded-md py-2 px-4"
-        />
-        {searchResults.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
-            {searchResults.map(name => (
-              <div key={name} onClick={() => { setSelected(name); setSearchTerm(''); }} className="px-4 py-2 text-white hover:bg-slate-700 cursor-pointer">
-                {name}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+  return React.createElement(
+    'div',
+    { className: "p-4" },
+    React.createElement(
+      'div',
+      { className: "relative mb-3" },
+      React.createElement('input', {
+        type: "text",
+        placeholder: "Search passives...",
+        value: searchTerm,
+        onChange: (e) => setSearchTerm(e.target.value),
+        className: "w-full bg-slate-700 text-white placeholder-slate-400 rounded-md py-2 px-4"
+      }),
+      searchResults.length > 0 && React.createElement(
+        'div',
+        { className: "absolute z-10 w-full mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto" },
+        searchResults.map(name =>
+          React.createElement(
+            'div',
+            {
+              key: name,
+              onClick: () => { setSelected(name); setSearchTerm(''); },
+              className: "px-4 py-2 text-white hover:bg-slate-700 cursor-pointer"
+            },
+            name
+          )
+        )
+      )
+    ),
 
-      <div ref={containerRef} className="bg-slate-700 rounded-lg overflow-auto relative" style={{ maxHeight: '72vh' }}>
-        <svg width={svgWidth} height={svgHeight} viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="block">
-          <defs>
-            <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
-              <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8" />
-            </marker>
-          </defs>
+    React.createElement(
+      'div',
+      { ref: containerRef, className: "bg-slate-700 rounded-lg overflow-auto relative", style: { maxHeight: '72vh' } },
+      React.createElement(
+        'svg',
+        { width: svgWidth, height: svgHeight, viewBox: `0 0 ${svgWidth} ${svgHeight}`, className: "block" },
+        React.createElement(
+          'defs',
+          null,
+          React.createElement(
+            'marker',
+            { id: "arrow", markerWidth: "10", markerHeight: "10", refX: "8", refY: "5", orient: "auto" },
+            React.createElement('path', { d: "M0,0 L10,5 L0,10 z", fill: "#94a3b8" })
+          )
+        ),
 
-          {/* connectors (show full opacity only when source or target is selected) */}
-          {connectors.map((c, i) => {
-            const full = selected === c.src || selected === c.tgt;
-            const opacity = full ? 0.9 : 0.12;
-            return (
-              <line key={i} x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2} stroke="#94a3b8" strokeWidth={full ? 1.8 : 1} markerEnd="url(#arrow)" strokeOpacity={opacity} />
-            );
-          })}
+        // connectors (show full opacity only when source or target is selected)
+        connectors.map((c, i) => {
+          const full = selected === c.src || selected === c.tgt;
+          const opacity = full ? 0.9 : 0.12;
+          return React.createElement(
+            'line',
+            {
+              key: i,
+              x1: c.x1,
+              y1: c.y1,
+              x2: c.x2,
+              y2: c.y2,
+              stroke: "#94a3b8",
+              strokeWidth: full ? 1.8 : 1,
+              markerEnd: "url(#arrow)",
+              strokeOpacity: opacity
+            }
+          );
+        }),
 
-          {/* render nodes */}
-          {col1.map(p => (
-            <PassiveNode 
-              key={p.name}
-              name={p.name}
-              position={positions[p.name]}
-              isEvolved={false}
-              highlightedChain={highlightedChain}
-              passiveCategories={passiveCategories}
-              onNodeHover={onNodeHover}
-              onNodeLeave={onNodeLeave}
-              setSelected={setSelected}
-              selected={selected}
-            />
-          ))}
-          {col2.map(p => (
-            <PassiveNode 
-              key={p.name}
-              name={p.name}
-              position={positions[p.name]}
-              isEvolved={false}
-              highlightedChain={highlightedChain}
-              passiveCategories={passiveCategories}
-              onNodeHover={onNodeHover}
-              onNodeLeave={onNodeLeave}
-              setSelected={setSelected}
-              selected={selected}
-            />
-          ))}
-          {col3.map(p => (
-            <PassiveNode 
-              key={p.name}
-              name={p.name}
-              position={positions[p.name]}
-              isEvolved={false}
-              highlightedChain={highlightedChain}
-              passiveCategories={passiveCategories}
-              onNodeHover={onNodeHover}
-              onNodeLeave={onNodeLeave}
-              setSelected={setSelected}
-              selected={selected}
-            />
-          ))}
-          {col4.map(e => (
-            <PassiveNode 
-              key={e.name}
-              name={e.name}
-              position={positions[e.name]}
-              isEvolved={true}
-              highlightedChain={highlightedChain}
-              passiveCategories={passiveCategories}
-              onNodeHover={onNodeHover}
-              onNodeLeave={onNodeLeave}
-              setSelected={setSelected}
-              selected={selected}
-            />
-          ))}
-        </svg>
+        // render nodes
+        col1.map(p =>
+          React.createElement(PassiveNode, {
+            key: p.name,
+            name: p.name,
+            position: positions[p.name],
+            isEvolved: false,
+            highlightedChain,
+            passiveCategories,
+            onNodeHover,
+            onNodeLeave,
+            setSelected,
+            selected
+          })
+        ),
+        col2.map(p =>
+          React.createElement(PassiveNode, {
+            key: p.name,
+            name: p.name,
+            position: positions[p.name],
+            isEvolved: false,
+            highlightedChain,
+            passiveCategories,
+            onNodeHover,
+            onNodeLeave,
+            setSelected,
+            selected
+          })
+        ),
+        col3.map(p =>
+          React.createElement(PassiveNode, {
+            key: p.name,
+            name: p.name,
+            position: positions[p.name],
+            isEvolved: false,
+            highlightedChain,
+            passiveCategories,
+            onNodeHover,
+            onNodeLeave,
+            setSelected,
+            selected
+          })
+        ),
+        col4.map(e =>
+          React.createElement(PassiveNode, {
+            key: e.name,
+            name: e.name,
+            position: positions[e.name],
+            isEvolved: true,
+            highlightedChain,
+            passiveCategories,
+            onNodeHover,
+            onNodeLeave,
+            setSelected,
+            selected
+          })
+        )
+      ),
 
-        {/* bottom-left tooltip panel (fixed inside graph container) */}
-        {(selected || hovered) && (
-          <PassiveTooltip 
-            selected={selected} 
-            hovered={hovered} 
-            tooltipTop={tooltipTop} 
-            containerRef={containerRef} 
-          />
-        )}
-      </div>
-    </div>
+      // bottom-left tooltip panel (fixed inside graph container)
+      (selected || hovered) && React.createElement(PassiveTooltip, {
+        selected,
+        hovered,
+        tooltipTop,
+        containerRef
+      })
+    )
   );
 }
-
-export default PassivesGraph;

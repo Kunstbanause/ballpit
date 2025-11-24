@@ -1,44 +1,38 @@
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import useBuildings from './useBuildings';
-import BuildingList from './BuildingList';
-import BuildingGrid from './BuildingGrid';
-import BuildingTooltip from './BuildingTooltip';
-
 function BuildingsViewer() {
-  const [selectedBuilding, setSelectedBuilding] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [draggedBuilding, setDraggedBuilding] = useState(null);
-  const [previewPosition, setPreviewPosition] = useState(null);
-  const [wasDraggedFromGrid, setWasDraggedFromGrid] = useState(false);
-  const [draggedInstanceId, setDraggedInstanceId] = useState(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [placementError, setPlacementError] = useState(null);
-  const [leftColWidth, setLeftColWidth] = useState(300);
-  const isResizing = useRef(false);
+  const [selectedBuilding, setSelectedBuilding] = React.useState(null);
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [draggedBuilding, setDraggedBuilding] = React.useState(null);
+  const [previewPosition, setPreviewPosition] = React.useState(null);
+  const [wasDraggedFromGrid, setWasDraggedFromGrid] = React.useState(false);
+  const [draggedInstanceId, setDraggedInstanceId] = React.useState(null);
+  const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
+  const [placementError, setPlacementError] = React.useState(null);
+  const [leftColWidth, setLeftColWidth] = React.useState(300);
+  const isResizing = React.useRef(false);
 
-  const { 
-    placedBuildings, 
-    setPlacedBuildings, 
-    occupiedCells, 
-    setOccupiedCells, 
-    placeBuilding, 
+  const {
+    placedBuildings,
+    setPlacedBuildings,
+    occupiedCells,
+    setOccupiedCells,
+    placeBuilding,
     removeBuilding,
-    getOccupiedPositions
+    getOccupiedPositions: getOccupiedPos
   } = useBuildings();
 
-  const startResizing = useCallback(() => {
+  const startResizing = React.useCallback(() => {
     isResizing.current = true;
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
   }, []);
 
-  const stopResizing = useCallback(() => {
+  const stopResizing = React.useCallback(() => {
     isResizing.current = false;
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
   }, []);
 
-  const resize = useCallback((e) => {
+  const resize = React.useCallback((e) => {
     if (isResizing.current) {
       const newWidth = e.clientX;
       if (newWidth >= 200 && newWidth <= 600) {
@@ -47,7 +41,7 @@ function BuildingsViewer() {
     }
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     window.addEventListener('mousemove', resize);
     window.addEventListener('mouseup', stopResizing);
     return () => {
@@ -63,7 +57,7 @@ function BuildingsViewer() {
 
     // If dropped outside the grid (and not caught by handleDrop), remove building if it was from grid
     if (wasDraggedFromGrid && draggedInstanceId) {
-      removeBuilding(draggedInstanceId, placedBuildings, setPlacedBuildings, occupiedCells, setOccupiedCells);
+      removeBuilding(draggedInstanceId);
       setPreviewPosition(null);
       setDraggedBuilding(null);
       setWasDraggedFromGrid(false);
@@ -76,7 +70,7 @@ function BuildingsViewer() {
     e.preventDefault();
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (placementError) {
       const timer = setTimeout(() => {
         setPlacementError(null);
@@ -85,13 +79,13 @@ function BuildingsViewer() {
     }
   }, [placementError]);
 
-  const allItems = useMemo(() => {
+  const allItems = React.useMemo(() => {
     const buildings = window.buildingsData.buildings || [];
     const tiles = window.buildingsData.resource_tiles || [];
     return [...buildings, ...tiles];
   }, []);
 
-  const buildingsByCategory = useMemo(() => {
+  const buildingsByCategory = React.useMemo(() => {
     const cats = {};
     allItems.forEach(b => {
       if (!cats[b.category]) {
@@ -122,7 +116,7 @@ function BuildingsViewer() {
     return sortedCats;
   }, [allItems]);
 
-  const filteredCategories = useMemo(() => {
+  const filteredCategories = React.useMemo(() => {
     if (!searchTerm) return buildingsByCategory;
     const lowerSearch = searchTerm.toLowerCase();
     const filtered = {};
@@ -169,8 +163,8 @@ function BuildingsViewer() {
     col = Math.max(0, Math.min(40 - buildingWidth, col));
     row = Math.max(0, Math.min(30 - buildingHeight, row));
 
-    const placementCheck = placeBuilding(row, col, draggedBuilding, placedBuildings, setPlacedBuildings, occupiedCells, setOccupiedCells, wasDraggedFromGrid, draggedInstanceId) 
-      ? { canPlace: true } 
+    const placementCheck = placeBuilding(row, col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId)
+      ? { canPlace: true }
       : { canPlace: false, reason: 'occupied' };
 
     if (placementCheck.canPlace) {
@@ -200,10 +194,10 @@ function BuildingsViewer() {
     if (!draggedBuilding) return;
 
     if (previewPosition) {
-      const placementCheck = placeBuilding(previewPosition.row, previewPosition.col, draggedBuilding, placedBuildings, setPlacedBuildings, occupiedCells, setOccupiedCells, wasDraggedFromGrid, draggedInstanceId);
+      const placementCheck = placeBuilding(previewPosition.row, previewPosition.col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId);
       if (placementCheck) {
         // Success
-      } else if (placementCheck === false) {
+      } else {
         setPlacementError('You can only place one of this building.');
       }
     }
@@ -215,7 +209,7 @@ function BuildingsViewer() {
   };
 
   // Track mouse position for tooltip
-  useEffect(() => {
+  React.useEffect(() => {
     const handleMouseMove = (e) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
@@ -227,61 +221,63 @@ function BuildingsViewer() {
     };
   }, []);
 
-  const selectedBuildingData = useMemo(() => {
+  const selectedBuildingData = React.useMemo(() => {
     if (!selectedBuilding) return null;
     return allItems.find(item => item.name === selectedBuilding);
   }, [selectedBuilding, allItems]);
 
-  return (
-    <div
-      className="flex h-[84vh] bg-slate-900"
-      onDrop={handleGlobalDrop}
-      onDragOver={handleGlobalDragOver}
-    >
-      {/* Left Column - Scrollable Building List */}
-      <BuildingList 
-        buildingsByCategory={buildingsByCategory}
-        filteredCategories={filteredCategories}
-        selectedBuilding={selectedBuilding}
-        onSelect={setSelectedBuilding}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        allItems={allItems}
-      />
+  return React.createElement(
+    'div',
+    {
+      className: "flex h-[84vh] bg-slate-900",
+      onDrop: handleGlobalDrop,
+      onDragOver: handleGlobalDragOver
+    },
+    // Left Column - Scrollable Building List
+    React.createElement(BuildingList, {
+      buildingsByCategory,
+      filteredCategories,
+      selectedBuilding,
+      onSelect: setSelectedBuilding,
+      searchTerm,
+      setSearchTerm,
+      allItems
+    }),
 
-      {/* Resize Handle */}
-      <div
-        className="w-1 bg-slate-700 hover:bg-blue-500 cursor-col-resize flex-shrink-0 transition-colors"
-        onMouseDown={startResizing}
-      />
+    // Resize Handle
+    React.createElement(
+      'div',
+      {
+        className: "w-1 bg-slate-700 hover:bg-blue-500 cursor-col-resize flex-shrink-0 transition-colors",
+        onMouseDown: startResizing
+      }
+    ),
 
-      {/* Right Column - Building Grid (with stable size) */}
-      <div className="flex-1 bg-slate-900 p-2 flex flex-col h-full min-h-0 overflow-hidden">
-        <BuildingGrid
-          placedBuildings={placedBuildings}
-          previewPosition={previewPosition}
-          error={placementError}
-          handleDragOver={handleDragOver}
-          handleDragLeave={handleDragLeave}
-          handleDrop={handleDrop}
-          getOccupiedPositions={getOccupiedPositions}
-          draggedBuilding={draggedBuilding}
-          wasDraggedFromGrid={wasDraggedFromGrid}
-          draggedInstanceId={draggedInstanceId}
-          onPlace={placeBuilding}
-          onRemove={removeBuilding}
-        />
-      </div>
+    // Right Column - Building Grid (with stable size)
+    React.createElement(
+      'div',
+      { className: "flex-1 bg-slate-900 p-2 flex flex-col h-full min-h-0 overflow-hidden" },
+      React.createElement(BuildingGrid, {
+        placedBuildings,
+        previewPosition,
+        error: placementError,
+        handleDragOver,
+        handleDragLeave,
+        handleDrop,
+        handleDragStart,
+        getOccupiedPositions: getOccupiedPos,
+        draggedBuilding,
+        wasDraggedFromGrid,
+        draggedInstanceId,
+        onPlace: placeBuilding,
+        onRemove: removeBuilding
+      })
+    ),
 
-      {/* Mouse Position Tooltip Overlay */}
-      {selectedBuildingData && !draggedBuilding && (
-        <BuildingTooltip 
-          selectedBuildingData={selectedBuildingData} 
-          mousePosition={mousePosition} 
-        />
-      )}
-    </div>
+    // Mouse Position Tooltip Overlay
+    selectedBuildingData && !draggedBuilding && React.createElement(BuildingTooltip, {
+      selectedBuildingData,
+      mousePosition
+    })
   );
 }
-
-export default BuildingsViewer;
