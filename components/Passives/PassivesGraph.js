@@ -167,10 +167,10 @@ function PassivesGraph() {
 
     React.createElement(
       'div',
-      { ref: containerRef, className: "bg-slate-700 rounded-lg overflow-auto relative", style: { maxHeight: '72vh' } },
+      { ref: containerRef, className: "bg-slate-800 rounded-lg overflow-y-auto overflow-x-auto relative", style: { maxHeight: '78vh' } },
       React.createElement(
         'svg',
-        { width: svgWidth, height: svgHeight, viewBox: `0 0 ${svgWidth} ${svgHeight}`, className: "block" },
+        { width: svgWidth, height: svgHeight, viewBox: `0 0 ${svgWidth} ${svgHeight}`, className: "bg-slate-700 block" },
         React.createElement(
           'defs',
           null,

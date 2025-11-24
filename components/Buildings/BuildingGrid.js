@@ -149,6 +149,13 @@ function BuildingGrid({
                   handleDragStart(e, building.building, true, building.instanceId);
                 }
               },
+              onContextMenu: (e) => {
+                e.preventDefault(); // Prevent default context menu
+                // Remove the building using the onRemove prop
+                if (typeof onRemove === 'function') {
+                  onRemove(building.instanceId);
+                }
+              },
               onMouseEnter: (e) => {
                 // Call a hover handler if provided to show tooltip for this building
                 if (typeof onBuildingHover === 'function') {

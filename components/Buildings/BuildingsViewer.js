@@ -251,7 +251,7 @@ function BuildingsViewer() {
     // Main content area with resizable columns
     React.createElement(
       'div',
-      { className: "flex flex-1 gap-0", style: { maxHeight: '72vh' } }, // Main area that contains the resizable columns with max height
+      { className: "flex flex-1 gap-0", style: { maxHeight: '84vh' } }, // Main area that contains the resizable columns with max height
       // Left Column - Scrollable Building List with dynamic width
       React.createElement('div', {
         className: "bg-slate-800 border-r border-slate-700 flex flex-col",

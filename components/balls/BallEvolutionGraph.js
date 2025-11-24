@@ -200,7 +200,7 @@ function BallEvolutionGraph({ searchTerm = '' }) {
     { className: "relative", style: { display: 'block' } },
     React.createElement(
       'div',
-      { className: "bg-slate-800 rounded-lg overflow-y-auto overflow-x-auto", style: { maxHeight: '84vh' } },
+      { className: "bg-slate-800 rounded-lg overflow-y-auto overflow-x-auto", style: { maxHeight: '79vh' } },
       React.createElement(
         'svg',
         {
