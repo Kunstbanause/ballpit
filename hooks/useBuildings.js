@@ -4,6 +4,16 @@ function useBuildings() {
     Array(30 * 40).fill(false)
   );
 
+  const getOccupiedPositions = (topLeftRow, topLeftCol, width = 2, height = 2) => {
+    const positions = [];
+    for (let r = 0; r < height; r++) {
+      for (let c = 0; c < width; c++) {
+        positions.push((topLeftRow + r) * 40 + (topLeftCol + c));
+      }
+    }
+    return positions;
+  };
+
   const canPlaceBuilding = React.useCallback((row, col, building, fromGrid, instanceIdToDrag) => {
     if (building.max_placeable === 1) {
       let count = placedBuildings.filter(pb => pb.building.name === building.name).length;
@@ -125,3 +135,6 @@ function useBuildings() {
     getOccupiedPositions
   };
 }
+
+// Export for Babel Standalone
+window.useBuildings = useBuildings;
