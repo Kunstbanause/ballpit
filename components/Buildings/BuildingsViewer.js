@@ -135,36 +135,119 @@ function BuildingsViewer() {
   // State to track if we've loaded from URL on this session
   const [hasLoadedFromUrl, setHasLoadedFromUrl] = React.useState(false);
 
-  // Load state from URL hash on first component mount only
+  // Load state from URL hash on first component mount only, or from localStorage if not loading from URL
   React.useEffect(() => {
     if (!hasLoadedFromUrl) {
+      // First, try to load from URL hash
       const hash = window.location.hash.slice(1); // Remove the '#' character
-      if (hash) {
-        const loadedBuildings = deserializeBuildingsFromHash(hash);
-        if (loadedBuildings && loadedBuildings.length > 0) {
-          // Set the placed buildings to the loaded state
-          setPlacedBuildings(loadedBuildings);
+      let loadedBuildings = null;
 
-          // Recalculate occupied cells based on loaded buildings
-          const newOccupiedCells = Array(30 * 40).fill(false);
-          loadedBuildings.forEach(building => {
-            const { w = 2, h = 2 } = building.building.size || {};
-            const positions = getOccupiedPos(building.row, building.col, w, h);
-            positions.forEach(pos => {
-              if (pos >= 0 && pos < newOccupiedCells.length) {
-                newOccupiedCells[pos] = true;
-              }
-            });
-          });
-          setOccupiedCells(newOccupiedCells);
+      if (hash) {
+        loadedBuildings = deserializeBuildingsFromHash(hash);
+      }
+
+      // If no buildings loaded from URL, try loading from localStorage
+      if (!loadedBuildings || loadedBuildings.length === 0) {
+        try {
+          const localStorageData = localStorage.getItem('buildingLayout');
+          if (localStorageData) {
+            const parsedData = JSON.parse(localStorageData);
+            if (parsedData && parsedData.length > 0) {
+              loadedBuildings = parsedData.map((b, index) => {
+                // Find the actual building data from allItems
+                const buildingData = window.buildingsData?.buildings?.find(building => building.name === b.building.name) ||
+                                    window.buildingsData?.resource_tiles?.find(tile => tile.name === b.building.name);
+
+                return {
+                  instanceId: `${b.building.name}_${Date.now()}_${index}`, // Generate new instance ID on load
+                  building: buildingData || b.building, // Use original data or fallback
+                  topLeftIndex: b.row * 40 + b.col,
+                  row: b.row,
+                  col: b.col
+                };
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error loading building layout from localStorage:', error);
         }
       }
+
+      // If we have loaded buildings, apply them
+      if (loadedBuildings && loadedBuildings.length > 0) {
+        // Set the placed buildings to the loaded state
+        setPlacedBuildings(loadedBuildings);
+
+        // Recalculate occupied cells based on loaded buildings
+        const newOccupiedCells = Array(30 * 40).fill(false);
+        loadedBuildings.forEach(building => {
+          const { w = 2, h = 2 } = building.building.size || {};
+          const positions = getOccupiedPos(building.row, building.col, w, h);
+          positions.forEach(pos => {
+            if (pos >= 0 && pos < newOccupiedCells.length) {
+              newOccupiedCells[pos] = true;
+            }
+          });
+        });
+        setOccupiedCells(newOccupiedCells);
+      }
+
       // Mark that we've loaded from URL so this doesn't run again during this session
       setHasLoadedFromUrl(true);
     }
   }, [hasLoadedFromUrl, setPlacedBuildings, setOccupiedCells, deserializeBuildingsFromHash, getOccupiedPos]);
 
-  // No automatic saving to URL anymore - only manual saving
+  // Effect to update URL hash and localStorage when placedBuildings change with aggressive debouncing
+  // Only update URL if user is currently on the buildings tab
+  React.useEffect(() => {
+    // Create a more sophisticated debounce mechanism that avoids excessive updates
+    if (window.urlUpdateTimeout) {
+      clearTimeout(window.urlUpdateTimeout);
+    }
+
+    // Only proceed after a delay to ensure we're not in the middle of multiple rapid changes
+    window.urlUpdateTimeout = setTimeout(() => {
+      // Save to localStorage to persist across component unmounts
+      if (placedBuildings && placedBuildings.length > 0) {
+        try {
+          // Store the essential building data to localStorage
+          const buildingDataToSave = placedBuildings.map(b => ({
+            building: b.building,
+            row: b.row,
+            col: b.col
+          }));
+          localStorage.setItem('buildingLayout', JSON.stringify(buildingDataToSave));
+        } catch (error) {
+          console.error('Error saving building layout to localStorage:', error);
+        }
+      } else {
+        // If no buildings, clear localStorage
+        localStorage.removeItem('buildingLayout');
+      }
+
+      // Only update URL if we're on the buildings page
+      const currentHash = window.location.hash.slice(1);
+      if (currentHash === 'buildings' || currentHash.startsWith('buildings-')) {
+        const layoutHash = serializeBuildingsToHash(placedBuildings);
+        if (layoutHash) {
+          const newUrl = `${window.location.pathname}#${layoutHash}`;
+          window.history.replaceState(null, '', newUrl);
+        } else {
+          // If no buildings, set back to just #buildings
+          if (window.location.hash !== '#buildings') {
+            window.history.replaceState(null, '', `${window.location.pathname}#buildings`);
+          }
+        }
+      }
+    }, 500); // 500ms delay to ensure user has finished the action
+
+    // Cleanup function
+    return () => {
+      if (window.urlUpdateTimeout) {
+        clearTimeout(window.urlUpdateTimeout);
+      }
+    };
+  }, [placedBuildings, serializeBuildingsToHash]);
 
   const allItems = React.useMemo(() => {
     const buildings = window.buildingsData.buildings || [];

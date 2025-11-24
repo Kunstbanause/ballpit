@@ -1,8 +1,12 @@
+// Global variable to maintain building layout across component unmounts
+window.globalBuildingLayout = window.globalBuildingLayout || {
+  placedBuildings: [],
+  occupiedCells: Array(30 * 40).fill(false)
+};
+
 function useBuildings() {
-  const [placedBuildings, setPlacedBuildings] = React.useState([]);
-  const [occupiedCells, setOccupiedCells] = React.useState(() =>
-    Array(30 * 40).fill(false)
-  );
+  const [placedBuildings, setPlacedBuildings] = React.useState(window.globalBuildingLayout.placedBuildings);
+  const [occupiedCells, setOccupiedCells] = React.useState(window.globalBuildingLayout.occupiedCells);
 
   const getOccupiedPositions = (topLeftRow, topLeftCol, width = 2, height = 2) => {
     const positions = [];
@@ -75,6 +79,9 @@ function useBuildings() {
       getOccupiedPositions(row, col, w, h).forEach(pos => {
         newOccupiedCells[pos] = true;
       });
+
+      // Update the global state
+      window.globalBuildingLayout.occupiedCells = newOccupiedCells;
       return newOccupiedCells;
     });
 
@@ -89,6 +96,8 @@ function useBuildings() {
             col,
             topLeftIndex,
           };
+          // Update the global state
+          window.globalBuildingLayout.placedBuildings = newPlacedBuildings;
           return newPlacedBuildings;
         }
       }
@@ -101,6 +110,9 @@ function useBuildings() {
         row,
         col
       });
+
+      // Update the global state
+      window.globalBuildingLayout.placedBuildings = newPlacedBuildings;
       return newPlacedBuildings;
     });
 
@@ -117,10 +129,17 @@ function useBuildings() {
           getOccupiedPositions(buildingToRemove.row, buildingToRemove.col, w, h).forEach(pos => {
             newOccupiedCells[pos] = false;
           });
+
+          // Update the global state
+          window.globalBuildingLayout.occupiedCells = newOccupiedCells;
           return newOccupiedCells;
         });
       }
-      return prev.filter(pb => pb.instanceId !== instanceId);
+      const newPlacedBuildings = prev.filter(pb => pb.instanceId !== instanceId);
+
+      // Update the global state
+      window.globalBuildingLayout.placedBuildings = newPlacedBuildings;
+      return newPlacedBuildings;
     });
   }, []);
 
