@@ -179,11 +179,7 @@ function BuildingsViewer() {
         setPlacementError(null);
       } else {
         setPreviewPosition(null);
-        if (placementCheck.reason === 'limit-reached') {
-          setPlacementError('You can only place one of this building.');
-        } else {
-          setPlacementError(null);
-        }
+        setPlacementError(null);
       }
     }
   };
@@ -206,7 +202,7 @@ function BuildingsViewer() {
       if (placementCheck) {
         // Success
       } else {
-        setPlacementError('You can only place one of this building.');
+        setPlacementError(null);
       }
     }
 
