@@ -167,19 +167,23 @@ function BuildingsViewer() {
     col = Math.max(0, Math.min(40 - buildingWidth, col));
     row = Math.max(0, Math.min(30 - buildingHeight, row));
 
-    const placementCheck = placeBuilding(row, col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId)
-      ? { canPlace: true }
-      : { canPlace: false, reason: 'occupied' };
+    // Only update if position changed to prevent "painting" effect
+    const newPosition = { row, col };
+    if (!previewPosition || previewPosition.row !== row || previewPosition.col !== col) {
+      const placementCheck = placeBuilding(row, col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId)
+        ? { canPlace: true }
+        : { canPlace: false, reason: 'occupied' };
 
-    if (placementCheck.canPlace) {
-      setPreviewPosition({ row, col });
-      setPlacementError(null);
-    } else {
-      setPreviewPosition(null);
-      if (placementCheck.reason === 'limit-reached') {
-        setPlacementError('You can only place one of this building.');
-      } else {
+      if (placementCheck.canPlace) {
+        setPreviewPosition(newPosition);
         setPlacementError(null);
+      } else {
+        setPreviewPosition(null);
+        if (placementCheck.reason === 'limit-reached') {
+          setPlacementError('You can only place one of this building.');
+        } else {
+          setPlacementError(null);
+        }
       }
     }
   };
@@ -240,65 +244,75 @@ function BuildingsViewer() {
   return React.createElement(
     'div',
     {
-      className: "flex h-[84vh] bg-slate-900",
+      className: "flex flex-col flex-1 min-h-0 bg-slate-900", // Use flex-col for proper layout in parent
       onDrop: handleGlobalDrop,
       onDragOver: handleGlobalDragOver
     },
-    // Left Column - Scrollable Building List
-    React.createElement(BuildingList, {
-      buildingsByCategory,
-      filteredCategories,
-      selectedBuilding,
-      onSelect: setSelectedBuilding,
-      searchTerm,
-      setSearchTerm,
-      allItems,
-      onHover: setHoveredBuilding,
-      currentHovered: hoveredBuilding,
-      onDragStartFromList: handleDragStart
-    }),
-
-    // Resize Handle
+    // Main content area with resizable columns
     React.createElement(
       'div',
-      {
-        className: "w-1 bg-slate-700 hover:bg-blue-500 cursor-col-resize flex-shrink-0 transition-colors",
-        onMouseDown: startResizing
-      }
-    ),
+      { className: "flex flex-1 min-h-0" }, // Main area that contains the resizable columns
+      // Left Column - Scrollable Building List with dynamic width
+      React.createElement('div', {
+        className: "bg-slate-800 border-r border-slate-700 flex-shrink-0",
+        style: { width: leftColWidth }
+      },
+        React.createElement(BuildingList, {
+          buildingsByCategory,
+          filteredCategories,
+          selectedBuilding,
+          onSelect: setSelectedBuilding,
+          searchTerm,
+          setSearchTerm,
+          allItems,
+          onHover: setHoveredBuilding,
+          currentHovered: hoveredBuilding,
+          onDragStartFromList: handleDragStart
+        })
+      ),
 
-    // Right Column - Building Grid (with stable size)
-    React.createElement(
-      'div',
-      { className: "flex-1 bg-slate-900 p-2 flex flex-col h-full min-h-0 overflow-hidden" },
-      React.createElement(BuildingGrid, {
-        placedBuildings,
-        previewPosition,
-        error: placementError,
-        handleDragOver,
-        handleDragLeave,
-        handleDrop,
-        handleDragStart,
-        onBuildingHover: setHoveredBuilding, // Set hovered building when mouse enters a placed building
-        onBuildingLeave: () => setHoveredBuilding(null), // Clear hovered building when mouse leaves
-        getOccupiedPositions: getOccupiedPos,
-        draggedBuilding,
-        wasDraggedFromGrid,
-        draggedInstanceId,
-        onPlace: placeBuilding,
-        onRemove: removeBuilding
+      // Resize Handle
+      React.createElement(
+        'div',
+        {
+          className: "w-1 bg-slate-700 hover:bg-blue-500 cursor-col-resize flex-shrink-0 transition-colors",
+          onMouseDown: startResizing
+        }
+      ),
+
+      // Right Column - Building Grid (with remaining space)
+      React.createElement(
+        'div',
+        { className: "flex-1 bg-slate-900 p-2 flex flex-col h-full min-h-0 overflow-hidden", style: { minWidth: 0 } },
+        React.createElement(BuildingGrid, {
+          placedBuildings,
+          previewPosition,
+          error: placementError,
+          handleDragOver,
+          handleDragLeave,
+          handleDrop,
+          handleDragStart,
+          onBuildingHover: setHoveredBuilding, // Set hovered building when mouse enters a placed building
+          onBuildingLeave: () => setHoveredBuilding(null), // Clear hovered building when mouse leaves
+          getOccupiedPositions: getOccupiedPos,
+          draggedBuilding,
+          wasDraggedFromGrid,
+          draggedInstanceId,
+          onPlace: placeBuilding,
+          onRemove: removeBuilding
+        })
+      ),
+
+      // Mouse Position Tooltip Overlay
+      selectedBuildingData && !draggedBuilding && React.createElement(BuildingTooltip, {
+        selectedBuildingData,
+        mousePosition
+      }),
+      // Hover tooltip (when no building is selected, but there's a hovered building)
+      hoveredBuildingData && !selectedBuilding && !draggedBuilding && React.createElement(BuildingTooltip, {
+        selectedBuildingData: hoveredBuildingData,
+        mousePosition
       })
-    ),
-
-    // Mouse Position Tooltip Overlay
-    selectedBuildingData && !draggedBuilding && React.createElement(BuildingTooltip, {
-      selectedBuildingData,
-      mousePosition
-    }),
-    // Hover tooltip (when no building is selected, but there's a hovered building)
-    hoveredBuildingData && !selectedBuilding && !draggedBuilding && React.createElement(BuildingTooltip, {
-      selectedBuildingData: hoveredBuildingData,
-      mousePosition
-    })
+    )
   );
 }

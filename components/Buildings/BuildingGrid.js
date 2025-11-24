@@ -163,24 +163,15 @@ function BuildingGrid({
               }
             },
             React.createElement(
-              'div',
-              { className: "flex items-center justify-center h-full" },
-              React.createElement(
-                'img',
-                {
-                  src: window.helpers.getBuildingIconUrl(building.building.name),
-                  alt: building.building.name,
-                  className: "max-w-[80%] max-h-[80%] object-contain",
-                  onError: (e) => {
-                    e.target.style.display = 'none';
-                  }
+              'img',
+              {
+                src: window.helpers.getBuildingIconUrl(building.building.name),
+                alt: building.building.name,
+                className: "w-full h-full object-cover",
+                onError: (e) => {
+                  e.target.style.display = 'none';
                 }
-              )
-            ),
-            React.createElement(
-              'div',
-              { className: "absolute bottom-0 left-0 right-0 bg-black/70 text-white text-[8px] px-1 truncate" },
-              building.building.name
+              }
             )
           );
         })

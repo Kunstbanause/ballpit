@@ -12,7 +12,7 @@ function BuildingList({
 }) {
   return React.createElement(
     'div',
-    { className: "flex flex-col bg-slate-800 border-r border-slate-700 flex-shrink-0", style: { width: 300 } },
+    { className: "flex flex-col bg-slate-800 border-r border-slate-700 flex-shrink-0", style: { minWidth: 0 } },
     // Search Bar
     React.createElement(
       'div',
