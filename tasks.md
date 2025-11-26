@@ -5,5 +5,3 @@
 ## buildings graph
 * move build limit to the list
 * Add thresholds where elements are hidden to save space.
-* Complex building shapes
-* Rotation
