@@ -155,7 +155,7 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 100, "wheat": 0, "wood": 0, "stone": 4 },
-          "size": { "w": 2, "h": 2 },
+          "size": { "w": 1, "h": 1 },
           "max_placeable": 1
         },
         {
@@ -218,7 +218,7 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 300, "wheat": 0, "wood": 0, "stone": 12 },
-          "size": { "w": 2, "h": 2 },
+          "size": { "w": 1, "h": 1 },
           "max_placeable": 1
         },
         {
@@ -272,7 +272,7 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 500, "wheat": 0, "wood": 0, "stone": 20 },
-          "size": { "w": 2, "h": 2 },
+          "size": { "w": 1, "h": 1 },
           "max_placeable": 1
         },
         {
@@ -299,7 +299,7 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 800, "wheat": 0, "wood": 0, "stone": 30 },
-          "size": { "w": 2, "h": 2 },
+          "size": { "w": 1, "h": 1 },
           "max_placeable": 1
         },
         {
@@ -407,7 +407,7 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 400, "wheat": 0, "wood": 0, "stone": 16 },
-          "size": { "w": 2, "h": 2 },
+          "size": { "w": 1, "h": 1 },
           "max_placeable": 1
         },
         {
@@ -416,7 +416,7 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 600, "wheat": 0, "wood": 0, "stone": 24 },
-          "size": { "w": 2, "h": 2 },
+          "size": { "w": 1, "h": 1 },
           "max_placeable": 1
         },
         {
@@ -425,7 +425,7 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 200, "wheat": 0, "wood": 0, "stone": 8 },
-          "size": { "w": 2, "h": 2 },
+          "size": { "w": 1, "h": 1 },
           "max_placeable": 1
         },
         {
@@ -443,7 +443,7 @@ window.buildingsData = {
           "Drop Location": "Not specified",
           "category": "Warfare",
           "cost": { "gold": 800, "wheat": 0, "wood": 0, "stone": 30 },
-          "size": { "w": 2, "h": 2 },
+          "size": { "w": 1, "h": 1 },
           "max_placeable": 1
         },
         {
