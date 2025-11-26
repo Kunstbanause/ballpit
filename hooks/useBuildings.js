@@ -4,20 +4,33 @@ window.globalBuildingLayout = window.globalBuildingLayout || {
   occupiedCells: Array(30 * 40).fill(false)
 };
 
+// Helper function to rotate a building's shape
+const rotateShape = (shape, rotation) => {
+  if (!shape || rotation === 0) return shape;
+
+  let newShape = [...shape];
+  for (let i = 0; i < rotation; i++) {
+    const currentWidth = Math.max(0, ...newShape.map(p => p[0]));
+    newShape = newShape.map(p => [p[1], currentWidth - p[0] + 1]);
+  }
+  return newShape;
+};
+
 function useBuildings() {
   const [placedBuildings, setPlacedBuildings] = React.useState(window.globalBuildingLayout.placedBuildings);
   const [occupiedCells, setOccupiedCells] = React.useState(window.globalBuildingLayout.occupiedCells);
 
-  const getOccupiedPositions = (topLeftRow, topLeftCol, building) => {
+  const getOccupiedPositions = (topLeftRow, topLeftCol, building, rotation = 0) => {
     const positions = [];
-    if (building.shape) {
-      for (const part of building.shape) {
+    const shape = building.shape ? rotateShape(building.shape, rotation) : null;
+
+    if (shape) {
+      for (const part of shape) {
         const c = part[0] - 1;
         const r = part[1] - 1;
         positions.push((topLeftRow + r) * 40 + (topLeftCol + c));
       }
     } else {
-      // Fallback for items without a shape property, like resource tiles.
       const width = building.size?.w ?? 2;
       const height = building.size?.h ?? 2;
       for (let r = 0; r < height; r++) {
@@ -29,7 +42,7 @@ function useBuildings() {
     return positions;
   };
 
-  const canPlaceBuilding = React.useCallback((row, col, building, fromGrid, instanceIdToDrag) => {
+  const canPlaceBuilding = React.useCallback((row, col, building, fromGrid, instanceIdToDrag, rotation = 0) => {
     if (building.max_placeable === 1) {
       let count = placedBuildings.filter(pb => pb.building.name === building.name).length;
       if (fromGrid && instanceIdToDrag) {
@@ -45,38 +58,37 @@ function useBuildings() {
 
     let width, height;
     if (building.shape) {
-        width = Math.max(0, ...building.shape.map(p => p[0]));
-        height = Math.max(0, ...building.shape.map(p => p[1]));
+      const rotated = rotateShape(building.shape, rotation);
+      width = Math.max(0, ...rotated.map(p => p[0]));
+      height = Math.max(0, ...rotated.map(p => p[1]));
     } else {
-        width = building.size?.w ?? 2;
-        height = building.size?.h ?? 2;
+      width = building.size?.w ?? 2;
+      height = building.size?.h ?? 2;
     }
 
     if (col + width > 40 || row + height > 30) return { canPlace: false, reason: 'out-of-bounds' };
 
-    const positions = getOccupiedPositions(row, col, building);
+    const positions = getOccupiedPositions(row, col, building, rotation);
 
     for (const pos of positions) {
       if (occupiedCells[pos]) {
         if (fromGrid && instanceIdToDrag) {
           const existingBuilding = placedBuildings.find(pb => pb.instanceId === instanceIdToDrag);
           if (existingBuilding) {
-            const existingPositions = getOccupiedPositions(existingBuilding.row, existingBuilding.col, existingBuilding.building);
+            const existingPositions = getOccupiedPositions(existingBuilding.row, existingBuilding.col, existingBuilding.building, existingBuilding.rotation);
             if (existingPositions.includes(pos)) {
-              // This position is part of the building we are dragging, so it's okay.
               continue;
             }
           }
         }
-        // The position is occupied by another building.
         return { canPlace: false, reason: 'occupied' };
       }
     }
     return { canPlace: true, reason: null };
   }, [placedBuildings, occupiedCells]);
 
-  const placeBuilding = React.useCallback((row, col, building, fromGrid, instanceIdToDrag) => {
-    const placementCheck = canPlaceBuilding(row, col, building, fromGrid, instanceIdToDrag);
+  const placeBuilding = React.useCallback((row, col, building, fromGrid, instanceIdToDrag, rotation = 0) => {
+    const placementCheck = canPlaceBuilding(row, col, building, fromGrid, instanceIdToDrag, rotation);
     if (!placementCheck.canPlace) return false;
 
     const topLeftIndex = row * 40 + col;
@@ -86,47 +98,31 @@ function useBuildings() {
       if (fromGrid && instanceIdToDrag) {
         const buildingToMove = placedBuildings.find(pb => pb.instanceId === instanceIdToDrag);
         if (buildingToMove) {
-          getOccupiedPositions(buildingToMove.row, buildingToMove.col, buildingToMove.building).forEach(pos => {
+          getOccupiedPositions(buildingToMove.row, buildingToMove.col, buildingToMove.building, buildingToMove.rotation).forEach(pos => {
             newOccupiedCells[pos] = false;
           });
         }
       }
-      getOccupiedPositions(row, col, building).forEach(pos => {
+      getOccupiedPositions(row, col, building, rotation).forEach(pos => {
         newOccupiedCells[pos] = true;
       });
-
-      // Update the global state
       window.globalBuildingLayout.occupiedCells = newOccupiedCells;
       return newOccupiedCells;
     });
 
     setPlacedBuildings(prev => {
-      const newPlacedBuildings = [...prev];
+      let newPlacedBuildings = [...prev];
       if (fromGrid && instanceIdToDrag) {
         const index = newPlacedBuildings.findIndex(pb => pb.instanceId === instanceIdToDrag);
         if (index !== -1) {
-          newPlacedBuildings[index] = {
-            ...newPlacedBuildings[index],
-            row,
-            col,
-            topLeftIndex,
-          };
-          // Update the global state
+          newPlacedBuildings[index] = { ...newPlacedBuildings[index], row, col, rotation };
           window.globalBuildingLayout.placedBuildings = newPlacedBuildings;
           return newPlacedBuildings;
         }
       }
 
       const instanceId = `${building.name}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-      newPlacedBuildings.push({
-        instanceId,
-        building,
-        topLeftIndex,
-        row,
-        col
-      });
-
-      // Update the global state
+      newPlacedBuildings.push({ instanceId, building, topLeftIndex, row, col, rotation });
       window.globalBuildingLayout.placedBuildings = newPlacedBuildings;
       return newPlacedBuildings;
     });
@@ -140,18 +136,14 @@ function useBuildings() {
       if (buildingToRemove) {
         setOccupiedCells(occupied => {
           const newOccupiedCells = [...occupied];
-          getOccupiedPositions(buildingToRemove.row, buildingToRemove.col, buildingToRemove.building).forEach(pos => {
+          getOccupiedPositions(buildingToRemove.row, buildingToRemove.col, buildingToRemove.building, buildingToRemove.rotation).forEach(pos => {
             newOccupiedCells[pos] = false;
           });
-
-          // Update the global state
           window.globalBuildingLayout.occupiedCells = newOccupiedCells;
           return newOccupiedCells;
         });
       }
       const newPlacedBuildings = prev.filter(pb => pb.instanceId !== instanceId);
-
-      // Update the global state
       window.globalBuildingLayout.placedBuildings = newPlacedBuildings;
       return newPlacedBuildings;
     });
@@ -165,9 +157,9 @@ function useBuildings() {
     placeBuilding,
     removeBuilding,
     canPlaceBuilding,
-    getOccupiedPositions
+    getOccupiedPositions,
+    rotateShape
   };
 }
 
-// Export for Babel Standalone
 window.useBuildings = useBuildings;

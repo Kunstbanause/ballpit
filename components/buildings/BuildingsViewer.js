@@ -1,50 +1,37 @@
 function BuildingsViewer() {
   const [selectedBuilding, setSelectedBuilding] = React.useState(null);
+  const [draggedBuildingRotation, setDraggedBuildingRotation] = React.useState(0);
 
   // Function to serialize placed buildings to URL hash
   const serializeBuildingsToHash = React.useCallback((buildings) => {
-    if (!buildings || buildings.length === 0) {
-      return '';
-    }
-
-    // Create a simplified representation of the placed buildings
+    if (!buildings || buildings.length === 0) return '';
     const serializedData = buildings.map(b => ({
       name: b.building.name,
       row: b.row,
-      col: b.col
+      col: b.col,
+      rotation: b.rotation || 0
     }));
-
-    // Convert to JSON string then base64 encode to make it URL-safe
     const jsonString = JSON.stringify(serializedData);
-    const encoded = btoa(encodeURIComponent(jsonString));
-
-    // Create a short identifier for the hash
-    return `buildings-${encoded}`;
+    return `buildings-${btoa(encodeURIComponent(jsonString))}`;
   }, []);
 
   // Function to deserialize buildings from URL hash
   const deserializeBuildingsFromHash = React.useCallback((hash) => {
-    if (!hash || !hash.startsWith('buildings-')) {
-      return null;
-    }
-
+    if (!hash || !hash.startsWith('buildings-')) return null;
     try {
-      const encoded = hash.substring(10); // Remove 'buildings-' prefix
+      const encoded = hash.substring(10);
       const jsonString = decodeURIComponent(atob(encoded));
       const parsedData = JSON.parse(jsonString);
-
-      // Reconstruct the placed buildings with proper structure
       return parsedData.map((b, index) => {
-        // Find the actual building data from allItems
         const buildingData = window.buildingsData?.buildings?.find(building => building.name === b.name) ||
                             window.buildingsData?.resource_tiles?.find(tile => tile.name === b.name);
-
         return {
-          instanceId: `${b.name}_${Date.now()}_${index}`, // Generate new instance ID on load
-          building: buildingData || { name: b.name }, // Use original data or fallback
+          instanceId: `${b.name}_${Date.now()}_${index}`,
+          building: buildingData || { name: b.name },
           topLeftIndex: b.row * 40 + b.col,
           row: b.row,
-          col: b.col
+          col: b.col,
+          rotation: b.rotation || 0
         };
       });
     } catch (error) {
@@ -71,8 +58,20 @@ function BuildingsViewer() {
     placeBuilding,
     removeBuilding,
     canPlaceBuilding,
-    getOccupiedPositions: getOccupiedPos
+    getOccupiedPositions: getOccupiedPos,
+    rotateShape
   } = useBuildings();
+
+    React.useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.key === 'r' || e.key === 'R') && draggedBuilding) {
+                e.preventDefault();
+                setDraggedBuildingRotation(prev => (prev + 1) % 4);
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [draggedBuilding]);
 
   const startResizing = React.useCallback(() => {
     isResizing.current = true;
@@ -104,185 +103,95 @@ function BuildingsViewer() {
     };
   }, [resize, stopResizing]);
 
-  // Global drop handler for dropping anywhere outside the grid
   const handleGlobalDrop = (e) => {
     e.preventDefault();
     if (!draggedBuilding) return;
-
-    // If dropped outside the grid (and not caught by handleDrop), remove building if it was from grid
     if (wasDraggedFromGrid && draggedInstanceId) {
       removeBuilding(draggedInstanceId);
-      setPreviewPosition(null);
-      setDraggedBuilding(null);
-      setWasDraggedFromGrid(false);
-      setDraggedInstanceId(null);
     }
+    setPreviewPosition(null);
+    setDraggedBuilding(null);
+    setWasDraggedFromGrid(false);
+    setDraggedInstanceId(null);
+    setDraggedBuildingRotation(0);
   };
 
-  // Global drag over handler to allow dropping anywhere
-  const handleGlobalDragOver = (e) => {
-    e.preventDefault();
-  };
+  const handleGlobalDragOver = (e) => e.preventDefault();
 
   React.useEffect(() => {
     if (placementError) {
-      const timer = setTimeout(() => {
-        setPlacementError(null);
-      }, 3000);
+      const timer = setTimeout(() => setPlacementError(null), 3000);
       return () => clearTimeout(timer);
     }
   }, [placementError]);
 
-  // State to track if we've loaded from URL on this session
   const [hasLoadedFromUrl, setHasLoadedFromUrl] = React.useState(false);
 
-  // Load state from URL hash on first component mount only, or from localStorage if not loading from URL
   React.useEffect(() => {
     if (!hasLoadedFromUrl) {
-      // First, try to load from URL hash
-      const hash = window.location.hash.slice(1); // Remove the '#' character
-      let loadedBuildings = null;
-
-      if (hash) {
-        loadedBuildings = deserializeBuildingsFromHash(hash);
-      }
-
-      // If no buildings loaded from URL, try loading from localStorage
+      let loadedBuildings = deserializeBuildingsFromHash(window.location.hash.slice(1));
       if (!loadedBuildings || loadedBuildings.length === 0) {
         try {
           const localStorageData = localStorage.getItem('buildingLayout');
           if (localStorageData) {
-            const parsedData = JSON.parse(localStorageData);
-            if (parsedData && parsedData.length > 0) {
-              loadedBuildings = parsedData.map((b, index) => {
-                // Find the actual building data from allItems
-                const buildingData = window.buildingsData?.buildings?.find(building => building.name === b.building.name) ||
-                                    window.buildingsData?.resource_tiles?.find(tile => tile.name === b.building.name);
-
-                return {
-                  instanceId: `${b.building.name}_${Date.now()}_${index}`, // Generate new instance ID on load
-                  building: buildingData || b.building, // Use original data or fallback
-                  topLeftIndex: b.row * 40 + b.col,
-                  row: b.row,
-                  col: b.col
-                };
-              });
-            }
+            loadedBuildings = JSON.parse(localStorageData).map((b, index) => {
+              const buildingData = window.buildingsData?.buildings?.find(bg => bg.name === b.building.name) ||
+                                  window.buildingsData?.resource_tiles?.find(rt => rt.name === b.building.name);
+              return { ...b, instanceId: `${b.building.name}_${Date.now()}_${index}`, building: buildingData || b.building };
+            });
           }
-        } catch (error) {
-          console.error('Error loading building layout from localStorage:', error);
-        }
+        } catch (error) { console.error('Error loading layout from localStorage:', error); }
       }
 
-      // If we have loaded buildings, apply them
       if (loadedBuildings && loadedBuildings.length > 0) {
-        // Set the placed buildings to the loaded state
         setPlacedBuildings(loadedBuildings);
-
-        // Recalculate occupied cells based on loaded buildings
         const newOccupiedCells = Array(30 * 40).fill(false);
         loadedBuildings.forEach(b => {
-            const positions = getOccupiedPos(b.row, b.col, b.building);
-            positions.forEach(pos => {
-                if (pos >= 0 && pos < newOccupiedCells.length) {
-                    newOccupiedCells[pos] = true;
-                }
-            });
+          const positions = getOccupiedPos(b.row, b.col, b.building, b.rotation);
+          positions.forEach(pos => {
+            if (pos >= 0 && pos < newOccupiedCells.length) newOccupiedCells[pos] = true;
+          });
         });
         setOccupiedCells(newOccupiedCells);
       }
-
-      // Mark that we've loaded from URL so this doesn't run again during this session
       setHasLoadedFromUrl(true);
     }
-  }, [hasLoadedFromUrl, setPlacedBuildings, setOccupiedCells, deserializeBuildingsFromHash, getOccupiedPos]);
+  }, [hasLoadedFromUrl, deserializeBuildingsFromHash, getOccupiedPos, setPlacedBuildings, setOccupiedCells]);
 
-  // Effect to update URL hash and localStorage when placedBuildings change with aggressive debouncing
-  // Only update URL if user is currently on the buildings tab
   React.useEffect(() => {
-    // Create a more sophisticated debounce mechanism that avoids excessive updates
-    if (window.urlUpdateTimeout) {
-      clearTimeout(window.urlUpdateTimeout);
-    }
-
-    // Only proceed after a delay to ensure we're not in the middle of multiple rapid changes
+    if (window.urlUpdateTimeout) clearTimeout(window.urlUpdateTimeout);
     window.urlUpdateTimeout = setTimeout(() => {
-      // Save to localStorage to persist across component unmounts
-      if (placedBuildings && placedBuildings.length > 0) {
-        try {
-          // Store the essential building data to localStorage
-          const buildingDataToSave = placedBuildings.map(b => ({
-            building: b.building,
-            row: b.row,
-            col: b.col
-          }));
-          localStorage.setItem('buildingLayout', JSON.stringify(buildingDataToSave));
-        } catch (error) {
-          console.error('Error saving building layout to localStorage:', error);
-        }
-      } else {
-        // If no buildings, clear localStorage
-        localStorage.removeItem('buildingLayout');
-      }
-
-      // Only update URL if we're on the buildings page
+      try {
+        localStorage.setItem('buildingLayout', JSON.stringify(placedBuildings.map(b => ({ building: b.building, row: b.row, col: b.col, rotation: b.rotation }))));
+      } catch (error) { console.error('Error saving to localStorage:', error); }
+      
       const currentHash = window.location.hash.slice(1);
       if (currentHash === 'buildings' || currentHash.startsWith('buildings-')) {
         const layoutHash = serializeBuildingsToHash(placedBuildings);
-        if (layoutHash) {
-          const newUrl = `${window.location.pathname}#${layoutHash}`;
-          window.history.replaceState(null, '', newUrl);
-        } else {
-          // If no buildings, set back to just #buildings
-          if (window.location.hash !== '#buildings') {
-            window.history.replaceState(null, '', `${window.location.pathname}#buildings`);
-          }
+        const newUrl = layoutHash ? `${window.location.pathname}#${layoutHash}` : `${window.location.pathname}#buildings`;
+        if (window.location.href !== newUrl) {
+            window.history.replaceState(null, '', newUrl);
         }
       }
-    }, 500); // 500ms delay to ensure user has finished the action
-
-    // Cleanup function
-    return () => {
-      if (window.urlUpdateTimeout) {
-        clearTimeout(window.urlUpdateTimeout);
-      }
-    };
+    }, 500);
+    return () => { if (window.urlUpdateTimeout) clearTimeout(window.urlUpdateTimeout); };
   }, [placedBuildings, serializeBuildingsToHash]);
 
-  const allItems = React.useMemo(() => {
-    const buildings = window.buildingsData.buildings || [];
-    const tiles = window.buildingsData.resource_tiles || [];
-    return [...buildings, ...tiles];
-  }, []);
+  const allItems = React.useMemo(() => [...(window.buildingsData.buildings || []), ...(window.buildingsData.resource_tiles || [])], []);
 
   const buildingsByCategory = React.useMemo(() => {
     const cats = {};
     allItems.forEach(b => {
-      if (!cats[b.category]) {
-        cats[b.category] = [];
-      }
+      if (!cats[b.category]) cats[b.category] = [];
       cats[b.category].push(b);
     });
-    // Sort categories for consistent order
     const sortedCats = {};
-    const categoryOrder = [
-      "Economy", "Warfare", "Housing", "Resource",
-      "Trophy"
-    ];
-
-    categoryOrder.forEach(cat => {
-      if (cats[cat]) {
-        sortedCats[cat] = cats[cat];
-      }
+    ["Economy", "Warfare", "Housing", "Resource", "Trophy"].forEach(cat => {
+      if (cats[cat]) sortedCats[cat] = cats[cat];
     });
-
-    // Add any other categories not in the predefined order
     Object.keys(cats).forEach(cat => {
-      if (!sortedCats[cat]) {
-        sortedCats[cat] = cats[cat];
-      }
+      if (!sortedCats[cat]) sortedCats[cat] = cats[cat];
     });
-
     return sortedCats;
   }, [allItems]);
 
@@ -296,18 +205,21 @@ function BuildingsViewer() {
         b.description.toLowerCase().includes(lowerSearch) ||
         b.category.toLowerCase().includes(lowerSearch)
       );
-      if (matching.length > 0) {
-        filtered[category] = matching;
-      }
+      if (matching.length > 0) filtered[category] = matching;
     }
     return filtered;
   }, [searchTerm, buildingsByCategory]);
 
-  // Drag and drop functions
   const handleDragStart = (e, building, fromGrid = false, instanceId = null) => {
     setDraggedBuilding(building);
     setWasDraggedFromGrid(fromGrid);
     setDraggedInstanceId(instanceId);
+    if(fromGrid) {
+        const existing = placedBuildings.find(pb => pb.instanceId === instanceId);
+        if(existing) setDraggedBuildingRotation(existing.rotation || 0);
+    } else {
+        setDraggedBuildingRotation(0);
+    }
     e.dataTransfer.setData('text/plain', building.name);
     e.dataTransfer.effectAllowed = fromGrid ? 'move' : 'copy';
   };
@@ -319,24 +231,17 @@ function BuildingsViewer() {
     if (!gridElement || !draggedBuilding) return;
 
     const rect = gridElement.getBoundingClientRect();
-    // Calculate mouse position relative to the grid element
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    // Adjust for scrolling within the grid container
     const scrollAdjustedX = x + gridElement.scrollLeft;
     const scrollAdjustedY = y + gridElement.scrollTop;
 
     const cellWidth = 30;
     const cellHeight = 30;
-    
-    let buildingWidth, buildingHeight;
-    if (draggedBuilding.shape) {
-        buildingWidth = Math.max(0, ...draggedBuilding.shape.map(p => p[0]));
-        buildingHeight = Math.max(0, ...draggedBuilding.shape.map(p => p[1]));
-    } else {
-        buildingWidth = draggedBuilding.size?.w ?? 2;
-        buildingHeight = draggedBuilding.size?.h ?? 2;
-    }
+
+    const rotatedShape = draggedBuilding.shape ? rotateShape(draggedBuilding.shape, draggedBuildingRotation) : null;
+    const buildingWidth = rotatedShape ? Math.max(0, ...rotatedShape.map(p => p[0])) : (draggedBuilding.size?.w ?? 2);
+    const buildingHeight = rotatedShape ? Math.max(0, ...rotatedShape.map(p => p[1])) : (draggedBuilding.size?.h ?? 2);
 
     let col = Math.floor(scrollAdjustedX / cellWidth);
     let row = Math.floor(scrollAdjustedY / cellHeight);
@@ -344,11 +249,9 @@ function BuildingsViewer() {
     col = Math.max(0, Math.min(40 - buildingWidth, col));
     row = Math.max(0, Math.min(30 - buildingHeight, row));
 
-    // Only update if position changed to prevent "painting" effect
     const newPosition = { row, col };
     if (!previewPosition || previewPosition.row !== row || previewPosition.col !== col) {
-      const placementCheck = canPlaceBuilding(row, col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId);
-
+      const placementCheck = canPlaceBuilding(row, col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId, draggedBuildingRotation);
       if (placementCheck.canPlace) {
         setPreviewPosition(newPosition);
         setPlacementError(null);
@@ -360,7 +263,6 @@ function BuildingsViewer() {
   };
 
   const handleDragLeave = (e) => {
-    // Only clear if we're actually leaving the container, not just entering a child
     const container = e.currentTarget;
     if (!container.contains(e.relatedTarget)) {
       setPreviewPosition(null);
@@ -373,140 +275,37 @@ function BuildingsViewer() {
     if (!draggedBuilding) return;
 
     if (previewPosition) {
-      const placementCheck = placeBuilding(previewPosition.row, previewPosition.col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId);
-      if (placementCheck) {
-        // Success
-      } else {
-        setPlacementError(null);
-      }
+      placeBuilding(previewPosition.row, previewPosition.col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId, draggedBuildingRotation);
     }
 
     setPreviewPosition(null);
     setDraggedBuilding(null);
     setWasDraggedFromGrid(false);
     setDraggedInstanceId(null);
+    setDraggedBuildingRotation(0);
   };
 
-  // Track mouse position for tooltip
   React.useEffect(() => {
-    const handleMouseMove = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
+    const handleMouseMove = (e) => setMousePosition({ x: e.clientX, y: e.clientY });
     document.addEventListener('mousemove', handleMouseMove);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-    };
+    return () => document.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   const [hoveredBuilding, setHoveredBuilding] = React.useState(null);
-
-  const hoveredBuildingData = React.useMemo(() => {
-    if (!hoveredBuilding) return null;
-    return allItems.find(item => item.name === hoveredBuilding);
-  }, [hoveredBuilding, allItems]);
-
-  // Effect to update URL hash when placedBuildings change with aggressive debouncing
-  React.useEffect(() => {
-    // Create a more sophisticated debounce mechanism that avoids excessive updates
-    if (window.urlUpdateTimeout) {
-      clearTimeout(window.urlUpdateTimeout);
-    }
-
-    // Only proceed after a delay to ensure we're not in the middle of multiple rapid changes
-    window.urlUpdateTimeout = setTimeout(() => {
-      // Only update if we're on the buildings page
-      const currentHash = window.location.hash.slice(1);
-      if (currentHash === 'buildings' || currentHash.startsWith('buildings-')) {
-        const layoutHash = serializeBuildingsToHash(placedBuildings);
-        if (layoutHash) {
-          const newUrl = `${window.location.pathname}#${layoutHash}`;
-          window.history.replaceState(null, '', newUrl);
-        } else {
-          // If no buildings, set back to just #buildings
-          if (window.location.hash !== '#buildings') {
-            window.history.replaceState(null, '', `${window.location.pathname}#buildings`);
-          }
-        }
-      }
-    }, 500); // 500ms delay to ensure user has finished the action
-
-    // Cleanup function
-    return () => {
-      if (window.urlUpdateTimeout) {
-        clearTimeout(window.urlUpdateTimeout);
-      }
-    };
-  }, [placedBuildings, serializeBuildingsToHash]);
+  const hoveredBuildingData = React.useMemo(() => allItems.find(item => item.name === hoveredBuilding), [hoveredBuilding, allItems]);
 
   return React.createElement(
-    'div',
-    {
-      className: "flex flex-col bg-slate-900",
-      onDrop: handleGlobalDrop,
-      onDragOver: handleGlobalDragOver
-    },
-    // Main content area with resizable columns
+    'div', { className: "flex flex-col bg-slate-900", onDrop: handleGlobalDrop, onDragOver: handleGlobalDragOver },
     React.createElement(
-      'div',
-      { className: "flex flex-1 gap-0", style: { maxHeight: '80vh' } }, // Main area that contains the resizable columns with max height
-      // Left Column - Scrollable Building List with dynamic width
-      React.createElement('div', {
-        className: "bg-slate-800 border-r border-slate-700 flex flex-col",
-        style: { width: leftColWidth }
-      },
-        React.createElement(BuildingList, {
-          buildingsByCategory,
-          filteredCategories,
-          selectedBuilding,
-          onSelect: setSelectedBuilding,
-          searchTerm,
-          setSearchTerm,
-          allItems,
-          onHover: setHoveredBuilding,
-          currentHovered: hoveredBuilding,
-          onDragStartFromList: handleDragStart
-        })
-      ), // Close left column div
-
-      // Resize Handle
-      React.createElement(
-        'div',
-        {
-          className: "w-1 bg-slate-700 hover:bg-blue-500 cursor-col-resize flex-shrink-0 transition-colors",
-          onMouseDown: startResizing
-        }
+      'div', { className: "flex flex-1 gap-0", style: { maxHeight: '80vh' } },
+      React.createElement('div', { className: "bg-slate-800 border-r border-slate-700 flex flex-col", style: { width: leftColWidth } },
+        React.createElement(BuildingList, { buildingsByCategory, filteredCategories, selectedBuilding, onSelect: setSelectedBuilding, searchTerm, setSearchTerm, allItems, onHover: setHoveredBuilding, currentHovered: hoveredBuilding, onDragStartFromList: handleDragStart })
       ),
-
-      // Right Column - Building Grid (with remaining space)
-      React.createElement(
-        'div',
-        { className: "flex flex-col flex-1 bg-slate-900", style: { minWidth: 0 } },
-        React.createElement(BuildingGrid, {
-          placedBuildings,
-          previewPosition,
-          error: placementError,
-          handleDragOver,
-          handleDragLeave,
-          handleDrop,
-          handleDragStart,
-          onBuildingHover: setHoveredBuilding, // Set hovered building when mouse enters a placed building
-          onBuildingLeave: () => setHoveredBuilding(null), // Clear hovered building when mouse leaves
-          getOccupiedPositions: getOccupiedPos,
-          draggedBuilding,
-          wasDraggedFromGrid,
-          draggedInstanceId,
-          onPlace: placeBuilding,
-          onRemove: removeBuilding
-        })
-      ), // Close right column div
-
-      // Hover tooltip (only show when there's a hovered building and not dragging)
-      hoveredBuildingData && !draggedBuilding && React.createElement(BuildingTooltip, {
-        selectedBuildingData: hoveredBuildingData,
-        mousePosition
-      })
-    ) // Close main flex div
-  ); // Close function return
+      React.createElement('div', { className: "w-1 bg-slate-700 hover:bg-blue-500 cursor-col-resize flex-shrink-0 transition-colors", onMouseDown: startResizing }),
+      React.createElement('div', { className: "flex flex-col flex-1 bg-slate-900", style: { minWidth: 0 } },
+        React.createElement(BuildingGrid, { placedBuildings, previewPosition, error: placementError, handleDragOver, handleDragLeave, handleDrop, handleDragStart, onBuildingHover: setHoveredBuilding, onBuildingLeave: () => setHoveredBuilding(null), getOccupiedPositions: getOccupiedPos, draggedBuilding, wasDraggedFromGrid, draggedInstanceId, draggedBuildingRotation, rotateShape })
+      ),
+      hoveredBuildingData && !draggedBuilding && React.createElement(BuildingTooltip, { selectedBuildingData: hoveredBuildingData, mousePosition })
+    )
+  );
 }

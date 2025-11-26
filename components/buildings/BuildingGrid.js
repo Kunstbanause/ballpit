@@ -13,14 +13,15 @@ function BuildingGrid({
   getOccupiedPositions,
   draggedBuilding,
   wasDraggedFromGrid,
-  draggedInstanceId
+  draggedInstanceId,
+  draggedBuildingRotation, // New prop
+  rotateShape // New prop
 }) {
 
   const getShape = (building) => {
     if (building.shape) {
       return building.shape;
     }
-    // Fallback for buildings without a shape (e.g., resource tiles)
     const shape = [];
     const width = building.size?.w ?? 2;
     const height = building.size?.h ?? 2;
@@ -33,53 +34,23 @@ function BuildingGrid({
   };
 
   return React.createElement(
-    'div',
-    { className: "flex flex-col flex-1 bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 overflow-hidden" },
-    // Placement Error Message
-    error && React.createElement(
-      'div',
-      { className: "bg-red-500 text-white text-center p-2 rounded-md mb-2 flex-shrink-0" },
-      error
-    ),
-
-    // Building Placement Grid
+    'div', { className: "flex flex-col flex-1 bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 overflow-hidden" },
+    error && React.createElement('div', { className: "bg-red-500 text-white text-center p-2 rounded-md mb-2 flex-shrink-0" }, error),
     React.createElement(
-      'div',
-      {
-        className: "bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 overflow-auto flex-1 min-h-0",
-        onDragOver: handleDragOver,
-        onDragLeave: handleDragLeave,
-        onDrop: handleDrop
-      },
+      'div', { className: "bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 overflow-auto flex-1 min-h-0", onDragOver: handleDragOver, onDragLeave: handleDragLeave, onDrop: handleDrop },
       React.createElement(
         'div',
         {
           id: "buildingGrid",
           className: "grid grid-cols-40 grid-rows-30 gap-0 bg-slate-800 rounded relative",
-          style: {
-            width: '1200px',
-            height: '900px',
-            display: 'grid',
-            gridTemplateRows: 'repeat(30, 30px)',
-            gridTemplateColumns: 'repeat(40, 30px)'
-          }
+          style: { width: '1200px', height: '900px', display: 'grid', gridTemplateRows: 'repeat(30, 30px)', gridTemplateColumns: 'repeat(40, 30px)' }
         },
-        // Building count
-        React.createElement(
-          'div',
-          {
-            className: "absolute top-2 left-2 bg-black/50 text-white text-sm px-2 py-1 rounded pointer-events-none z-30",
-            style: { fontSize: '12px', fontWeight: 'bold' }
-          },
-          `${placedBuildings.length} building${placedBuildings.length !== 1 ? 's' : ''} placed`
-        ),
-        // Chunk borders
+        React.createElement('div', { className: "absolute top-2 left-2 bg-black/50 text-white text-sm px-2 py-1 rounded pointer-events-none z-30", style: { fontSize: '12px', fontWeight: 'bold' } }, `${placedBuildings.length} building${placedBuildings.length !== 1 ? 's' : ''} placed`),
         React.createElement(
           'div', { className: "absolute inset-0 pointer-events-none", style: { width: '1200px', height: '900px' } },
           [1, 2, 3, 4].map(i => React.createElement('div', { key: `v-chunk-${i}`, className: "absolute bg-yellow-500/40", style: { left: `${i * 8 * 30}px`, top: 0, width: '2px', height: '100%' } })),
           [1, 2, 3, 4].map(i => React.createElement('div', { key: `h-chunk-${i}`, className: "absolute bg-yellow-500/40", style: { left: 0, top: `${i * 6 * 30}px`, width: '100%', height: '2px' } }))
         ),
-        // Grid background
         React.createElement(
             'div', { className: "absolute inset-0 grid grid-cols-40 grid-rows-30" },
             Array.from({ length: 30 * 40 }).map((_, index) => {
@@ -90,7 +61,7 @@ function BuildingGrid({
         ),
 
         // Preview building placement
-        previewPosition && draggedBuilding && getShape(draggedBuilding).map((part, index) => {
+        previewPosition && draggedBuilding && rotateShape(getShape(draggedBuilding), draggedBuildingRotation).map((part, index) => {
           const c = part[0] - 1;
           const r = part[1] - 1;
           return React.createElement('div', {
@@ -107,22 +78,17 @@ function BuildingGrid({
 
         // Placed buildings
         placedBuildings.map((building) => {
-            const shape = getShape(building.building);
-            const width = Math.max(0, ...shape.map(p => p[0]));
-            const height = Math.max(0, ...shape.map(p => p[1]));
+            const rotatedShape = rotateShape(getShape(building.building), building.rotation);
+            const width = Math.max(0, ...rotatedShape.map(p => p[0]));
+            const height = Math.max(0, ...rotatedShape.map(p => p[1]));
 
             return React.createElement(
                 React.Fragment,
                 { key: building.instanceId },
-                
-                // Render interactive cells
-                shape.map((part, index) => {
-                const c = part[0] - 1;
-                const r = part[1] - 1;
-
-                return React.createElement(
-                    'div',
-                    {
+                rotatedShape.map((part, index) => {
+                  const c = part[0] - 1;
+                  const r = part[1] - 1;
+                  return React.createElement('div', {
                     key: `${building.instanceId}-${index}`,
                     className: "absolute bg-gradient-to-br from-slate-600 to-slate-800 border border-slate-400/30 z-20",
                     style: {
@@ -135,17 +101,11 @@ function BuildingGrid({
                     },
                     draggable: true,
                     onDragStart: (e) => handleDragStart(e, building.building, true, building.instanceId),
-                    onContextMenu: (e) => {
-                        e.preventDefault();
-                        onRemove(building.instanceId);
-                    },
+                    onContextMenu: (e) => { e.preventDefault(); onRemove(building.instanceId); },
                     onMouseEnter: () => onBuildingHover(building.building.name),
                     onMouseLeave: () => onBuildingLeave(),
-                    }
-                );
+                  });
                 }),
-
-                // Render the image on top
                 React.createElement('div', {
                     style: {
                         gridArea: `${building.row + 1} / ${building.col + 1} / span ${height} / span ${width}`,
