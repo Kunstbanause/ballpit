@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ball X Pit Shape Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #1f2937;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #ea580c;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #c2410c;
+        }
+
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #15803d;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: #ea580c;
+            color: white;
+        }
+
+        .tab:not(.active) {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .editor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .editor-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .building-info {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .building-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .building-desc {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+
+        .tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .cost-display {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .grid-container {
+            display: inline-block;
+            border: 4px solid #1f2937;
+            background: #f3f4f6;
+            padding: 8px;
+        }
+
+        .shape-grid {
+            display: grid;
+            gap: 2px;
+        }
+
+        .grid-cell {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #d1d5db;
+            background: white;
+            cursor: pointer;
+            transition: all 0.1s;
+            position: relative;
+        }
+
+        .grid-cell:hover {
+            background: #e5e7eb;
+        }
+
+        .grid-cell.selected {
+            background: #ea580c;
+            border-color: #9a3412;
+        }
+
+        .grid-cell-label {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            font-size: 8px;
+            color: #9ca3af;
+        }
+
+        .grid-controls {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            align-items: flex-end;
+        }
+
+        .grid-controls label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .grid-controls input {
+            width: 80px;
+            padding: 6px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+        }
+
+        .info-box {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+        }
+
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .file-input-wrapper {
+            margin-bottom: 20px;
+        }
+
+        .file-input-wrapper input {
+            padding: 10px;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            width: 100%;
+        }
+
+        #status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        #status.success {
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            color: #065f46;
+        }
+
+        #status.error {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <div>
+                    <h1>🎮 Ball X Pit Shape Editor</h1>
+                    <p style="color: #6b7280; margin-top: 4px;">Add shape data to your buildings</p>
+                </div>
+                <button class="btn btn-success" onclick="exportData()">⬇️ Export JS File</button>
+            </div>
+
+            <div class="file-input-wrapper">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Load buildings.js file:</label>
+                <input type="file" id="fileInput" accept=".js,.json" onchange="loadFile(event)">
+            </div>
+
+            <div id="status"></div>
+
+            <div id="content" style="display: none;">
+                <div class="category-tabs">
+                    <button class="tab active" onclick="switchCategory('buildings')">Buildings (<span id="buildingCount">0</span>)</button>
+                    <button class="tab" onclick="switchCategory('resource_tiles')">Resource Tiles (<span id="resourceCount">0</span>)</button>
+                </div>
+
+                <div class="card">
+                    <div class="editor-grid">
+                        <!-- Left Column: Building Info -->
+                        <div>
+                            <div class="navigation">
+                                <h2 style="font-size: 18px;">Item <span id="currentIndex">1</span> of <span id="totalItems">0</span></h2>
+                                <div class="nav-buttons">
+                                    <button class="btn btn-secondary" onclick="navigate(-1)">← Prev</button>
+                                    <button class="btn btn-secondary" onclick="navigate(1)">Next →</button>
+                                </div>
+                            </div>
+
+                            <div id="buildingDetails"></div>
+                        </div>
+
+                        <!-- Right Column: Grid Editor -->
+                        <div>
+                            <h2 style="font-size: 18px; margin-bottom: 16px;">Shape Grid (Click to toggle cells)</h2>
+                            
+                            <div class="grid-controls">
+                                <div>
+                                    <label>Width</label>
+                                    <input type="number" id="gridWidth" value="6" min="1" max="20" onchange="updateGrid()">
+                                </div>
+                                <div>
+                                    <label>Height</label>
+                                    <input type="number" id="gridHeight" value="6" min="1" max="20" onchange="updateGrid()">
+                                </div>
+                                <button class="btn btn-secondary" onclick="clearGrid()">Clear Grid</button>
+                            </div>
+
+                            <div class="grid-container">
+                                <div id="shapeGrid" class="shape-grid"></div>
+                            </div>
+
+                            <div class="info-box">
+                                <p style="font-size: 14px; font-weight: 500; color: #374151;">Selected: <span id="selectedCount">0</span> tiles</p>
+                                <p style="font-size: 12px; color: #6b7280; margin-top: 4px;" id="selectedCoords"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let buildingsData = null;
+        let currentCategory = 'buildings';
+        let currentIndex = 0;
+        let selectedCells = new Set();
+        let hasUnsavedChanges = false;
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = type;
+            status.style.display = 'block';
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        }
+
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let content = e.target.result;
+                    
+                    // Remove "window.buildingsData = " if present
+                    content = content.replace(/^window\.buildingsData\s*=\s*/, '').replace(/;?\s*$/, '');
+                    
+                    buildingsData = JSON.parse(content);
+                    
+                    if (!buildingsData.buildings || !buildingsData.resource_tiles) {
+                        throw new Error('Invalid file format');
+                    }
+
+                    document.getElementById('content').style.display = 'block';
+                    document.getElementById('buildingCount').textContent = buildingsData.buildings.length;
+                    document.getElementById('resourceCount').textContent = buildingsData.resource_tiles.length;
+                    
+                    currentIndex = 0;
+                    updateDisplay();
+                    showStatus('File loaded successfully!', 'success');
+                } catch (error) {
+                    showStatus('Error loading file: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function getCurrentItem() {
+            const items = buildingsData[currentCategory];
+            return items[currentIndex];
+        }
+
+        function switchCategory(category) {
+            if (hasUnsavedChanges) {
+                if (!confirm('You have unsaved changes. Switch category anyway?')) {
+                    return;
+                }
+            }
+            
+            currentCategory = category;
+            currentIndex = 0;
+            hasUnsavedChanges = false;
+            
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updateDisplay();
+        }
+
+        function navigate(direction) {
+            if (hasUnsavedChanges) {
+                if (!confirm('You have unsaved changes. Navigate away anyway?')) {
+                    return;
+                }
+            }
+
+            const items = buildingsData[currentCategory];
+            currentIndex += direction;
+            
+            if (currentIndex < 0) currentIndex = items.length - 1;
+            if (currentIndex >= items.length) currentIndex = 0;
+            
+            hasUnsavedChanges = false;
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const items = buildingsData[currentCategory];
+            const item = items[currentIndex];
+            
+            document.getElementById('currentIndex').textContent = currentIndex + 1;
+            document.getElementById('totalItems').textContent = items.length;
+            
+            // Update building details
+            const detailsHTML = `
+                <div class="building-info">
+                    <div class="building-name">${item.name}</div>
+                    <div class="building-desc">${item.description}</div>
+                    <div class="tags">
+                        <span class="tag" style="background: #dbeafe; color: #1e40af;">${item.category}</span>
+                        ${item.size ? `<span class="tag" style="background: #f3f4f6; color: #374151;">Size: ${item.size.w}x${item.size.h}</span>` : ''}
+                        ${item.max_placeable ? `<span class="tag" style="background: #f3e8ff; color: #6b21a8;">Max: ${item.max_placeable}</span>` : ''}
+                    </div>
+                    <div class="cost-display">
+                        ${item.cost.gold > 0 ? `<span class="tag" style="background: #fef3c7;">💰 ${item.cost.gold}</span>` : ''}
+                        ${item.cost.wheat > 0 ? `<span class="tag" style="background: #fef3c7;">🌾 ${item.cost.wheat}</span>` : ''}
+                        ${item.cost.wood > 0 ? `<span class="tag" style="background: #d1fae5;">🪵 ${item.cost.wood}</span>` : ''}
+                        ${item.cost.stone > 0 ? `<span class="tag" style="background: #f3f4f6;">🪨 ${item.cost.stone}</span>` : ''}
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <p style="font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 4px;">Current Shape:</p>
+                    <p style="font-size: 14px; color: #6b7280;">
+                        ${item.shape ? `${Math.max(...item.shape.map(c => c[0]))}x${Math.max(...item.shape.map(c => c[1]))} (${item.shape.length} tiles)` : 'Not defined yet'}
+                    </p>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="autoFillFromSize()" ${!item.size ? 'disabled' : ''}>Auto-fill from Size</button>
+                    <button class="btn btn-success" onclick="saveShape()" ${!hasUnsavedChanges ? 'disabled' : ''}>💾 Save Shape</button>
+                </div>
+
+                ${hasUnsavedChanges ? '<div class="warning-box">⚠️ You have unsaved changes</div>' : ''}
+            `;
+            
+            document.getElementById('buildingDetails').innerHTML = detailsHTML;
+            
+            // Load shape into grid
+            loadShapeToGrid(item);
+        }
+
+        function loadShapeToGrid(item) {
+            selectedCells.clear();
+            
+            if (item.shape && Array.isArray(item.shape)) {
+                item.shape.forEach(([x, y]) => {
+                    selectedCells.add(`${x},${y}`);
+                });
+                
+                const maxX = Math.max(...item.shape.map(c => c[0]));
+                const maxY = Math.max(...item.shape.map(c => c[1]));
+                
+                if (maxX > parseInt(document.getElementById('gridWidth').value)) {
+                    document.getElementById('gridWidth').value = maxX + 1;
+                }
+                if (maxY > parseInt(document.getElementById('gridHeight').value)) {
+                    document.getElementById('gridHeight').value = maxY + 1;
+                }
+            } else if (item.size) {
+                for (let x = 1; x <= item.size.w; x++) {
+                    for (let y = 1; y <= item.size.h; y++) {
+                        selectedCells.add(`${x},${y}`);
+                    }
+                }
+            }
+            
+            updateGrid();
+        }
+
+        function updateGrid() {
+            const width = parseInt(document.getElementById('gridWidth').value);
+            const height = parseInt(document.getElementById('gridHeight').value);
+            
+            const grid = document.getElementById('shapeGrid');
+            grid.style.gridTemplateColumns = `repeat(${width}, 40px)`;
+            grid.innerHTML = '';
+            
+            for (let y = 1; y <= height; y++) {
+                for (let x = 1; x <= width; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    const key = `${x},${y}`;
+                    
+                    if (selectedCells.has(key)) {
+                        cell.classList.add('selected');
+                    }
+                    
+                    cell.innerHTML = `<span class="grid-cell-label">${x},${y}</span>`;
+                    cell.onclick = () => toggleCell(x, y);
+                    
+                    grid.appendChild(cell);
+                }
+            }
+            
+            updateSelectedInfo();
+        }
+
+        function toggleCell(x, y) {
+            const key = `${x},${y}`;
+            if (selectedCells.has(key)) {
+                selectedCells.delete(key);
+            } else {
+                selectedCells.add(key);
+            }
+            hasUnsavedChanges = true;
+            updateGrid();
+            updateDisplay();
+        }
+
+        function clearGrid() {
+            selectedCells.clear();
+            hasUnsavedChanges = true;
+            updateGrid();
+            updateDisplay();
+        }
+
+        function updateSelectedInfo() {
+            document.getElementById('selectedCount').textContent = selectedCells.size;
+            const coords = Array.from(selectedCells).sort().map(k => `(${k})`).join(', ');
+            document.getElementById('selectedCoords').textContent = coords || 'None';
+        }
+
+        function autoFillFromSize() {
+            const item = getCurrentItem();
+            if (!item.size) return;
+            
+            selectedCells.clear();
+            for (let x = 1; x <= item.size.w; x++) {
+                for (let y = 1; y <= item.size.h; y++) {
+                    selectedCells.add(`${x},${y}`);
+                }
+            }
+            hasUnsavedChanges = true;
+            updateGrid();
+            updateDisplay();
+        }
+
+        function saveShape() {
+            const item = getCurrentItem();
+            const shape = Array.from(selectedCells)
+                .map(k => k.split(',').map(Number))
+                .sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
+            
+            item.shape = shape;
+            hasUnsavedChanges = false;
+            updateDisplay();
+            showStatus('Shape saved!', 'success');
+        }
+
+        function exportData() {
+            if (!buildingsData) {
+                showStatus('No data to export', 'error');
+                return;
+            }
+
+            const output = `window.buildingsData = ${JSON.stringify(buildingsData, null, 2)};`;
+            const blob = new Blob([output], { type: 'application/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'buildings-with-shapes.js';
+            a.click();
+            URL.revokeObjectURL(url);
+            showStatus('File exported successfully!', 'success');
+        }
+    </script>
+</body>
+</html>
