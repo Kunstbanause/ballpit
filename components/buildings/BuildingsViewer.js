@@ -70,6 +70,7 @@ function BuildingsViewer() {
     setOccupiedCells,
     placeBuilding,
     removeBuilding,
+    canPlaceBuilding,
     getOccupiedPositions: getOccupiedPos
   } = useBuildings();
 
@@ -340,9 +341,7 @@ function BuildingsViewer() {
     // Only update if position changed to prevent "painting" effect
     const newPosition = { row, col };
     if (!previewPosition || previewPosition.row !== row || previewPosition.col !== col) {
-      const placementCheck = placeBuilding(row, col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId)
-        ? { canPlace: true }
-        : { canPlace: false, reason: 'occupied' };
+      const placementCheck = canPlaceBuilding(row, col, draggedBuilding, wasDraggedFromGrid, draggedInstanceId);
 
       if (placementCheck.canPlace) {
         setPreviewPosition(newPosition);
