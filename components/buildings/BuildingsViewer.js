@@ -181,14 +181,13 @@ function BuildingsViewer() {
 
         // Recalculate occupied cells based on loaded buildings
         const newOccupiedCells = Array(30 * 40).fill(false);
-        loadedBuildings.forEach(building => {
-          const { w = 2, h = 2 } = building.building.size || {};
-          const positions = getOccupiedPos(building.row, building.col, w, h);
-          positions.forEach(pos => {
-            if (pos >= 0 && pos < newOccupiedCells.length) {
-              newOccupiedCells[pos] = true;
-            }
-          });
+        loadedBuildings.forEach(b => {
+            const positions = getOccupiedPos(b.row, b.col, b.building);
+            positions.forEach(pos => {
+                if (pos >= 0 && pos < newOccupiedCells.length) {
+                    newOccupiedCells[pos] = true;
+                }
+            });
         });
         setOccupiedCells(newOccupiedCells);
       }
@@ -329,8 +328,15 @@ function BuildingsViewer() {
 
     const cellWidth = 30;
     const cellHeight = 30;
-    const buildingWidth = draggedBuilding.size?.w ?? 2;
-    const buildingHeight = draggedBuilding.size?.h ?? 2;
+    
+    let buildingWidth, buildingHeight;
+    if (draggedBuilding.shape) {
+        buildingWidth = Math.max(0, ...draggedBuilding.shape.map(p => p[0]));
+        buildingHeight = Math.max(0, ...draggedBuilding.shape.map(p => p[1]));
+    } else {
+        buildingWidth = draggedBuilding.size?.w ?? 2;
+        buildingHeight = draggedBuilding.size?.h ?? 2;
+    }
 
     let col = Math.floor(scrollAdjustedX / cellWidth);
     let row = Math.floor(scrollAdjustedY / cellHeight);

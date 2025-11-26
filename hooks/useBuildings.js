@@ -8,11 +8,22 @@ function useBuildings() {
   const [placedBuildings, setPlacedBuildings] = React.useState(window.globalBuildingLayout.placedBuildings);
   const [occupiedCells, setOccupiedCells] = React.useState(window.globalBuildingLayout.occupiedCells);
 
-  const getOccupiedPositions = (topLeftRow, topLeftCol, width = 2, height = 2) => {
+  const getOccupiedPositions = (topLeftRow, topLeftCol, building) => {
     const positions = [];
-    for (let r = 0; r < height; r++) {
-      for (let c = 0; c < width; c++) {
+    if (building.shape) {
+      for (const part of building.shape) {
+        const c = part[0] - 1;
+        const r = part[1] - 1;
         positions.push((topLeftRow + r) * 40 + (topLeftCol + c));
+      }
+    } else {
+      // Fallback for items without a shape property, like resource tiles.
+      const width = building.size?.w ?? 2;
+      const height = building.size?.h ?? 2;
+      for (let r = 0; r < height; r++) {
+        for (let c = 0; c < width; c++) {
+          positions.push((topLeftRow + r) * 40 + (topLeftCol + c));
+        }
       }
     }
     return positions;
@@ -32,19 +43,25 @@ function useBuildings() {
       }
     }
 
-    const width = building.size?.w ?? 2;
-    const height = building.size?.h ?? 2;
+    let width, height;
+    if (building.shape) {
+        width = Math.max(0, ...building.shape.map(p => p[0]));
+        height = Math.max(0, ...building.shape.map(p => p[1]));
+    } else {
+        width = building.size?.w ?? 2;
+        height = building.size?.h ?? 2;
+    }
 
     if (col + width > 40 || row + height > 30) return { canPlace: false, reason: 'out-of-bounds' };
 
-    const positions = getOccupiedPositions(row, col, width, height);
+    const positions = getOccupiedPositions(row, col, building);
 
     for (const pos of positions) {
       if (occupiedCells[pos]) {
         if (fromGrid && instanceIdToDrag) {
           const existingBuilding = placedBuildings.find(pb => pb.instanceId === instanceIdToDrag);
           if (existingBuilding) {
-            const existingPositions = getOccupiedPositions(existingBuilding.row, existingBuilding.col, existingBuilding.building.size?.w ?? 2, existingBuilding.building.size?.h ?? 2);
+            const existingPositions = getOccupiedPositions(existingBuilding.row, existingBuilding.col, existingBuilding.building);
             if (existingPositions.includes(pos)) {
               // This position is part of the building we are dragging, so it's okay.
               continue;
@@ -69,14 +86,12 @@ function useBuildings() {
       if (fromGrid && instanceIdToDrag) {
         const buildingToMove = placedBuildings.find(pb => pb.instanceId === instanceIdToDrag);
         if (buildingToMove) {
-          const { w, h } = buildingToMove.building.size || { w: 2, h: 2 };
-          getOccupiedPositions(buildingToMove.row, buildingToMove.col, w, h).forEach(pos => {
+          getOccupiedPositions(buildingToMove.row, buildingToMove.col, buildingToMove.building).forEach(pos => {
             newOccupiedCells[pos] = false;
           });
         }
       }
-      const { w, h } = building.size || { w: 2, h: 2 };
-      getOccupiedPositions(row, col, w, h).forEach(pos => {
+      getOccupiedPositions(row, col, building).forEach(pos => {
         newOccupiedCells[pos] = true;
       });
 
@@ -125,8 +140,7 @@ function useBuildings() {
       if (buildingToRemove) {
         setOccupiedCells(occupied => {
           const newOccupiedCells = [...occupied];
-          const { w, h } = buildingToRemove.building.size || { w: 2, h: 2 };
-          getOccupiedPositions(buildingToRemove.row, buildingToRemove.col, w, h).forEach(pos => {
+          getOccupiedPositions(buildingToRemove.row, buildingToRemove.col, buildingToRemove.building).forEach(pos => {
             newOccupiedCells[pos] = false;
           });
 
