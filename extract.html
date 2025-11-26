@@ -554,8 +554,37 @@
                 selectedCells.add(key);
             }
             hasUnsavedChanges = true;
-            updateGrid();
-            updateDisplay();
+            
+            // Update the cell visually immediately
+            const width = parseInt(document.getElementById('gridWidth').value);
+            const height = parseInt(document.getElementById('gridHeight').value);
+            const cellIndex = (y - 1) * width + (x - 1);
+            const cells = document.querySelectorAll('.grid-cell');
+            
+            if (cells[cellIndex]) {
+                if (selectedCells.has(key)) {
+                    cells[cellIndex].classList.add('selected');
+                } else {
+                    cells[cellIndex].classList.remove('selected');
+                }
+            }
+            
+            updateSelectedInfo();
+            
+            // Update the save button state
+            const saveButton = document.querySelector('.btn-success');
+            if (saveButton) {
+                saveButton.disabled = false;
+            }
+            
+            // Update warning box
+            const detailsDiv = document.getElementById('buildingDetails');
+            if (!detailsDiv.querySelector('.warning-box') && hasUnsavedChanges) {
+                const warningBox = document.createElement('div');
+                warningBox.className = 'warning-box';
+                warningBox.textContent = '⚠️ You have unsaved changes';
+                detailsDiv.appendChild(warningBox);
+            }
         }
 
         function clearGrid() {
@@ -604,7 +633,24 @@
                 return;
             }
 
-            const output = `window.buildingsData = ${JSON.stringify(buildingsData, null, 2)};`;
+            // Custom JSON stringifier for compact format
+            const compactJSON = JSON.stringify(buildingsData, (key, value) => {
+                return value;
+            }, 2).replace(
+                // Compact cost objects
+                /"cost":\s*\{\s*"gold":\s*(\d+),\s*"wheat":\s*(\d+),\s*"wood":\s*(\d+),\s*"stone":\s*(\d+)\s*\}/g,
+                '"cost": { "gold": $1, "wheat": $2, "wood": $3, "stone": $4 }'
+            ).replace(
+                // Compact size objects
+                /"size":\s*\{\s*"w":\s*(\d+),\s*"h":\s*(\d+)\s*\}/g,
+                '"size": { "w": $1, "h": $2 }'
+            ).replace(
+                // Compact shape arrays - make coordinate pairs single line
+                /\[\s*(\d+),\s*(\d+)\s*\]/g,
+                '[$1, $2]'
+            );
+
+            const output = `window.buildingsData = ${compactJSON};`;
             const blob = new Blob([output], { type: 'application/javascript' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
