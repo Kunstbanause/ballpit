@@ -106,59 +106,67 @@ function BuildingGrid({
         }),
 
         // Placed buildings
-        placedBuildings.map((building) =>
-          React.createElement(
-            React.Fragment,
-            { key: building.instanceId },
-            getShape(building.building).map((part, index) => {
-              const c = part[0] - 1;
-              const r = part[1] - 1;
-              const isFirstPart = index === 0;
+        placedBuildings.map((building) => {
+            const shape = getShape(building.building);
+            const width = Math.max(0, ...shape.map(p => p[0]));
+            const height = Math.max(0, ...shape.map(p => p[1]));
 
-              return React.createElement(
-                'div',
-                {
-                  key: `${building.instanceId}-${index}`,
-                  className: "absolute bg-gradient-to-br from-slate-600 to-slate-800 border border-slate-400/30 flex items-center justify-center z-20",
-                  style: {
-                    gridRow: building.row + r + 1,
-                    gridColumn: building.col + c + 1,
-                    width: '30px',
-                    height: '30px',
-                    cursor: 'move',
-                    background: building.building.color || 'linear-gradient(135deg, #475569, #1e293b)',
-                  },
-                  draggable: isFirstPart,
-                  onDragStart: isFirstPart ? (e) => handleDragStart(e, building.building, true, building.instanceId) : undefined,
-                  onContextMenu: isFirstPart ? (e) => {
-                    e.preventDefault();
-                    onRemove(building.instanceId);
-                  } : undefined,
-                  onMouseEnter: isFirstPart ? () => onBuildingHover(building.building.name) : undefined,
-                  onMouseLeave: isFirstPart ? () => onBuildingLeave() : undefined,
-                },
-                isFirstPart && React.createElement(
-                  'img',
-                  {
+            return React.createElement(
+                React.Fragment,
+                { key: building.instanceId },
+                
+                // Render interactive cells
+                shape.map((part, index) => {
+                const c = part[0] - 1;
+                const r = part[1] - 1;
+
+                return React.createElement(
+                    'div',
+                    {
+                    key: `${building.instanceId}-${index}`,
+                    className: "absolute bg-gradient-to-br from-slate-600 to-slate-800 border border-slate-400/30 z-20",
+                    style: {
+                        gridRow: building.row + r + 1,
+                        gridColumn: building.col + c + 1,
+                        width: '30px',
+                        height: '30px',
+                        cursor: 'move',
+                        background: building.building.color || 'linear-gradient(135deg, #475569, #1e293b)',
+                    },
+                    draggable: true,
+                    onDragStart: (e) => handleDragStart(e, building.building, true, building.instanceId),
+                    onContextMenu: (e) => {
+                        e.preventDefault();
+                        onRemove(building.instanceId);
+                    },
+                    onMouseEnter: () => onBuildingHover(building.building.name),
+                    onMouseLeave: () => onBuildingLeave(),
+                    }
+                );
+                }),
+
+                // Render the image on top
+                React.createElement('div', {
+                    style: {
+                        gridArea: `${building.row + 1} / ${building.col + 1} / span ${height} / span ${width}`,
+                        pointerEvents: 'none',
+                        zIndex: 22, 
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }
+                }, React.createElement('img', {
                     src: window.helpers.getBuildingIconUrl(building.building.name),
                     alt: building.building.name,
-                    className: "w-full h-full object-contain pointer-events-none",
-                    style: {
+                    className: "object-contain",
+                    style: { 
                         imageRendering: 'pixelated',
-                        width: `${Math.max(...getShape(building.building).map(p => p[0])) * 30}px`,
-                        height: `${Math.max(...getShape(building.building).map(p => p[1])) * 30}px`,
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                    },
-                    onError: (e) => { e.target.style.display = 'none'; }
-                  }
-                )
-              );
-            })
-          )
-        )
+                        width: `${width * 30}px`,
+                        height: `${height * 30}px`,
+                    }
+                }))
+            );
+        })
       )
     )
   );
