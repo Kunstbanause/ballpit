@@ -146,7 +146,7 @@ function BuildingGrid({
             'div',
             {
               key: building.instanceId,
-              className: "absolute bg-gradient-to-br from-slate-600 to-slate-800 rounded border border-slate-400/30 flex flex-col items-center justify-center p-1 cursor-move z-20",
+              className: "absolute bg-gradient-to-br from-slate-600 to-slate-800 rounded border border-slate-400/30 flex flex-col items-center justify-center cursor-move z-20",
               style: {
                 gridArea: `${building.row + 1} / ${building.col + 1} / span ${building.building.size?.h ?? 2} / span ${building.building.size?.w ?? 2}`,
                 width: `calc(${(building.building.size?.w ?? 2) * 30}px - 2px)`,
