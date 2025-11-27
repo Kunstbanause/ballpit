@@ -79,6 +79,30 @@ function BuildingGrid({
           });
         }),
 
+        // Preview image when dragging with rotation
+        previewPosition && draggedBuilding && React.createElement('div', {
+            style: {
+                gridArea: `${previewPosition.row + 1} / ${previewPosition.col + 1} / span ${Math.max(0, ...rotateShape(getShape(draggedBuilding), draggedBuildingRotation).map(p => p[1]))} / span ${Math.max(0, ...rotateShape(getShape(draggedBuilding), draggedBuildingRotation).map(p => p[0]))}`,
+                pointerEvents: 'none',
+                zIndex: 21,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transform: `rotate(${draggedBuildingRotation * 90}deg)`,
+                transformOrigin: 'center'
+            }
+        }, React.createElement('img', {
+            src: window.helpers.getBuildingIconUrl(draggedBuilding.name),
+            alt: draggedBuilding.name,
+            className: "object-contain",
+            style: {
+                imageRendering: 'pixelated',
+                opacity: 0.6,
+                width: `${Math.max(0, ...rotateShape(getShape(draggedBuilding), draggedBuildingRotation).map(p => p[0])) * 30}px`,
+                height: `${Math.max(0, ...rotateShape(getShape(draggedBuilding), draggedBuildingRotation).map(p => p[1])) * 30}px`,
+            }
+        })),
+
         // Placed buildings
         placedBuildings.map((building) => {
             const rotatedShape = rotateShape(getShape(building.building), building.rotation);
@@ -116,7 +140,9 @@ function BuildingGrid({
                         zIndex: 22,
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        transform: `rotate(${building.rotation * 90}deg)`,
+                        transformOrigin: 'center'
                     }
                 }, React.createElement('img', {
                     src: window.helpers.getBuildingIconUrl(building.building.name),
