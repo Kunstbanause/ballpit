@@ -327,13 +327,8 @@ function BuildingsViewer() {
   return React.createElement(
     'div', { className: "flex flex-col bg-slate-900", onDrop: handleGlobalDrop, onDragOver: handleGlobalDragOver },
     React.createElement(
-      'div', { className: "p-2 bg-slate-800 flex justify-between items-center" },
-      //React.createElement('h2', { className: "text-lg font-bold text-white" }, "Building Layout"),
-      React.createElement('button', {
-        className: "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors text-sm font-medium min-w-[120px]",
-        onClick: clearLayout,
-        onMouseLeave: () => setShowConfirm(false)
-      }, showConfirm ? "Really?" : "Clear Layout")
+      'div', { className: "p-2 bg-slate-800 flex justify-between items-center" }
+      //React.createElement('h2', { className: "text-lg font-bold text-white" }, "Building Layout")
     ),
     React.createElement(
       'div', { className: "flex flex-1 gap-0", style: { maxHeight: '80vh' } },
@@ -342,7 +337,7 @@ function BuildingsViewer() {
       ),
       React.createElement('div', { className: "w-1 bg-slate-700 hover:bg-blue-500 cursor-col-resize flex-shrink-0 transition-colors", onMouseDown: startResizing }),
       React.createElement('div', { className: "flex flex-col flex-1 bg-slate-900", style: { minWidth: 0 } },
-        React.createElement(BuildingGrid, { placedBuildings, previewPosition, error: placementError, handleDragOver, handleDragLeave, handleDrop, handleDragStart, onBuildingHover: setHoveredBuilding, onBuildingLeave: () => setHoveredBuilding(null), getOccupiedPositions: getOccupiedPos, draggedBuilding, wasDraggedFromGrid, draggedInstanceId, draggedBuildingRotation, rotateShape, onRemove: removeBuilding })
+        React.createElement(BuildingGrid, { placedBuildings, previewPosition, error: placementError, handleDragOver, handleDragLeave, handleDrop, handleDragStart, onBuildingHover: setHoveredBuilding, onBuildingLeave: () => setHoveredBuilding(null), getOccupiedPositions: getOccupiedPos, draggedBuilding, wasDraggedFromGrid, draggedInstanceId, draggedBuildingRotation, rotateShape, onRemove: removeBuilding, clearLayout: clearLayout, showConfirm: showConfirm, setShowConfirm: setShowConfirm })
       ),
       hoveredBuildingData && !draggedBuilding && React.createElement(BuildingTooltip, { selectedBuildingData: hoveredBuildingData, mousePosition })
     )

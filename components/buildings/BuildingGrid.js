@@ -15,7 +15,10 @@ function BuildingGrid({
   wasDraggedFromGrid,
   draggedInstanceId,
   draggedBuildingRotation, // New prop
-  rotateShape // New prop
+  rotateShape, // New prop
+  clearLayout,
+  showConfirm,
+  setShowConfirm
 }) {
 
   const getShape = (building) => {
@@ -34,7 +37,7 @@ function BuildingGrid({
   };
 
   return React.createElement(
-    'div', { className: "flex flex-col flex-1 bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 overflow-hidden" },
+    'div', { className: "flex flex-col flex-1 bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 overflow-hidden relative" },
     error && React.createElement('div', { className: "bg-red-500 text-white text-center p-2 rounded-md mb-2 flex-shrink-0" }, error),
     React.createElement(
       'div', { className: "bg-slate-800 rounded-lg p-2 border-2 border-dashed border-slate-600 overflow-auto flex-1 min-h-0", onDragOver: handleDragOver, onDragLeave: handleDragLeave, onDrop: handleDrop },
@@ -110,7 +113,7 @@ function BuildingGrid({
                     style: {
                         gridArea: `${building.row + 1} / ${building.col + 1} / span ${height} / span ${width}`,
                         pointerEvents: 'none',
-                        zIndex: 22, 
+                        zIndex: 22,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
@@ -119,14 +122,22 @@ function BuildingGrid({
                     src: window.helpers.getBuildingIconUrl(building.building.name),
                     alt: building.building.name,
                     className: "object-contain",
-                    style: { 
+                    style: {
                         imageRendering: 'pixelated',
                         width: `${width * 30}px`,
                         height: `${height * 30}px`,
                     }
                 }))
             );
-        })
+        }),
+
+        // Floating clear layout button at the bottom right of the grid
+        React.createElement('button', {
+          className: "absolute bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors text-sm font-medium min-w-[120px] z-40",
+          onClick: clearLayout,
+          onMouseLeave: () => setShowConfirm(false),
+          style: { bottom: '10px', right: '10px' }
+        }, showConfirm ? "Really?" : "Clear Layout")
       )
     )
   );
