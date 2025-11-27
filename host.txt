@@ -1,3 +1,10 @@
 surge --domain ballpit.surge.sh
 
 surge --domain ballpit2.surge.sh
+
+
+
+#local
+npx http-server . -p 8080 -c-1
+
+npx http-server . -p 8080 -c-1 && firefox http://localhost:8080
