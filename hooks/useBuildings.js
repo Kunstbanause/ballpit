@@ -4,14 +4,15 @@ window.globalBuildingLayout = window.globalBuildingLayout || {
   occupiedCells: Array(30 * 40).fill(false)
 };
 
-// Helper function to rotate a building's shape
+// Helper function to rotate a building's shape (clockwise)
 const rotateShape = (shape, rotation) => {
   if (!shape || rotation === 0) return shape;
 
   let newShape = [...shape];
   for (let i = 0; i < rotation; i++) {
     const currentWidth = Math.max(0, ...newShape.map(p => p[0]));
-    newShape = newShape.map(p => [p[1], currentWidth - p[0] + 1]);
+    const currentHeight = Math.max(0, ...newShape.map(p => p[1]));
+    newShape = newShape.map(p => [currentHeight - p[1] + 1, p[0]]); // Clockwise rotation
   }
   return newShape;
 };
