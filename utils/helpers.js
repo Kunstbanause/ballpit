@@ -15,7 +15,7 @@ window.helpers = {
   getBuildingIconUrl: (name) => {
     const slug = window.helpers.getBuildingIconSlug(name);
     if (!slug) return '';
-    return `icons_build/${slug}.jpg`;
+    return `icons_build/${slug}.png`;
   },
 
   getColor: (element) => {
