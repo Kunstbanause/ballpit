@@ -303,7 +303,7 @@ function BuildingsViewer() {
       ),
       React.createElement('div', { className: "w-1 bg-slate-700 hover:bg-blue-500 cursor-col-resize flex-shrink-0 transition-colors", onMouseDown: startResizing }),
       React.createElement('div', { className: "flex flex-col flex-1 bg-slate-900", style: { minWidth: 0 } },
-        React.createElement(BuildingGrid, { placedBuildings, previewPosition, error: placementError, handleDragOver, handleDragLeave, handleDrop, handleDragStart, onBuildingHover: setHoveredBuilding, onBuildingLeave: () => setHoveredBuilding(null), getOccupiedPositions: getOccupiedPos, draggedBuilding, wasDraggedFromGrid, draggedInstanceId, draggedBuildingRotation, rotateShape })
+        React.createElement(BuildingGrid, { placedBuildings, previewPosition, error: placementError, handleDragOver, handleDragLeave, handleDrop, handleDragStart, onBuildingHover: setHoveredBuilding, onBuildingLeave: () => setHoveredBuilding(null), getOccupiedPositions: getOccupiedPos, draggedBuilding, wasDraggedFromGrid, draggedInstanceId, draggedBuildingRotation, rotateShape, onRemove: removeBuilding })
       ),
       hoveredBuildingData && !draggedBuilding && React.createElement(BuildingTooltip, { selectedBuildingData: hoveredBuildingData, mousePosition })
     )
