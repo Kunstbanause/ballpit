@@ -118,6 +118,28 @@ function BuildingsViewer() {
 
   const handleGlobalDragOver = (e) => e.preventDefault();
 
+  const clearLayout = () => {
+    if (window.confirm('Are you sure you want to clear the entire layout? This cannot be undone.')) {
+      setPlacedBuildings([]);
+      setOccupiedCells(Array(30 * 40).fill(false));
+
+      // Clear localStorage
+      localStorage.removeItem('buildingLayout');
+
+      // Clear URL hash if it's related to buildings
+      const currentHash = window.location.hash.slice(1);
+      if (currentHash === 'buildings' || currentHash.startsWith('buildings-')) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+
+      // Update global layout
+      window.globalBuildingLayout = {
+        placedBuildings: [],
+        occupiedCells: Array(30 * 40).fill(false)
+      };
+    }
+  };
+
   React.useEffect(() => {
     if (placementError) {
       const timer = setTimeout(() => setPlacementError(null), 3000);
@@ -296,6 +318,14 @@ function BuildingsViewer() {
 
   return React.createElement(
     'div', { className: "flex flex-col bg-slate-900", onDrop: handleGlobalDrop, onDragOver: handleGlobalDragOver },
+    React.createElement(
+      'div', { className: "p-2 bg-slate-800 flex justify-between items-center" },
+      React.createElement('h2', { className: "text-lg font-bold text-white" }, "Building Layout"),
+      React.createElement('button', {
+        className: "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors text-sm font-medium",
+        onClick: clearLayout
+      }, "Clear Layout")
+    ),
     React.createElement(
       'div', { className: "flex flex-1 gap-0", style: { maxHeight: '80vh' } },
       React.createElement('div', { className: "bg-slate-800 border-r border-slate-700 flex flex-col", style: { width: leftColWidth } },
