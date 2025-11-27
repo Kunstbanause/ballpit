@@ -69,7 +69,7 @@ function BuildingList({
         ) :
         React.createElement(
           'div',
-          { className: "space-y-2 p-2" },
+          { className: "p-2" },
           Object.entries(filteredCategories).map(([category, items]) =>
             React.createElement(
               'div',
@@ -88,7 +88,7 @@ function BuildingList({
                         onDragStartFromList(e, item, false, null); // not from grid, no instance ID
                       }
                     },
-                    className: `p-3 cursor-pointer transition-colors rounded-md mb-2 ${currentHovered === item.name
+                    className: `p-3 cursor-pointer transition-colors rounded-md ${currentHovered === item.name
                       ? 'bg-blue-900 bg-opacity-50 border-l-4 border-blue-500'
                       : 'bg-slate-800 hover:bg-slate-700 border-l-4 border-transparent'
                       }`
