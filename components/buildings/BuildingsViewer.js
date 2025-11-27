@@ -328,9 +328,9 @@ function BuildingsViewer() {
     'div', { className: "flex flex-col bg-slate-900", onDrop: handleGlobalDrop, onDragOver: handleGlobalDragOver },
     React.createElement(
       'div', { className: "p-2 bg-slate-800 flex justify-between items-center" },
-      React.createElement('h2', { className: "text-lg font-bold text-white" }, "Building Layout"),
+      //React.createElement('h2', { className: "text-lg font-bold text-white" }, "Building Layout"),
       React.createElement('button', {
-        className: "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors text-sm font-medium",
+        className: "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors text-sm font-medium min-w-[120px]",
         onClick: clearLayout,
         onMouseLeave: () => setShowConfirm(false)
       }, showConfirm ? "Really?" : "Clear Layout")
