@@ -48,6 +48,7 @@ function BuildingsViewer() {
   const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
   const [placementError, setPlacementError] = React.useState(null);
   const [leftColWidth, setLeftColWidth] = React.useState(300);
+  const [showConfirm, setShowConfirm] = React.useState(false);
   const isResizing = React.useRef(false);
 
   const {
@@ -119,7 +120,11 @@ function BuildingsViewer() {
   const handleGlobalDragOver = (e) => e.preventDefault();
 
   const clearLayout = () => {
-    if (window.confirm('Are you sure you want to clear the entire layout? This cannot be undone.')) {
+    if (!showConfirm) {
+      // First click - show confirmation text
+      setShowConfirm(true);
+    } else {
+      // Second confirmed click - clear the layout
       setPlacedBuildings([]);
       setOccupiedCells(Array(30 * 40).fill(false));
 
@@ -137,6 +142,9 @@ function BuildingsViewer() {
         placedBuildings: [],
         occupiedCells: Array(30 * 40).fill(false)
       };
+
+      // Reset confirmation state
+      setShowConfirm(false);
     }
   };
 
@@ -323,8 +331,9 @@ function BuildingsViewer() {
       React.createElement('h2', { className: "text-lg font-bold text-white" }, "Building Layout"),
       React.createElement('button', {
         className: "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors text-sm font-medium",
-        onClick: clearLayout
-      }, "Clear Layout")
+        onClick: clearLayout,
+        onMouseLeave: () => setShowConfirm(false)
+      }, showConfirm ? "Really?" : "Clear Layout")
     ),
     React.createElement(
       'div', { className: "flex flex-1 gap-0", style: { maxHeight: '80vh' } },
